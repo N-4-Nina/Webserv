@@ -16,6 +16,7 @@
 
 typedef std::string             str_t;
 typedef std::pair<str_t, str_t> strPair;
+typedef	std::map<str_t, str_t>	strMap;
 
-#define CRLF            \r\n
-#define SERVER_VERSION  HTTP/1.1
+#define CRLF            "\r\n"
+#define SERVER_VERSION  "HTTP/1.1"

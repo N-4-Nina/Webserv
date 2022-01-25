@@ -18,40 +18,68 @@ Request::~Request(void)
 {
 }
 
-int	Request::parse_TopLine(str_t topLine)
+int	Request::parse_QueryString(size_t start)
+{
+	str_t line, query = _ressource.substr(start + 1, _ressource.size() - start);
+	_ressource = _ressource.substr(0, start);
+	int i = 0;
+	while ((line = newLine(query, "&")).size())
+	{
+		/*	PARAMS STILL NEED TO BE DECODED (FIND % AND CONVERT IN ASCII)
+			THAT MAY OR MAY NOT BE THE PLACE TO DO IT 
+			(MY GUESS IS IT IS)
+
+			ALSO, SINCE WE USE A MAP, PARAMS WITH THE SAME NAME ARE OVERWRITTEN.
+			THIS MIGHT OR MIGHT NOT BE A PROBLEM.
+		*/
+		strPair p;
+		p.first = newLine(line, "=");
+		p.second = line;
+		_queryParam.insert(p);
+		i++;
+	}
+	return (0);
+}
+
+size_t	Request::parse_Url(str_t const &line)
+{
+	size_t pos = line.find('/', 0), end = pos;
+	for (; !isspace(line[end]); end++);
+
+	_ressource = line.substr(pos, end-pos);
+
+	size_t q;
+	if ((q  = _ressource.find("?")) != _ressource.npos)
+		parse_QueryString(q);
+	
+	for (; isspace(line[end]); end++);
+	return (end);
+}
+
+int	Request::parse_TopLine(str_t line)
 {
 	size_t			found = R_DELETE + 1;
 	static	str_t	strTypes[3] = {"GET", "POST", "DELETE"};
 
 	for (size_t i = R_GET; i <= R_DELETE; i++)
 	{
-		if (topLine.find(strTypes[i]) != topLine.npos)
+		if (line.find(strTypes[i]) != line.npos)
 			found = i;
 	}
 	if (found == R_DELETE + 1)
 		return (1);
 	_type = found;
 
-	size_t	pos = strTypes[found].length();
-	for (; isspace(topLine[pos]); pos++);
-	for (; !isspace(topLine[pos]); pos++);
-	_ressource = topLine.substr(strTypes[found].length(), pos);
+	size_t pos = parse_Url(line);
 
-	for (; isspace(topLine[pos]); pos++);
-	size_t	versionPos = pos;
-	for (; !isspace(topLine[versionPos]); versionPos++);
-	if (topLine.substr(pos, versionPos) != "HTTP/1.1")
+	size_t	end = pos;
+	for (; !isspace(line[end]); end++);
+	if (line.substr(pos, end) != SERVER_VERSION)
 		return (2);
 	return (0);
 }
 
-str_t	Request::newLine(str_t &in)
-{
-	size_t	pos = in.find("CRLF");
-	str_t	out = in.substr(0, pos);
-	in = in.substr(pos + 2, in.npos);
-	return (out);
-}
+
 
 int	Request::parse(str_t input)
 {
@@ -67,6 +95,7 @@ int	Request::parse(str_t input)
 		size_t	limit = line.find(':');
 		p.first = str_toUpper(line.substr(0, limit++));
 		while (isspace(line[limit++]));
+		limit--;
 		p.second = line.substr(limit, line.npos);
 		_headers.insert(p);
 	}

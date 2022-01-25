@@ -15,8 +15,8 @@ int main(void)
 {
     int listenfd, connfd, n;
     struct sockaddr_in servaddr;
-    u_int8_t            buff[MAXLINE+1];
-    u_int8_t            recvline[MAXLINE+1];
+    char            buff[MAXLINE+1];
+    char            recvline[MAXLINE+1];
     std::map<std::string, std::string> req_headers;
 
 
@@ -48,13 +48,13 @@ int main(void)
 
         while ((n = read(connfd, recvline, MAXLINE-1)) >  0)
         {
-            input + str_t(recvline);
+            input = input + str_t(recvline);
             if (recvline[n-1] == '\n')
                 break ;
         }
         if (n < 0)
             fatal("read error");
-        
+        req.parse(input);
         snprintf((char*)buff, sizeof(buff), "HTTP/1.1 200 OK\r\n\r\n<!DOCTYPE html>\n<head>\n</head>\n<body>\n<div>Hello There :)</div>\n<img src=\"image.jpg\"/>\n</body>\n</html>");
 
         

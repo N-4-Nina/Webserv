@@ -20,13 +20,16 @@ class Request
 		~Request(void);
 		int	parse(str_t input);
 	private:
-		//setType();
-		int		parse_TopLine(str_t topLine);
-		str_t	newLine(str_t &in);
-		unsigned	int			_type;
-		std::map<str_t, str_t>	_headers;
-		str_t					_ressource;		//should maybe be called _route...
 
+		int			parse_QueryString(size_t start);
+		size_t		parse_Url(str_t const &line);
+		int			parse_TopLine(str_t line);
+
+		unsigned	int			_type;
+		strMap					_headers;
+		//URL
+		str_t					_ressource;		//should maybe be called _route...
+		strMap					_queryParam;
 
 };
 
