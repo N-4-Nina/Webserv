@@ -4,7 +4,6 @@ str_t       newLine(str_t &in, str_t toFind = CRLF)
 {
 	size_t	pos = in.find(toFind);
 	str_t	out = in.substr(0, pos);
-    int newSize = in.size() - (pos + toFind.size());
     if (pos == in.npos)
         in = "";
     else

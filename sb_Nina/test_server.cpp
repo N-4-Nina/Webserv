@@ -2,7 +2,7 @@
 #include "../include/Request.hpp"
 
 #define MAXLINE 4096
-#define SERVER_PORT 8000
+#define DEFAULT_PORT 8002
 
 void    fatal(std::string str)
 {
@@ -11,20 +11,24 @@ void    fatal(std::string str)
 }
 
 
-int main(void)
+
+
+int main(int argc, char **argv)
 {
     int listenfd, connfd, n;
+    int port = DEFAULT_PORT;
     struct sockaddr_in servaddr;
     char            buff[MAXLINE+1];
     char            recvline[MAXLINE+1];
-    std::map<std::string, std::string> req_headers;
+    strMap          req_headers;
 
-
+    if (argc == 2)
+        port = atoi(argv[1]);
     if ((listenfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         fatal("could not create socket");
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr.sin_port = htons(SERVER_PORT);
+    servaddr.sin_port = htons(port);
 
     if ((bind(listenfd, (sockaddr*) &servaddr, sizeof(servaddr))) < 0)
         fatal("could not bind");
@@ -42,7 +46,7 @@ int main(void)
         std::ifstream       page;
         std::stringstream   buf;
 
-        std::cout << "Waiting for connections on port " << SERVER_PORT << "\n";
+        std::cout << "Waiting for connections on port " << port << "\n";
         connfd = accept(listenfd, &incoming, &incSize);
         memset(recvline, 0, MAXLINE);
 
@@ -54,10 +58,10 @@ int main(void)
         }
         if (n < 0)
             fatal("read error");
+        std::cout << input;
         req.parse(input);
         snprintf((char*)buff, sizeof(buff), "HTTP/1.1 200 OK\r\n\r\n<!DOCTYPE html>\n<head>\n</head>\n<body>\n<div>Hello There :)</div>\n<img src=\"image.jpg\"/>\n</body>\n</html>");
 
-        
         page.open ("./website/home.html", std::ifstream::in);
         buf << page.rdbuf();
         const std::string& tmp = buf.str();   
