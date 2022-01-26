@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/sb_Nina/a.out",
-            "args": ["4231"],
+            "args": ["4211"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
