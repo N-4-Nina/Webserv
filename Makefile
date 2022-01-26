@@ -7,6 +7,8 @@ NAME		= webserv
 # source files
 include srcs.mk
 
+# SRCS = main.cpp
+
 # compilation parameters
 CC			= clang++
 CCFLAGS		= -Wall -Werror -Wextra -std=c++98
@@ -33,6 +35,7 @@ $(NAME): $(OBJDIR) $(OBJ)
 # create an obj/ directory with all the *.o files
 $(OBJDIR):
 	mkdir -p $@
+	mkdir -p $@subDir
 
 # compile the *.o
 $(OBJDIR)%.o: $(SRCDIR)%.cpp
