@@ -50,7 +50,7 @@ fclean: clean
 	@rm -rf $(NAME)
 	@echo "[ "$(B_PURPLE)"deleted"$(_END) "]" $(B_WHITE)"\t\t"$(NAME)$(_END)
 
-re:
+re: find_srcs
 	@$(MAKE) -s fclean
 	@$(MAKE) -s
 
