@@ -14,6 +14,7 @@
 #include <sstream>
 #include <map>
 #include <algorithm>
+#include <vector>
 
 typedef std::string             str_t;
 typedef std::pair<str_t, str_t> strPair;
