@@ -1,6 +1,8 @@
 SRCS = \
-test3.cpp\
-test.cpp\
+EvMa.cpp\
+str_manips.cpp\
+EvMa.hpp\
 main.cpp\
-subDir/lol.cpp\
-test2.cpp\
+Response.cpp\
+Request.cpp\
+\

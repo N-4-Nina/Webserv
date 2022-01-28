@@ -9,6 +9,9 @@ include srcs.mk
 
 # SRCS = main.cpp
 
+# for define
+WORK_DIR	= -D DIR=\"$(shell pwd)\"
+
 # compilation parameters
 CC			= clang++
 CCFLAGS		= -Wall -Werror -Wextra -std=c++98
@@ -25,12 +28,12 @@ OBJ = $(addprefix $(OBJDIR),$(SRCS:.cpp=.o))
 all:
 	@printf "[ "$(B_GREEN)"building"$(_END) 
 	@printf " ] \t|" $(B_WHITE)"\t\t"$(NAME)$(_END) 
-	@$(MAKE) $(NAME)
+	$(MAKE) $(NAME)
 	@printf $(_END)$(B_WHITE)"| \n[ "$(B_GREEN)$(NAME)$(_END)$(B_WHITE)" created with success ]\n"$(_END)
 
 
 $(NAME): $(OBJDIR) $(OBJ)
-	$(CC) $(CCFLAGS) $(INC) $(OBJ) -o $(NAME)
+	$(CC) $(CCFLAGS) $(WORK_DIR) $(INC) $(OBJ) -o $(NAME)
 
 # create an obj/ directory with all the *.o files
 $(OBJDIR):
@@ -39,7 +42,7 @@ $(OBJDIR):
 
 # compile the *.o
 $(OBJDIR)%.o: $(SRCDIR)%.cpp
-	$(CC) $(CCFLAGS) $(INC) -c $< -o $@
+	$(CC) $(CCFLAGS) $(WORK_DIR) $(INC) -c $< -o $@
 	@printf $(BK_GREEN)" "$(_END)
 
 clean:
