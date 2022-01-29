@@ -2,23 +2,21 @@
 # define LOCATION_HPP
 
 # include "../include/common.hpp"
+# include <string>
 
 class Location
 {
 	public:
 		Location(str_t block);
+		Location(const Location &rhs);
+		Location &operator=(const Location &rhs);
 		~Location();
 
-		void set_autoindex(str_t line);
-		void set_index(str_t line);
-		void set_fastcgi_pass(str_t line);
-		void set_fastcgi_param(str_t line);
-
-		str_t 				get_autoindex() const;
-		std::list<str_t>	get_index() const;
-		str_t				get_fastcgi_pass() const;
-		strMap				get_fastcgi_param() const;
-		str_t				get_path() const;
+		str_t 				autoindex() const;
+		std::list<str_t>	index() const;
+		str_t				fastcgi_pass() const;
+		strMap				fastcgi_param() const;
+		str_t				path() const;
 
 		str_t search_config(str_t config, str_t key);
 
@@ -29,9 +27,12 @@ class Location
 		strMap				_fastcgi_param;
 		str_t				_path;
 		
+		void set_autoindex(str_t line);
+		void set_index(str_t line);
+		void set_fastcgi_pass(str_t line);
+		void set_fastcgi_param(str_t line);
+
 		Location();
-		Location(const Location &rhs);
-		Location &operator=(const Location &rhs);
 };
 
 std::ostream &operator<<(std::ostream &os, const Location &src);

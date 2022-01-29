@@ -17,6 +17,17 @@ Location::Location(str_t block)
     set_fastcgi_param(search_config(block, "fastcgi_param"));
 }
 
+Location::Location(const Location &ref)
+{
+    *this = ref;
+}
+
+Location &Location::operator=(const Location &ref)
+{
+    *this = ref;
+    return (*this);
+}
+
 Location::~Location() {}
 
 void Location::set_autoindex(str_t line)
@@ -84,20 +95,19 @@ void Location::set_fastcgi_param(str_t line)
     this->_fastcgi_param.insert(std::pair<str_t, str_t>(line.substr(space + 1, line.find(' ', space + 1)), line.substr(space2 + 1, end)));
 }
 
-
 /*
 * Getters
 */
 
-str_t Location::get_autoindex() const { return (this->_autoindex); }
+str_t Location::autoindex() const { return (this->_autoindex); }
 
-std::list<str_t> Location::get_index() const { return (this->_index); }
+std::list<str_t> Location::index() const { return (this->_index); }
 
-str_t Location::get_fastcgi_pass() const { return (this->_fastcgi_pass); }
+str_t Location::fastcgi_pass() const { return (this->_fastcgi_pass); }
 
-strMap Location::get_fastcgi_param() const { return (this->_fastcgi_param); }
+strMap Location::fastcgi_param() const { return (this->_fastcgi_param); }
 
-str_t Location::get_path() const { return (this->_path); }
+str_t Location::path() const { return (this->_path); }
 
 /*
 * Member functions
