@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cerrno>
 #include <sys/epoll.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -29,3 +30,4 @@ void    fatal(str_t str);
 
 #define CRLF            "\r\n"
 #define SERVER_VERSION  "HTTP/1.1"
+#define MAXREAD			4096

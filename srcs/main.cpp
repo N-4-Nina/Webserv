@@ -2,7 +2,7 @@
 #include "../include/Request.hpp"
 #include "EvMa.hpp"
 
-#define MAXLINE			4096
+
 #define DEFAULT_PORT	8002
 #define MAX_EVENTS		5
 
@@ -15,24 +15,16 @@ void    fatal(str_t str)
 
 int main(int argc, char **argv)
 {
-    int listenfd, connfd, n;
-    int port = DEFAULT_PORT;
-    
-    char            buff[MAXLINE+1];
-    char            recvline[MAXLINE+1];
     strMap          req_headers;
 
-	EvMa	ev;
+
+    if (argc != 2)
+        fatal("Usage: ./webserv [port] (until config file)"); //using user defined port
 
 
-	if (argc == 2)
-        port = atoi(argv[1]); //using user defined port
+    EvMa	ev(argv[1]);
 
-    
-
-
-	
-    
+    ev.loop();
     // for (;;)
     // {
     //     Request req;
@@ -52,16 +44,7 @@ int main(int argc, char **argv)
     //     	connfd = accept(listenfd, &incoming, &incSize);
     //     	memset(recvline, 0, MAXLINE);
 
-    //     	while ((n = read(connfd, recvline, MAXLINE-1)) >  0)
-    //     	{
-    //     	    input = input + str_t(recvline);
-    //     	    if (recvline[n-1] == '\n')
-    //     	        break ;
-    //     	}
-    //     	if (n < 0)
-    //     	    fatal("read error");
-    //     	std::cout << input;
-    //     	req.parse(input);
+
     //     	snprintf((char*)buff, sizeof(buff), "HTTP/1.1 200 \r\n\r\n<!OKDOCTYPE html>\n<head>\n</head>\n<body>\n<div>Hello There :)</div>\n<img src=\"image.jpg\"/>\n</body>\n</html>");
 
     //     	page.open ("./website/home.html", std::ifstream::in);

@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/sb_Nina/a.out",
+            "program": "${workspaceFolder}/webserv",
             "args": ["4211"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
