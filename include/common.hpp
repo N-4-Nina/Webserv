@@ -1,23 +1,25 @@
 #pragma once
 
+#include <algorithm>
 #include <cerrno>
-#include <sys/epoll.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <string>
-#include <string.h>
-#include <iostream>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 #include <fstream>
-#include <sstream>
+#include <iostream>
+#include <list>
 #include <map>
 #include <netdb.h>
-#include <algorithm>
+#include <netinet/in.h>
+#include <sstream>
+#include <string>
+#include <string.h>
+#include <sys/epoll.h>
+#include <sys/time.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <vector>
-#include <list>
+
 
 typedef std::string             str_t;
 typedef std::pair<str_t, str_t> strPair;
@@ -25,6 +27,7 @@ typedef	std::map<str_t, str_t>	strMap;
 typedef struct epoll_event      event_t;
 typedef struct addrinfo         adrinfo_t;
 
+unsigned long	time_in_ms(void);
 
 void    fatal(str_t str);
 

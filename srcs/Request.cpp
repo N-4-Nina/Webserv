@@ -6,10 +6,10 @@ Request::Request(str_t input, int fd) : _fd((fd))
 	parse(input);
 }
 
-Request::Request(const Request &ref)
-: _fd(ref._fd), _type(ref._type), _headers(ref._headers),
-_ressource(ref._ressource), _queryParam(ref._queryParam)
-{}
+// Request::Request(const Request &ref)
+// : _fd(ref._fd), _type(ref._type), _headers(ref._headers),
+// _ressource(ref._ressource), _queryParam(ref._queryParam)
+// {}
 
 Request	&Request::operator=(const Request &ref)
 {

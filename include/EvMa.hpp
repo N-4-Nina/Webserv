@@ -6,23 +6,24 @@
 class EvMa
 {
 	public:
-		EvMa(const char *port = "8000", int max_event = 5);
+		EvMa(const char *port = "8000", int max_event = 1024);
 		//EvMa(const EvMa &ref);				a implementer
 		//EvMa	&operator=(const EvMa &ref);
 		~EvMa(void);
 
 		void	loop();
 	private:
-		char*	_port;
 		int		_portNb;
 		//int		_socket;
 		int		_socket_fd;
 		int		_epoll_fd;
 		int		_max_event;
 		int		_event_nb;
+
+		std::map<time_t, int>	_timeouts;
 		event_t	_event;	//rename it _tmp_event
 		event_t	*_events;
-		std::allocator<event_t> _alloc;
+
 
 		void	init_socket( );
 		int		unlock_socket(int fd);

@@ -6,7 +6,7 @@ EvMa::EvMa(const char *port, int max_event)
 {
 	/* should put all of this in init list -- also put missing stuff (nb_events..)*/
 
-	_port = strdup(port);	// duplicate because default value
+	//_port = strdup(port);	// duplicate because default value
 	_portNb = atoi(port);
 	_max_event = max_event;
 	_event_nb = 0;
@@ -69,8 +69,9 @@ void	EvMa::init_epoll()
 	_epoll_fd = epoll_create1(0);
 	if (_epoll_fd == -1)
 		fatal("epoll creation failed");
-	//_alloc.allocate(_max_event, _events);
+
 	_events = static_cast<event_t*>(calloc(_max_event, sizeof(event_t)));
+
 	_event.data.fd = _socket_fd;
 	_event.events = EPOLLIN | EPOLLET;
 	if (epoll_ctl (_epoll_fd, EPOLL_CTL_ADD, _socket_fd, &_event) == -1) /*intialize interest list*/
@@ -117,6 +118,7 @@ int	EvMa::read_data(int i)
 	str_t			input;
 	int 			n;
 
+	_timeouts[i] = time_in_ms();
 	while ((n = read(_events[i].data.fd, recvline, MAXREAD-1)) >  0)
     {
         input = input + str_t(recvline);
@@ -134,6 +136,7 @@ int	EvMa::read_data(int i)
 						// It mainly depends on what infos we need to respond (spoiler: we probably need a lot.)
 
 
+
 	//for testing/ cohesion purposes, i copied this ugly thing:
 
 	std::ifstream       page;
@@ -147,16 +150,37 @@ int	EvMa::read_data(int i)
 	snprintf((char*)buff, sizeof(buff), "HTTP/1.1 200 \r\n\r\n<!OKDOCTYPE html>\n<head>\n</head>\n<body>\n<div>Hello There :)</div>\n<img src=\"image.jpg\"/>\n</body>\n</html>");
 
     write(_events[i].data.fd, buff, strlen(buff));
-   	close(_events[i].data.fd);
+   	//close(_events[i].data.fd);
 	return (0); 
 
+}
+
+int	timeout()
+{
+	if (!_timeouts.size())				//we do not have any open connections and don't need any timeout
+		return (-1);
+	int to = (_timeouts.begin()->first + 60000) -  time_in_ms();
+	if (to > 0)
+		return (to);
+	return (-1);
+}
+
+void	disconnect_socket()
+{
+	close(_timeouts.begin()->second);
+	_timeouts.erase(_timeouts.begin());
 }
 
 void	EvMa::loop()
 {
 	for (;;)
 	{
-		_event_nb = epoll_wait(_epoll_fd, _events, _max_event, -1); //-1 for timeout means it will block unedfinitely. check if that's the behaviour we want.
+		_event_nb = epoll_wait(_epoll_fd, _events, _max_event, timeout()); //-1 for timeout means it will block unedfinitely. check if that's the behaviour we want.
+		if (!_event_nb)
+		{
+			disconnect_socket();
+			continue;
+		}
 		for (int i = 0; i < _event_nb; i++)
 		{
 			//HANDLE ERROR WITH & BITWISE OP (why tho). if error, continue

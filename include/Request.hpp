@@ -14,7 +14,7 @@ class Request
 {
 	public:
 		Request(str_t input, int fd);
-		Request(const Request &ref);
+		//Request(const Request &ref);
 		Request	&operator=(const Request &ref);
 		~Request(void);
 		int	parse(str_t input);
