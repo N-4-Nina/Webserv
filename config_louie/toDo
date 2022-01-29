@@ -1,4 +1,4 @@
-🔘 transformer la .conf recuperee pour en faire une string a passer a la class Config
+🔘 transformer la .conf recuperee pour en faire une string a passer a la class Config (on a besoin de quelque chose du genre : server { listen 8080; server_name localhost server_1; error_page 404 html/404; client_max_body_size 2000000000; index index.html; root /; autoindex off; location / { index index.html; autoindex on; } })
 
 🔘 creer un object Config non vide
 
