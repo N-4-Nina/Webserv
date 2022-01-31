@@ -9,7 +9,6 @@ class Location
 	public:
 		Location(str_t block);
 		Location(const Location &rhs);
-		Location &operator=(const Location &rhs);
 		~Location();
 
 		str_t 				autoindex() const;

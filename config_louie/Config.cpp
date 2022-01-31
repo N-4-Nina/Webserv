@@ -5,7 +5,7 @@ Config::Config(str_t config)
     size_t pos = -1;
     str_t tmp;
 
-    while ((pos = config.find("listen", pos + 1) != str_t::npos))
+    while ((pos = config.find("listen", pos + 1)) != str_t::npos)
     {
         tmp = config.substr(pos - 6);
         set_host_port(search_config(tmp, "listen"));
@@ -21,12 +21,6 @@ Config::Config(str_t config)
 Config::Config(const Config &ref)
 {
     *this = ref;
-}
-
-Config &Config::operator=(const Config &ref)
-{
-    *this = ref;
-    return (*this);
 }
 
 Config::~Config(void) {}
@@ -238,6 +232,7 @@ void Config::set_location(str_t line)
     }
 }
 
+// not sur if mymetypes are mandatory
 // void Config::set_mimetypes(strMap mimetypes)
 // {
 //     this->_mimetypes = mimetypes;
@@ -265,6 +260,7 @@ str_t Config::autoindex() const { return (this->_autoindex); }
 
 std::vector<Location> Config::location() const { return (this->_location); }
 
+// not sur if mymetypes are mandatory
 // strMap Config::mimetypes() const { return (this->_mimetypes); }
 
 /*
@@ -351,4 +347,48 @@ std::vector<size_t> Config::search_location(str_t config)
         i = i + 2;
     }
     return (locations);
+}
+
+/*
+* Non-member functions
+*/
+
+std::ostream& operator<<(std::ostream& os, Config const& src)
+{
+    os << std::endl;
+    os << "<----- CONFIGURATION ----->" << std::endl << std::endl;
+
+    os << "host: " << src.host() << std::endl;
+    
+    os << "ports: " << std::endl;
+    std::vector<int> ports = src.port();
+    for (std::vector<int>::iterator it = ports.begin() ; it != ports.end() ; ++it)
+        os << "\t- " << *it << std::endl;
+    
+    os << "server_name: " << std::endl;
+    std::vector<std::string> names = src.server_name();
+    for (std::vector<std::string>::iterator it = names.begin() ; it != names.end() ; ++it)
+        os << "\t- " << *it << std::endl;
+    
+    os << "error_page: " << std::endl;
+    strMap error_pages = src.error_page();
+    if (error_pages.empty() == false)
+        for (strMap::const_iterator it = error_pages.begin() ; it != error_pages.end() ; ++it)
+            os << "\t-" << it->first << " " << it->second << std::endl;
+
+    os << "client_max_body_size: " << src.client_max() << std::endl;
+    
+    os << "root: " << src.root() << std::endl;
+    
+    os << "index: " << std::endl;
+    std::list<std::string> index = src.index();
+    for (std::list<std::string>::iterator it = index.begin() ; it != index.end() ; ++it)
+        os << "\t- " << *it << std::endl;
+    
+    os << "location: " << std::endl;
+    std::vector<Location> location = src.location();
+    for (std::vector<Location>::iterator it = location.begin() ; it != location.end() ; ++it)
+        os << *it << std::endl;
+    
+    return (os);
 }

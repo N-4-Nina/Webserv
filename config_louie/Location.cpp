@@ -22,12 +22,6 @@ Location::Location(const Location &ref)
     *this = ref;
 }
 
-Location &Location::operator=(const Location &ref)
-{
-    *this = ref;
-    return (*this);
-}
-
 Location::~Location() {}
 
 void Location::set_autoindex(str_t line)
@@ -145,4 +139,33 @@ str_t Location::search_config(str_t config, str_t key)
     }
 
     return (line = config.substr(begin, (end - begin)));
+}
+
+/*
+* Non-member functions
+*/
+
+std::ostream& operator<<(std::ostream& os, Location const& src)
+{
+    os << "{" << std::endl;
+    os << "\tpath: " << src.path() << std::endl;
+    
+    os << "\tautoindex: " << src.autoindex() << std::endl;
+    os << "\tindex:" << std::endl;
+    std::list<std::string> index = src.index();
+
+    for (std::list<std::string>::iterator it = index.begin() ; it != index.end() ; ++it)
+        os << "\t\t- " << *it << std::endl;
+    
+    os << "\tfastcgi_path: " << src.fastcgi_pass() <<std::endl;
+
+    os << "\tfastcgi_param: " << std::endl;
+    strMap param = src.fastcgi_param();
+
+    for (strMap::iterator it = param.begin() ; it != param.end() ; ++it)
+		os << it->first << " => " << it->second << std::endl;
+	os << std::endl;	
+
+    os << "}" << std::endl;
+    return (os);
 }

@@ -12,7 +12,6 @@ class Config
     public:
         Config(str_t config);
         Config(const Config &ref);
-        Config &operator=(const Config &ref);
         ~Config(void);
 
         str_t                   host() const;
@@ -40,6 +39,8 @@ class Config
         std::list<str_t>        _index;
         str_t                   _autoindex;
         std::vector<Location>   _location;
+
+        // not sur if mymetypes are mandatory
         // strMap                  _mimetypes;
        
         void set_host_port(str_t line);
@@ -50,6 +51,8 @@ class Config
         void set_index(str_t line);
         void set_autoindex(str_t line);
         void set_location(str_t line);
+
+        // not sur if mymetypes are mandatory
         // void set_mimetypes(strMap mimetypes);
         
         Config();
