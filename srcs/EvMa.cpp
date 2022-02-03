@@ -85,6 +85,7 @@ void	EvMa::add_to_interest(int fd)
 	_event.events = EPOLLIN | EPOLLET;
 	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &_event) == -1)
 		fatal("failed to add incoming connection to interest list.");
+	_timeouts[fd] = time_in_ms();
 }
 
 void	EvMa::incoming_connections()
@@ -155,7 +156,7 @@ int	EvMa::read_data(int i)
 
 }
 
-int	timeout()
+int	EvMa::timeout()
 {
 	if (!_timeouts.size())				//we do not have any open connections and don't need any timeout
 		return (-1);
@@ -165,9 +166,10 @@ int	timeout()
 	return (-1);
 }
 
-void	disconnect_socket()
+void	EvMa::disconnect_socket()
 {
 	close(_timeouts.begin()->second);
+	std::cout << "closed connection to socket nb " << _timeouts.begin()->second;
 	_timeouts.erase(_timeouts.begin());
 }
 

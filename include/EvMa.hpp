@@ -31,6 +31,8 @@ class EvMa
 		void	add_to_interest(int fd);
 		void	incoming_connections();
 		int		read_data(int i);
+		int		timeout();
+		void	disconnect_socket();
 };
 
 #endif
