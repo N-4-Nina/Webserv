@@ -86,6 +86,7 @@ void	EvMa::add_to_interest(int fd)
 	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &_event) == -1)
 		fatal("failed to add incoming connection to interest list.");
 	_timeouts[fd] = time_in_ms();
+	std::cout << "added connection. fd is: " << fd;
 }
 
 void	EvMa::incoming_connections()
@@ -120,18 +121,18 @@ int	EvMa::read_data(int i)
 	int 			n;
 
 	_timeouts[i] = time_in_ms();
+	memset(recvline, 0, MAXREAD+1);
 	while ((n = read(_events[i].data.fd, recvline, MAXREAD-1)) >  0)
     {
         input = input + str_t(recvline);
         if (recvline[n-1] == '\n')
             break ;
+		//memset(recvline, 0, MAXREAD+1);
     }
     if (n < 0)
-        fatal("read error");
-    std::cout << input;
-
+        {fatal("read error");}
+    //std::cout << input;
 	Request			req(input, _events[i].data.fd);
-
     //req.parse(input);	//now called in constructor
 	//req.response();	//might be a bad idea. maybe the response object should be declared here.
 						// It mainly depends on what infos we need to respond (spoiler: we probably need a lot.)
@@ -142,7 +143,9 @@ int	EvMa::read_data(int i)
 
 	std::ifstream       page;
     std::stringstream   buf;
-	char            buff[MAXREAD+1];
+	char				buff[MAXREAD+1];
+
+	memset(buff, 0, MAXREAD + 1);
 	page.open ("./website/home.html", std::ifstream::in);
     buf << page.rdbuf();
     //const std::string& tmp = buf.str();
@@ -151,7 +154,11 @@ int	EvMa::read_data(int i)
 	snprintf((char*)buff, sizeof(buff), "HTTP/1.1 200 \r\n\r\n<!OKDOCTYPE html>\n<head>\n</head>\n<body>\n<div>Hello There :)</div>\n<img src=\"image.jpg\"/>\n</body>\n</html>");
 
     write(_events[i].data.fd, buff, strlen(buff));
-   	//close(_events[i].data.fd);
+	fsync(_events[i].data.fd);						//this is a "flush". since we dont always close the ssocket right now, the data are not actually sent.
+													// this clears the buffer and force the data to be sent.
+
+	//if (req.headers().count("connection") && req.headers()["connection"] == "close")
+		close(_events[i].data.fd);
 	return (0); 
 
 }
@@ -160,7 +167,7 @@ int	EvMa::timeout()
 {
 	if (!_timeouts.size())				//we do not have any open connections and don't need any timeout
 		return (-1);
-	int to = (_timeouts.begin()->first + 60000) -  time_in_ms();
+	int to = (_timeouts.begin()->first + 3000) -  time_in_ms();
 	if (to > 0)
 		return (to);
 	return (-1);
@@ -177,8 +184,9 @@ void	EvMa::loop()
 {
 	for (;;)
 	{
-		_event_nb = epoll_wait(_epoll_fd, _events, _max_event, timeout()); //-1 for timeout means it will block unedfinitely. check if that's the behaviour we want.
-		if (!_event_nb)
+		_event_nb = epoll_wait(_epoll_fd, _events, _max_event, -1); //-1 for timeout means it will block unedfinitely. check if that's the behaviour we want.
+		std::cout << _event_nb;
+		if (_event_nb == 0)
 		{
 			disconnect_socket();
 			continue;
@@ -190,7 +198,7 @@ void	EvMa::loop()
 				incoming_connections();
 			else
 				read_data(i);
-			
 		}
+		_event_nb = 0;
 	}
 }

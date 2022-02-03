@@ -19,6 +19,8 @@ class Request
 		~Request(void);
 		int	parse(str_t input);
 		str_t					_ressource;		//should maybe be called _route...
+
+		strMap	&headers();
 	private:
 
 		int			parse_QueryString(size_t start);

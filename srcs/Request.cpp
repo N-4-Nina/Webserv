@@ -83,7 +83,7 @@ int	Request::parse_TopLine(str_t line)
 	size_t pos = parse_Url(line);
 
 	size_t	end = pos;
-	for (; !isspace(line[end]); end++);
+	for (; line[end] && !isspace(line[end]); end++);
 	if (line.substr(pos, end) != SERVER_VERSION)
 		return (2);
 	return (0);
@@ -111,3 +111,6 @@ int	Request::parse(str_t input)
 	}
 	return (EXIT_SUCCESS);
 }
+
+strMap	&Request::headers()
+{ return (_headers); }
