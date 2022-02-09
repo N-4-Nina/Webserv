@@ -1,20 +1,17 @@
 #include "Location.hpp"
 
 /*
-*   set_fastcgi_pass(): defines the address of a CGI server
-*           a domain name or an IP address, and a port, ex: fastcgi_pass  127.0.0.1:9000;
-*   set_fastcgi_param(): array directive that can be used to set parameters to values
-*           most often, this is used in conjunction with variables to set FastCGI parameters
-*           to values specific to the request
+*
 */
 
 Location::Location(str_t block)
 {
-    this->_path = block.substr(0, block.find(" "));
+    this->_root = block.substr(0, block.find(" "));
     set_autoindex(search_config(block, "autoindex"));
     set_index(search_config(block, "index"));
-    set_fastcgi_pass(search_config(block, "fastcgi_pass"));
-    set_fastcgi_param(search_config(block, "fastcgi_param"));
+    set_cgi_path(search_config(block, "cgi_path"));
+    set_cgi_extension(search_config(block, "cgi_extension"));
+    // set_fastcgi_param(search_config(block, "fastcgi_param"));
 }
 
 Location::Location(const Location &ref)
@@ -23,6 +20,10 @@ Location::Location(const Location &ref)
 }
 
 Location::~Location() {}
+
+/*
+* Setters
+*/
 
 void Location::set_autoindex(str_t line)
 {
@@ -39,10 +40,6 @@ void Location::set_autoindex(str_t line)
     else
         throw str_t("error: bad arguement for autoindex");
 }
-
-/*
-* Setters
-*/
 
 void Location::set_index(str_t line)
 {
@@ -61,33 +58,40 @@ void Location::set_index(str_t line)
     }
 }
 
-void Location::set_fastcgi_pass(str_t line)
+void Location::set_cgi_path(str_t line)
 {
-    if (line == "")
-        this->_fastcgi_pass = "";
+   if (line == "")
+       this->_cgi_path = "";
     else
-        this->_fastcgi_pass = line.substr(line.find(" ") + 1);
+        this->_cgi_path = line.substr(line.find(" ") + 1);
 }
 
-
-void Location::set_fastcgi_param(str_t line)
+void Location::set_cgi_extension(str_t line)
 {
-    size_t space;
-    size_t space2;
-    size_t end;
-
-    if (line == "")
-        return ;
-    space = line.find(" ");
-    space2 = space + 1;
-    
-    while (line[space2] != ' ') { space2++; };
-
-    end = space2 + 1;
-    while (line[end] != str_t::npos) { end++; }
-
-    this->_fastcgi_param.insert(std::pair<str_t, str_t>(line.substr(space + 1, line.find(' ', space + 1)), line.substr(space2 + 1, end)));
+   if (line == "")
+       this->_cgi_extension = "";
+    else
+        this->_cgi_extension = line.substr(line.find(" ") + 1);
 }
+
+// void Location::set_fastcgi_param(str_t line)
+// {
+//     size_t space;
+//     size_t space2;
+//     size_t end;
+
+//     if (line == "")
+//         return ;
+//     space = line.find(" ");
+//     space2 = space + 1;
+    
+//     while (line[space2] != ' ') { space2++; };
+
+//     end = space2 + 1;
+//     while (line[end] != str_t::npos) { end++; }
+
+//     this->_fastcgi_param.insert(std::pair<str_t, str_t>(line.substr(space + 1, line.find(' ', space + 1)), line.substr(space2 + 1, end)));
+// }
 
 /*
 * Getters
@@ -97,11 +101,13 @@ str_t Location::autoindex() const { return (this->_autoindex); }
 
 std::list<str_t> Location::index() const { return (this->_index); }
 
-str_t Location::fastcgi_pass() const { return (this->_fastcgi_pass); }
+str_t Location::cgi_path() const { return (this->_cgi_path); }
 
-strMap Location::fastcgi_param() const { return (this->_fastcgi_param); }
+str_t Location::cgi_extension() const { return (this->_cgi_extension); }
 
-str_t Location::path() const { return (this->_path); }
+str_t Location::root() const { return (this->_root); }
+
+// strMap Location::fastcgi_param() const { return (this->_fastcgi_param); }
 
 /*
 * Member functions
@@ -148,7 +154,7 @@ str_t Location::search_config(str_t config, str_t key)
 std::ostream& operator<<(std::ostream& os, Location const& src)
 {
     os << "{" << std::endl;
-    os << "\tpath: " << src.path() << std::endl;
+    os << "\troot: " << src.root() << std::endl;
     
     os << "\tautoindex: " << src.autoindex() << std::endl;
     os << "\tindex:" << std::endl;
@@ -157,14 +163,16 @@ std::ostream& operator<<(std::ostream& os, Location const& src)
     for (std::list<std::string>::iterator it = index.begin() ; it != index.end() ; ++it)
         os << "\t\t- " << *it << std::endl;
     
-    os << "\tfastcgi_path: " << src.fastcgi_pass() <<std::endl;
+    os << "\tcgi_path: " << src.cgi_path() <<std::endl;
+    
+   os << "\tcgi_extension: " << src.cgi_extension() <<std::endl;
 
-    os << "\tfastcgi_param: " << std::endl;
-    strMap param = src.fastcgi_param();
+    // os << "\tfastcgi_param: " << std::endl;
+    // strMap param = src.fastcgi_param();
 
-    for (strMap::iterator it = param.begin() ; it != param.end() ; ++it)
-		os << it->first << " => " << it->second << std::endl;
-	os << std::endl;	
+    // for (strMap::iterator it = param.begin() ; it != param.end() ; ++it)
+	// 	os << it->first << " => " << it->second << std::endl;
+	// os << std::endl;	
 
     os << "}" << std::endl;
     return (os);

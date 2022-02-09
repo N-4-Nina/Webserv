@@ -232,12 +232,6 @@ void Config::set_location(str_t line)
     }
 }
 
-// not sur if mymetypes are mandatory
-// void Config::set_mimetypes(strMap mimetypes)
-// {
-//     this->_mimetypes = mimetypes;
-// }
-
 /*
 * Getters
 */
@@ -259,9 +253,6 @@ std::list<str_t> Config::index() const { return (this->_index); }
 str_t Config::autoindex() const { return (this->_autoindex); }
 
 std::vector<Location> Config::location() const { return (this->_location); }
-
-// not sur if mymetypes are mandatory
-// strMap Config::mimetypes() const { return (this->_mimetypes); }
 
 /*
 * Member functions
@@ -374,7 +365,7 @@ std::ostream& operator<<(std::ostream& os, Config const& src)
     strMap error_pages = src.error_page();
     if (error_pages.empty() == false)
         for (strMap::const_iterator it = error_pages.begin() ; it != error_pages.end() ; ++it)
-            os << "\t-" << it->first << " " << it->second << std::endl;
+            os << "\t- " << it->first << " " << it->second << std::endl;
 
     os << "client_max_body_size: " << src.client_max() << std::endl;
     

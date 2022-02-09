@@ -23,15 +23,10 @@ class Config
         std::list<str_t>        index() const;
         str_t                   autoindex() const;
         std::vector<Location>   location() const;
-        // strMap                  mimetypes() const;
-
-        str_t               search_config(str_t config, str_t key);
-        std::vector<size_t> search_location(str_t config);
 
     private:
         str_t                   _host;
         std::vector<int>        _port;
-        // char                    *_port;
         std::vector<str_t>      _server_name;
         strMap                  _error_page;
         size_t                  _client_max_body_size;
@@ -39,10 +34,10 @@ class Config
         std::list<str_t>        _index;
         str_t                   _autoindex;
         std::vector<Location>   _location;
-
-        // not sur if mymetypes are mandatory
-        // strMap                  _mimetypes;
        
+        str_t               search_config(str_t config, str_t key);
+        std::vector<size_t> search_location(str_t config);
+
         void set_host_port(str_t line);
         void set_server_name(str_t line);
         void set_error_page(str_t line);
@@ -51,9 +46,6 @@ class Config
         void set_index(str_t line);
         void set_autoindex(str_t line);
         void set_location(str_t line);
-
-        // not sur if mymetypes are mandatory
-        // void set_mimetypes(strMap mimetypes);
         
         Config();
 };
