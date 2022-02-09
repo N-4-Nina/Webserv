@@ -24,10 +24,13 @@
 typedef std::string             str_t;
 typedef std::pair<str_t, str_t> strPair;
 typedef	std::map<str_t, str_t>	strMap;
+typedef std::pair<int, time_t>  expiry;
+typedef std::list<expiry>		expiryList;
+typedef expiryList::iterator    expiryIt;
 typedef struct epoll_event      event_t;
 typedef struct addrinfo         adrinfo_t;
 
-unsigned long	time_in_ms(void);
+time_t	time_in_ms(void);
 
 void    fatal(str_t str);
 

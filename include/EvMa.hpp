@@ -20,10 +20,9 @@ class EvMa
 		int		_max_event;
 		int		_event_nb;
 
-		std::map<time_t, int>	_timeouts;
-		event_t	_event;	//rename it _tmp_event
-		event_t	*_events;
-
+		expiryList	_timeouts;
+		event_t		_event;	//rename it _tmp_event
+		event_t		*_events;
 
 		void	init_socket( );
 		int		unlock_socket(int fd);
@@ -32,7 +31,8 @@ class EvMa
 		void	incoming_connections();
 		int		read_data(int i);
 		int		timeout();
-		void	disconnect_socket();
+		void	update_expiry(int fd);
+		expiryIt	disconnect_socket(expiryIt expired);
 };
 
 #endif

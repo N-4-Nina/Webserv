@@ -85,8 +85,9 @@ void	EvMa::add_to_interest(int fd)
 	_event.events = EPOLLIN | EPOLLET;
 	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &_event) == -1)
 		fatal("failed to add incoming connection to interest list.");
-	_timeouts[fd] = time_in_ms();
-	std::cout << "added connection. fd is: " << fd;
+	expiry ex = std::make_pair(fd, time_in_ms() + 0);
+	_timeouts.push_back(ex);
+	std::cout << "added connection. fd is: " << fd << std::endl;
 }
 
 void	EvMa::incoming_connections()
@@ -98,7 +99,7 @@ void	EvMa::incoming_connections()
 	for (;;)
 	{
 		
-		fd = accept(_socket_fd, &incoming, &incSize);
+		fd = accept(_socket_fd, &incoming, &incSize); //we accept with socket fd as we listen on this on
 		if (fd == -1)
 		{
 			if (errno ==  EAGAIN || errno == EWOULDBLOCK)		//no more requests to accept ! we are done.
@@ -114,13 +115,27 @@ void	EvMa::incoming_connections()
 	}
 }
 
+void	EvMa::update_expiry(int fd)
+{
+	expiryIt it = _timeouts.begin(), ite = _timeouts.end();
+	for (; it != ite; it++)
+	{
+		if (it->first == fd)
+		{
+			_timeouts.erase(it);
+			_timeouts.push_back(std::make_pair(fd, time_in_ms() + 0));
+			return ;
+		}
+	}
+}
+
 int	EvMa::read_data(int i)
 {
 	char            recvline[MAXREAD+1];
 	str_t			input;
 	int 			n;
 
-	_timeouts[i] = time_in_ms();
+	update_expiry(i);
 	memset(recvline, 0, MAXREAD+1);
 	while ((n = read(_events[i].data.fd, recvline, MAXREAD-1)) >  0)
     {
@@ -154,7 +169,17 @@ int	EvMa::read_data(int i)
 	snprintf((char*)buff, sizeof(buff), "HTTP/1.1 200 \r\n\r\n<!OKDOCTYPE html>\n<head>\n</head>\n<body>\n<div>Hello There :)</div>\n<img src=\"image.jpg\"/>\n</body>\n</html>");
 
     write(_events[i].data.fd, buff, strlen(buff));
-	fsync(_events[i].data.fd);						//this is a "flush". since we dont always close the ssocket right now, the data are not actually sent.
+	//send(_events[i].data.fd, buff, strlen(buff), MSG_DONTWAIT); 
+	//			subject says we can use any of those two ..
+
+
+	//int numbytes;
+	// if ((numbytes = recv(_socket_fd, buff, MAXREAD, MSG_DONTWAIT)) == 0)
+	// {
+	// 	std::cout << "client shutdown connection;";
+	// 	close(_events[i].data.fd);
+	// }
+	//fsync(_events[i].data.fd);						//this is a "flush". since we dont always close the ssocket right now, the data are not actually sent.
 													// this clears the buffer and force the data to be sent.
 
 	//if (req.headers().count("connection") && req.headers()["connection"] == "close")
@@ -167,30 +192,27 @@ int	EvMa::timeout()
 {
 	if (!_timeouts.size())				//we do not have any open connections and don't need any timeout
 		return (-1);
-	int to = (_timeouts.begin()->first + 3000) -  time_in_ms();
+	int to = _timeouts.begin()->second  -  time_in_ms();
 	if (to > 0)
 		return (to);
 	return (-1);
 }
 
-void	EvMa::disconnect_socket()
+expiryIt	EvMa::disconnect_socket(expiryIt expired)
 {
-	close(_timeouts.begin()->second);
-	std::cout << "closed connection to socket nb " << _timeouts.begin()->second;
-	_timeouts.erase(_timeouts.begin());
+	std::cout << "closed connection to socket nb " << expired->first << std::endl;
+	close(expired->second);
+	expiryIt tmp = expired;
+	expired++;
+	_timeouts.erase(tmp);
+	return (expired);
 }
 
 void	EvMa::loop()
 {
 	for (;;)
 	{
-		_event_nb = epoll_wait(_epoll_fd, _events, _max_event, -1); //-1 for timeout means it will block unedfinitely. check if that's the behaviour we want.
-		std::cout << _event_nb;
-		if (_event_nb == 0)
-		{
-			disconnect_socket();
-			continue;
-		}
+		_event_nb = epoll_wait(_epoll_fd, _events, _max_event, timeout()); //-1 for timeout means it will block unedfinitely. check if that's the behaviour we want.
 		for (int i = 0; i < _event_nb; i++)
 		{
 			//HANDLE ERROR WITH & BITWISE OP (why tho). if error, continue
@@ -199,6 +221,11 @@ void	EvMa::loop()
 			else
 				read_data(i);
 		}
+		if (!_timeouts.size())
+			continue;
 		_event_nb = 0;
+		for (expiryIt ex = _timeouts.begin(); ex != _timeouts.end() && ex->second < time_in_ms(); ex++)
+    		ex = disconnect_socket(ex);
+		
 	}
 }

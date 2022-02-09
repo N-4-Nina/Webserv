@@ -1,6 +1,6 @@
 #include "common.hpp"
 
-unsigned long	time_in_ms(void)
+time_t	time_in_ms(void)
 {
 	struct timeval	timestamp;
 
