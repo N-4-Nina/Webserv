@@ -2,7 +2,7 @@
 # define EVMA_HPP
 
 #include "common.hpp"
-
+#include "Client.hpp"
 class EvMa
 {
 	public:
@@ -23,6 +23,7 @@ class EvMa
 		expiryList	_timeouts;
 		event_t		_event;	//rename it _tmp_event
 		event_t		*_events;
+		std::vector<Client>	_clients;
 
 		void	init_socket( );
 		int		unlock_socket(int fd);

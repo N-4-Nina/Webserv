@@ -2,6 +2,7 @@
 # define RESPONSE_HPP
 
 #include "common.hpp"
+#include "Request.hpp"
 
 enum 
 {
@@ -34,14 +35,15 @@ enum
 class Response
 {
 	public:
-		Response(void);
-		Response(const Response &ref);
-		Response	&operator=(const Response &ref);
+		Response(Request req);
+		//Response(const Response &ref);
+		//Response	&operator=(const Response &ref);
 		~Response(void);
 		void 			set_status(unsigned int s);
 		unsigned int	status();
 		void			send();
 	private:
+		Response(void);
 		unsigned int							_status;
 		int										_fd;
 		static	std::map<unsigned int, str_t>	_messages;

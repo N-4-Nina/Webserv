@@ -1,7 +1,7 @@
 #include "EvMa.hpp"
 #include "Request.hpp"
-
-// a terme devra prendre un pointeur sur config (et le garder en tant qu'attribut)
+#include "Client.hpp"
+// a terme devra prendre une ref sur config (et le garder en tant qu'attribut)
 EvMa::EvMa(const char *port, int max_event)
 {
 	/* should put all of this in init list -- also put missing stuff (nb_events..)*/
@@ -11,6 +11,7 @@ EvMa::EvMa(const char *port, int max_event)
 	_max_event = max_event;
 	_event_nb = 0;
 
+	_clients.reserve(max_event);
 	init_socket();			//so maybe private ??
 	init_epoll();
 }
@@ -85,8 +86,9 @@ void	EvMa::add_to_interest(int fd)
 	_event.events = EPOLLIN | EPOLLET;
 	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &_event) == -1)
 		fatal("failed to add incoming connection to interest list.");
-	expiry ex = std::make_pair(fd, time_in_ms() + 0);
+	expiry ex = std::make_pair(fd, time_in_ms() + 5000);
 	_timeouts.push_back(ex);
+	_clients[fd] = Client(fd);
 	std::cout << "added connection. fd is: " << fd << std::endl;
 }
 
@@ -123,7 +125,7 @@ void	EvMa::update_expiry(int fd)
 		if (it->first == fd)
 		{
 			_timeouts.erase(it);
-			_timeouts.push_back(std::make_pair(fd, time_in_ms() + 0));
+			_timeouts.push_back(std::make_pair(fd, time_in_ms() + 5000));
 			return ;
 		}
 	}
@@ -131,65 +133,45 @@ void	EvMa::update_expiry(int fd)
 
 int	EvMa::read_data(int i)
 {
-	char            recvline[MAXREAD+1];
-	str_t			input;
-	int 			n = 1;
+	int 			n;
+	Client			&client = _clients[_events[i].data.fd];
 
-	while (n > 0)
-	{
-		update_expiry(i);
-		memset(recvline, 0, MAXREAD+1);
-		while ((n = read(_events[i].data.fd, recvline, MAXREAD-1)) >  0)
-    	{
-    	    input = input + str_t(recvline);
-    	    if (recvline[n-1] == '\n')
-    	        break ;
-			//memset(recvline, 0, MAXREAD+1);
-    	}
-    	if (n < 0)
-    	    {fatal("read error");}
-    	//std::cout << input;
-		Request			req(input, _events[i].data.fd);
-    	//req.parse(input);	//now called in constructor
-		//req.response();	//might be a bad idea. maybe the response object should be declared here.
-						// It mainly depends on what infos we need to respond (spoiler: we probably need a lot.)
-
-
-
-		//for testing/ cohesion purposes, i copied this ugly thing:
-
-		std::ifstream       page;
-    	std::stringstream   buf;
-		char				buff[MAXREAD+1];
-
-		memset(buff, 0, MAXREAD + 1);
-		page.open ("./website/home.html", std::ifstream::in);
-    	buf << page.rdbuf();
-    	//const std::string& tmp = buf.str();
-    	//const char* cstr = tmp.c_str();
-
-		snprintf((char*)buff, sizeof(buff), "HTTP/1.1 200 \r\n\r\n<!OKDOCTYPE html>\n<head>\n</head>\n<body>\n<div>Hello There :)</div>\n<img src=\"image.jpg\"/>\n</body>\n</html>");
-
-    	write(_events[i].data.fd, buff, strlen(buff));
-		//send(_events[i].data.fd, buff, strlen(buff), MSG_DONTWAIT); 
-		//			subject says we can use any of those two ..
-
-
-		//int numbytes;
-		// if ((numbytes = recv(_socket_fd, buff, MAXREAD, MSG_DONTWAIT)) == 0)
-		// {
-		// 	std::cout << "client shutdown connection;";
-		// 	close(_events[i].data.fd);
-		// }
-		//fsync(_events[i].data.fd);						//this is a "flush". since we dont always close the ssocket right now, the data are not actually sent.
-													// this clears the buffer and force the data to be sent.
-
-		if (req.headers().count("connection") && req.headers()["connection"] == "close")
-			break;
+	update_expiry(i);
+	//memset(recvline, 0, MAXREAD+1);
+	
+	n = client.add_data();
+    
+   
+		//memset(recvline, 0, MAXREAD+1);
+    if (n < 0)
+    {
+				//not sure what to do here.. for now my guess is actually respond.
+		//fatal("read error");
+		//std::cout << "read error (cannot check errno right now)" << std::endl;
+		client.respond();
 	}
-	close(_events[i].data.fd);
-	return (0); 
+    //std::cout << input;
+	//Request			req(input, _events[i].data.fd);
+    //req.parse(input);	//now called in constructor
+	//req.response();	//might be a bad idea. maybe the response object should be declared here.
+					// It mainly depends on what infos we need to respond (spoiler: we probably need a lot.)
+	//for testing/ cohesion purposes, i copied this ugly thing:
 
+
+	//send(_events[i].data.fd, buff, strlen(buff), MSG_DONTWAIT); 
+	//			subject says we can use any of those two ..
+	//int numbytes;
+	// if ((numbytes = recv(_socket_fd, buff, MAXREAD, MSG_DONTWAIT)) == 0)
+	// {
+	// 	std::cout << "client shutdown connection;";
+	// 	close(_events[i].data.fd);
+	// }
+	//fsync(_events[i].data.fd);						//this is a "flush". since we dont always close the ssocket right now, the data are not actually sent.
+												// this clears the buffer and force the data to be sent.
+	//if (req.headers().count("connection") && req.headers()["connection"] == "close")
+	//	break;
+	//close(_events[i].data.fd);
+	return (0);
 }
 
 int	EvMa::timeout()
