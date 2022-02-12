@@ -133,57 +133,61 @@ int	EvMa::read_data(int i)
 {
 	char            recvline[MAXREAD+1];
 	str_t			input;
-	int 			n;
+	int 			n = 1;
 
-	update_expiry(i);
-	memset(recvline, 0, MAXREAD+1);
-	while ((n = read(_events[i].data.fd, recvline, MAXREAD-1)) >  0)
-    {
-        input = input + str_t(recvline);
-        if (recvline[n-1] == '\n')
-            break ;
-		//memset(recvline, 0, MAXREAD+1);
-    }
-    if (n < 0)
-        {fatal("read error");}
-    //std::cout << input;
-	Request			req(input, _events[i].data.fd);
-    //req.parse(input);	//now called in constructor
-	//req.response();	//might be a bad idea. maybe the response object should be declared here.
+	while (n > 0)
+	{
+		update_expiry(i);
+		memset(recvline, 0, MAXREAD+1);
+		while ((n = read(_events[i].data.fd, recvline, MAXREAD-1)) >  0)
+    	{
+    	    input = input + str_t(recvline);
+    	    if (recvline[n-1] == '\n')
+    	        break ;
+			//memset(recvline, 0, MAXREAD+1);
+    	}
+    	if (n < 0)
+    	    {fatal("read error");}
+    	//std::cout << input;
+		Request			req(input, _events[i].data.fd);
+    	//req.parse(input);	//now called in constructor
+		//req.response();	//might be a bad idea. maybe the response object should be declared here.
 						// It mainly depends on what infos we need to respond (spoiler: we probably need a lot.)
 
 
 
-	//for testing/ cohesion purposes, i copied this ugly thing:
+		//for testing/ cohesion purposes, i copied this ugly thing:
 
-	std::ifstream       page;
-    std::stringstream   buf;
-	char				buff[MAXREAD+1];
+		std::ifstream       page;
+    	std::stringstream   buf;
+		char				buff[MAXREAD+1];
 
-	memset(buff, 0, MAXREAD + 1);
-	page.open ("./website/home.html", std::ifstream::in);
-    buf << page.rdbuf();
-    //const std::string& tmp = buf.str();
-    //const char* cstr = tmp.c_str();
+		memset(buff, 0, MAXREAD + 1);
+		page.open ("./website/home.html", std::ifstream::in);
+    	buf << page.rdbuf();
+    	//const std::string& tmp = buf.str();
+    	//const char* cstr = tmp.c_str();
 
-	snprintf((char*)buff, sizeof(buff), "HTTP/1.1 200 \r\n\r\n<!OKDOCTYPE html>\n<head>\n</head>\n<body>\n<div>Hello There :)</div>\n<img src=\"image.jpg\"/>\n</body>\n</html>");
+		snprintf((char*)buff, sizeof(buff), "HTTP/1.1 200 \r\n\r\n<!OKDOCTYPE html>\n<head>\n</head>\n<body>\n<div>Hello There :)</div>\n<img src=\"image.jpg\"/>\n</body>\n</html>");
 
-    write(_events[i].data.fd, buff, strlen(buff));
-	//send(_events[i].data.fd, buff, strlen(buff), MSG_DONTWAIT); 
-	//			subject says we can use any of those two ..
+    	write(_events[i].data.fd, buff, strlen(buff));
+		//send(_events[i].data.fd, buff, strlen(buff), MSG_DONTWAIT); 
+		//			subject says we can use any of those two ..
 
 
-	//int numbytes;
-	// if ((numbytes = recv(_socket_fd, buff, MAXREAD, MSG_DONTWAIT)) == 0)
-	// {
-	// 	std::cout << "client shutdown connection;";
-	// 	close(_events[i].data.fd);
-	// }
-	//fsync(_events[i].data.fd);						//this is a "flush". since we dont always close the ssocket right now, the data are not actually sent.
+		//int numbytes;
+		// if ((numbytes = recv(_socket_fd, buff, MAXREAD, MSG_DONTWAIT)) == 0)
+		// {
+		// 	std::cout << "client shutdown connection;";
+		// 	close(_events[i].data.fd);
+		// }
+		//fsync(_events[i].data.fd);						//this is a "flush". since we dont always close the ssocket right now, the data are not actually sent.
 													// this clears the buffer and force the data to be sent.
 
-	//if (req.headers().count("connection") && req.headers()["connection"] == "close")
-		close(_events[i].data.fd);
+		if (req.headers().count("connection") && req.headers()["connection"] == "close")
+			break;
+	}
+	close(_events[i].data.fd);
 	return (0); 
 
 }
