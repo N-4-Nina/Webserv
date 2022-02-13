@@ -27,6 +27,8 @@ class CGI
     private:
         str_t _binary;
         str_t _input;
+        
+        char **build_cgi_env();
 };
 
 #endif
