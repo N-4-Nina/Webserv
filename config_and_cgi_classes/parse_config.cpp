@@ -5,20 +5,21 @@
 #include <string>
 #include "Config.hpp"
 
-// template<typename T>
-// void    printVec(std::vector<T> &v)
-// {
-// 	size_t  last = v.size() - 1;
+// print vectors to debug
+template<typename T>
+void    printVec(std::vector<T> &v)
+{
+	size_t  last = v.size() - 1;
 
-// 	std::cout << "{" ;
-// 	for (size_t i = 0 ; i < v.size() ; ++i)
-// 	{
-// 		std::cout << v[i];
-// 		if (i != last)
-// 			std::cout << ", ";
-// 	}
-// 	std::cout << "}" << std::endl;
-// };
+	std::cout << "{" ;
+	for (size_t i = 0 ; i < v.size() ; ++i)
+	{
+		std::cout << v[i];
+		if (i != last)
+			std::cout << ", ";
+	}
+	std::cout << "}" << std::endl;
+};
 
 std::vector<size_t> get_server(std::string config)
 {
