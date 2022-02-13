@@ -18,6 +18,7 @@ class Request
 		Request	&operator=(const Request &ref);
 		~Request(void);
 		int	parse(str_t input);
+		int	fd();
 		str_t					_ressource;		//should maybe be called _route...
 
 		strMap	&headers();

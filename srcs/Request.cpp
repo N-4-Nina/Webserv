@@ -89,7 +89,8 @@ int	Request::parse_TopLine(str_t line)
 	return (0);
 }
 
-
+int	Request::fd()
+{ return (_fd); }
 
 int	Request::parse(str_t input)
 {

@@ -32,12 +32,12 @@ EvMa::~EvMa(void)
 
 int	EvMa::unlock_socket(int fd)
 {
-	int flags;
-	flags = fcntl(fd,  F_GETFL);
+	//int flags;
+	//flags = fcntl(fd,  F_GETFL);
 	//if (flags == -1)
 		//handle_error
-	flags |= O_NONBLOCK;
-	if (fcntl(fd, F_SETFL, flags) == -1)
+	//flags |= O_NONBLOCK;
+	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
 		fatal("unlock socket failed");
 	return (0);
 }
@@ -100,7 +100,7 @@ void	EvMa::incoming_connections()
 
 	for (;;)
 	{
-		
+		std::cout << "\n\nINCOMING \n";
 		fd = accept(_socket_fd, &incoming, &incSize); //we accept with socket fd as we listen on this on
 		if (fd == -1)
 		{
@@ -133,23 +133,24 @@ void	EvMa::update_expiry(int fd)
 
 int	EvMa::read_data(int i)
 {
-	int 			n;
+	//int 			n;
 	Client			&client = _clients[_events[i].data.fd];
 
 	update_expiry(i);
-	//memset(recvline, 0, MAXREAD+1);
-	
-	n = client.add_data();
-    
-   
-		//memset(recvline, 0, MAXREAD+1);
-    if (n < 0)
-    {
-				//not sure what to do here.. for now my guess is actually respond.
-		//fatal("read error");
-		//std::cout << "read error (cannot check errno right now)" << std::endl;
+	if (client.add_data())
 		client.respond();
-	}
+
+
+
+    // if (n <= 0)
+    // {
+	// 			//not sure what to do here.. for now my guess is actually respond.
+	// 	//fatal("read error");
+	// 	//std::cout << "read error (cannot check errno right now)" << std::endl;
+	// 	client.respond();
+	// }
+
+
     //std::cout << input;
 	//Request			req(input, _events[i].data.fd);
     //req.parse(input);	//now called in constructor
@@ -187,7 +188,8 @@ int	EvMa::timeout()
 expiryIt	EvMa::disconnect_socket(expiryIt expired)
 {
 	std::cout << "closed connection to socket nb " << expired->first << std::endl;
-	close(expired->second);
+	close(expired->first);
+	//epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, expired->first, NULL);
 	expiryIt tmp = expired;
 	expired++;
 	_timeouts.erase(tmp);

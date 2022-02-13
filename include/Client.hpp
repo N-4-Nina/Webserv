@@ -6,9 +6,6 @@
 #include "Response.hpp"
 
 
-#define CL_PARSEDHEADERS 1
-#define CL_PARSEDHEADLEN 2
-
 class Client
 {
 	public:
@@ -30,7 +27,6 @@ class Client
 		char            		_buff[MAXREAD+1];
 		unsigned int			_headers_len;
 		unsigned int			_content_len;
-		unsigned int			_flags;
 };
 
 #endif
