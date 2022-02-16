@@ -12,6 +12,7 @@
 # define CGI_HPP
 
 # include "../include/common.hpp"
+#include "../include/Request.hpp"
 
 class CGI
 {
@@ -22,13 +23,14 @@ class CGI
         void set_binary(str_t path);
         void set_input(str_t content); //  in a CGI-BIN environment, you read the data from STDIN
 
-        void exec_cgi(str_t target);
+        void exec_cgi(str_t target, Request req);
 
     private:
         str_t _binary;
         str_t _input;
+		str_t _body;
         
-        char **build_cgi_env();
+        char **build_cgi_env(Request req);
 };
 
 #endif

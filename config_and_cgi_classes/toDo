@@ -12,10 +12,14 @@
 
 🔘 recuperer les meta-variables depuis la request pour set l env
 
+🔘 recuperer le body dans request
+
 🔘 recuperer les variables send par le client
 
+🔘 need un get_method dans resquest pour savoir s'il s'agit de POST ou GET pour le CGI
 
-🔘 
+
+
 🔘 
 🔘 
 
