@@ -18,6 +18,7 @@ class Client
 		void	respond();
 		int		fd();
 		char	*buff();
+		void	touch();
 
 	private:
 		Client(void);
@@ -27,6 +28,9 @@ class Client
 		char            		_buff[MAXREAD+1];
 		unsigned int			_headers_len;
 		unsigned int			_content_len;
+		time_t					_expire;
 };
+
+typedef std::vector<Client>		client_v;
 
 #endif

@@ -92,6 +92,9 @@ int	Request::parse_TopLine(str_t line)
 int	Request::fd()
 { return (_fd); }
 
+unsigned int Request::type()
+{ return (_type); }
+
 int	Request::parse(str_t input)
 {
 	int ret;

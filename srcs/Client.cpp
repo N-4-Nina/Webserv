@@ -99,3 +99,8 @@ void	Client::respond()
 	}
 	close (_fd);
 }
+
+void	Client::touch()
+{
+	_expire = time_in_ms() + 5000;
+}

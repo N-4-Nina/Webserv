@@ -19,6 +19,7 @@ class Request
 		~Request(void);
 		int	parse(str_t input);
 		int	fd();
+		unsigned int type();
 		str_t					_ressource;		//should maybe be called _route...
 
 		strMap	&headers();

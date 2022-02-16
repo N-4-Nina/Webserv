@@ -2,7 +2,6 @@
 #include "../include/Request.hpp"
 #include "EvMa.hpp"
 
-
 #define DEFAULT_PORT	8002
 #define MAX_EVENTS		5
 
@@ -10,6 +9,12 @@ void    fatal(str_t str)
 {
     std::cerr << str << "\n";
     exit(EXIT_FAILURE);
+}
+
+void    assert(bool scal, str_t log)
+{
+    if (!scal)
+        fatal(log);
 }
 
 

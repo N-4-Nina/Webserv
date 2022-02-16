@@ -86,10 +86,19 @@ void	EvMa::add_to_interest(int fd)
 	_event.events = EPOLLIN | EPOLLET;
 	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &_event) == -1)
 		fatal("failed to add incoming connection to interest list.");
-	expiry ex = std::make_pair(fd, time_in_ms() + 5000);
-	_timeouts.push_back(ex);
+	//expiry ex = std::make_pair(fd, time_in_ms() + 5000);
+	//_clients.push_back(ex);
 	_clients[fd] = Client(fd);
+	_clients[fd].touch();
 	std::cout << "added connection. fd is: " << fd << std::endl;
+}
+
+bool    EvMa::is_connected(int fd)
+{
+	for (int i = 0; i < _clients.size(); i++)
+		if (_clients[i].fd() == fd)
+			return (true);
+	return (false);
 }
 
 void	EvMa::incoming_connections()
@@ -119,13 +128,12 @@ void	EvMa::incoming_connections()
 
 void	EvMa::update_expiry(int fd)
 {
-	expiryIt it = _timeouts.begin(), ite = _timeouts.end();
-	for (; it != ite; it++)
+
+	for (int i = 0; i < _clients.size(); i++)
 	{
-		if (it->first == fd)
+		if (_clients[i].fd() == fd)
 		{
-			_timeouts.erase(it);
-			_timeouts.push_back(std::make_pair(fd, time_in_ms() + 5000));
+			_clients[i].touch();
 			return ;
 		}
 	}
@@ -137,10 +145,7 @@ int	EvMa::read_data(int i)
 	Client			&client = _clients[_events[i].data.fd];
 
 	update_expiry(i);
-	if (client.add_data())
-		client.respond();
-
-
+	client.add_data();
 
     // if (n <= 0)
     // {
@@ -175,11 +180,19 @@ int	EvMa::read_data(int i)
 	return (0);
 }
 
+int	EvMa::write_data(int i)
+{
+	Client			&client = _clients[_events[i].data.fd];
+
+	client.respond();
+	return (0);
+}
+
 int	EvMa::timeout()
 {
-	if (!_timeouts.size())				//we do not have any open connections and don't need any timeout
+	if (!_clients.size())				//we do not have any open connections and don't need any timeout
 		return (-1);
-	int to = _timeouts.begin()->second  -  time_in_ms();
+	int to = _clients.begin()->second  -  time_in_ms();
 	if (to > 0)
 		return (to);
 	return (-1);
@@ -192,7 +205,7 @@ expiryIt	EvMa::disconnect_socket(expiryIt expired)
 	//epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, expired->first, NULL);
 	expiryIt tmp = expired;
 	expired++;
-	_timeouts.erase(tmp);
+	_clients.erase(tmp);
 	return (expired);
 }
 
@@ -203,16 +216,31 @@ void	EvMa::loop()
 		_event_nb = epoll_wait(_epoll_fd, _events, _max_event, timeout()); //-1 for timeout means it will block unedfinitely. check if that's the behaviour we want.
 		for (int i = 0; i < _event_nb; i++)
 		{
+			int fd = _events[i].data.fd;
+			uint32_t ev = _events->events;
 			//HANDLE ERROR WITH & BITWISE OP (why tho). if error, continue
-			if (_events[i].data.fd == _socket_fd)
+			if (fd == _socket_fd)
 				incoming_connections();
-			else
+			else if (ev & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))
+			{
+				assert(is_connected(fd), "could not fin fd");
+				disconnect_socket();
+			}
+			else if (ev & EPOLLIN)
+			{
+				assert(is_connected(fd), "could not fin fd");
 				read_data(i);
+			}
+			else if (ev & EPOLLOUT)
+			{
+				assert(is_connected(fd), "could not fin fd");
+				write_data(i);
+			}
 		}
-		if (!_timeouts.size())
+		if (!_clients.size())
 			continue;
 		_event_nb = 0;
-		for (expiryIt ex = _timeouts.begin(); ex != _timeouts.end() && ex->second < time_in_ms(); ex++)
+		for (expiryIt ex = _clients.begin(); ex != _clients.end() && ex->second < time_in_ms(); ex++)
     		ex = disconnect_socket(ex);
 		
 	}

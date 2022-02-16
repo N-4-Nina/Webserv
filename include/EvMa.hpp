@@ -20,9 +20,9 @@ class EvMa
 		int		_max_event;
 		int		_event_nb;
 
-		expiryList	_timeouts;
-		event_t		_event;	//rename it _tmp_event
-		event_t		*_events;
+		//expiryList			_timeouts;
+		event_t				_event;	//rename it _tmp_event
+		event_t				*_events;
 		std::vector<Client>	_clients;
 
 		void	init_socket( );
@@ -31,9 +31,11 @@ class EvMa
 		void	add_to_interest(int fd);
 		void	incoming_connections();
 		int		read_data(int i);
+		int		write_data(int i);
 		int		timeout();
 		void	update_expiry(int fd);
-		expiryIt	disconnect_socket(expiryIt expired);
+		bool	is_connected(int fd);
+		client_v	disconnect_socket(client_v expired);
 };
 
 #endif
