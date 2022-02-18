@@ -33,9 +33,10 @@ class EvMa
 		int		read_data(int i);
 		int		write_data(int i);
 		int		timeout();
+		Client	&find_by_fd(int fd);
 		void	update_expiry(int fd);
 		bool	is_connected(int fd);
-		client_v	disconnect_socket(client_v expired);
+		client_v::iterator	disconnect_socket(client_v::iterator expired);
 };
 
 #endif

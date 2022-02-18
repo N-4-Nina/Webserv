@@ -17,6 +17,7 @@ class Client
 		int		add_data();
 		void	respond();
 		int		fd();
+		time_t	expire();
 		char	*buff();
 		void	touch();
 

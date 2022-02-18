@@ -9,6 +9,7 @@
 #include <map>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <sstream>
 #include <string>
 #include <string.h>
@@ -29,7 +30,6 @@ typedef	std::map<str_t, str_t>	strMap;
 // typedef std::list<expiry>		expiryList;
 //typedef expiryList::iterator    expiryIt;
 
-typedef std::vector<Client>		client_v;
 
 typedef struct epoll_event      event_t;
 typedef struct addrinfo         adrinfo_t;

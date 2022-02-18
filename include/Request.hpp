@@ -33,7 +33,8 @@ class Request
 		unsigned	int			_type;
 		strMap					_headers;
 		//URL
-		
+		//char					*_body;
+		std::vector<str_t>		_body;
 		strMap					_queryParam;
 
 };

@@ -1,5 +1,6 @@
-#include "../include/Request.hpp"
-#include "../include/str_manips.hpp"
+#include "Request.hpp"
+#include "str_manips.hpp"
+#include "find_nocase.hpp"
 
 Request::Request(str_t input, int fd) : _fd((fd))
 {
@@ -97,22 +98,58 @@ unsigned int Request::type()
 
 int	Request::parse(str_t input)
 {
-	int ret;
-	str_t line;
+	int					ret;
+	str_t				line;
+	std::vector<str_t>	lines;
+	int					sum = 0;
+	int					check = 0;
+	int					cl;
+	int					hl;
 
-	if ((ret = parse_TopLine(newLine(input))))
-		return (ret);
-	
 	while ((line = newLine(input)).size())
 	{
-		strPair p;
-		size_t	limit = line.find(':');
-		p.first = str_toUpper(line.substr(0, limit++));
-		while (isspace(line[limit++]));
-		limit--;
-		p.second = line.substr(limit, line.npos);
-		_headers.insert(p);
+		lines.push_back(line);
+		sum += line.size();
 	}
+	for (std::vector<str_t>::iterator it = lines.begin(); it != lines.end(); it++)
+	{
+		if (find_nocase<str_t>(*it, "content-length") != it->npos)
+		{
+			int i;
+			str_t str = it->substr(16);
+			std::istringstream(str) >> i;
+			cl = i;
+			hl = sum - cl;
+			break;
+		}
+	}
+
+	if ((ret = parse_TopLine(lines[0])))
+	 	return (ret);
+	
+	std::vector<str_t>::iterator it = lines.begin();
+	for (; it != lines.end(); it++)
+	{
+		if (check >= hl)
+			break;
+		strPair p;
+		size_t	limit = it->find(':');
+		p.first = str_toUpper(it->substr(0, limit++));
+		while (isspace((*it)[limit++]));
+		limit--;
+		p.second = it->substr(limit, line.npos);
+		_headers.insert(p);
+		check += it->size();
+	}
+
+	_body = std::vector<str_t>(it, lines.end());
+
+	std::cout << "----------\n";
+	for (std::vector<str_t>::iterator itb = _body.begin(); itb != _body.end(); itb++)
+	{
+		std::cout << *itb << std::endl;
+	}
+	std::cout << "----------\n";
 	return (EXIT_SUCCESS);
 }
 

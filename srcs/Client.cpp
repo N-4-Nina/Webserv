@@ -45,26 +45,26 @@ void	Client::add_request()
 }
 
 int		Client::fd()
-{
-	return (_fd);
-}
+{ return (_fd); }
 
 char	*Client::buff()
-{
-	return (_buff);
-}
+{ return (_buff); }
+
+time_t	Client::expire()
+{ return (_expire); }
 
 int		Client::add_data()
 {
-	std::cout << "\n\n ADD_DATA (fd = " << _fd <<  ")\n";
+	//std::cout << "\n\n ADD_DATA (fd = " << _fd <<  ")\n";
 	size_t pos;
 	memset(_buff, 0, MAXREAD);
 	int n;
 	n  = read(_fd, _buff, MAXREAD-1);
 	if (n < 0)
 		return (1);
-	std::cout << n << std::endl;
+	
 	_input = _input + str_t(_buff);
+
 	std::cout << _input << std::endl;
 	if ((pos = find_nocase<std::string>(_input, "CONTENT-LENGTH")) != _input.npos)
 	{
@@ -81,7 +81,8 @@ int		Client::add_data()
 	if (_input.size() >= _headers_len + _content_len && _input.size())
 	{
         add_request();
-		std::cout << "n is :" << n << std::endl;
+		_input = _input.substr(_headers_len + _content_len);
+		//std::cout << "n is :" << n << std::endl;
 	}
 	
 	return (0);
