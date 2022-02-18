@@ -44,28 +44,7 @@ void free_cgi(char **args, char **env)
 
 void CGI::exec_cgi(str_t target, Request req)
 {
-    char **args = NULL;
-    char **env = NULL;
-   
-    args = (char**)malloc(sizeof(char*) * 3);
-    args[0] = strdup(_binary.c_str());
-    args[1] = strdup(target.c_str());
-    args[2] = 0;
 
-// add request to build a complete env
-    env = build_cgi_env(req);
-	// display_cgi_env(env, args);
-
-    pid_t pid;
-	// int fd_out[2];
-	// int fd_in[2];
-	int save_stdin;
-	int save_stdout;
-	char **env;
-	str_t body;
-
-    if ((pid = fork()) == -1)
-        throw str_t("error: fork failed on CGI: PID = -1");
     // else if (pid == 0)
     // {
 	// 	// STDOUT become a copy of fd_out[1], and, in case of POST, STDIN become a copy of fd_in[0]
@@ -94,12 +73,57 @@ void CGI::exec_cgi(str_t target, Request req)
 	// 		if (write(fd_in[1], ))
 	// 	}
 	// }
+    
+	char **args = NULL;
+    char **env = NULL;
+   
+    args = (char**)malloc(sizeof(char*) * 3);
+    args[0] = strdup(_binary.c_str());
+    args[1] = strdup(target.c_str());
+    args[2] = 0;
+
+// add request to build a complete env
+    env = build_cgi_env(req);
+	// display_cgi_env(env, args);
+
+    pid_t pid;
+	int save_stdin;
+	int save_stdout;
+	char **env;
+	str_t body;
 
 	// save stdin and out to turn them back to normal after
 	save_stdin = dup(STDIN_FILENO);
 	save_stdout = dup(STDOUT_FILENO);
 
-	
+	// tmpfile - creates a temporary binary file, open for update with a filename guaranteed to be different from any other existing file
+	FILE	*file_in = tmpfile();
+	FILE	*file_out = tmpfile();
+	// fileno - map a stream pointer to a file descriptor
+	long	fd_in = fileno(file_in);
+	long	fd_out = fileno(file_out);
+	int		ret = 1;
+
+	write(fd_in, _body.c_str(), _body.size());
+	lseek(fd_in, 0, SEEK_SET);
+
+	if ((pid = fork()) == -1)
+        throw str_t("error: fork failed on CGI: PID = -1");
+	else if (pid == 0)
+	{
+
+		// STDOUT become a copy of fd_out, and, in case of POST, STDIN become a copy of fd_in
+		dup2(fd_in, STDIN_FILENO);
+		dup2(fd_out, STDOUT_FILENO);
+
+		if (execve(_binary.c_str(), args, env) < 0)
+			exit(-1);				// bail d\erreur à renvoyer 
+
+	}
+	else
+	{
+
+	}
 
     free_cgi(args, env);
 }
