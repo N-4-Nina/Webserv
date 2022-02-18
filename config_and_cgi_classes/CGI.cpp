@@ -42,30 +42,65 @@ void free_cgi(char **args, char **env)
     env = NULL;
 }
 
-void CGI::exec_cgi(str_t target)
+void CGI::exec_cgi(str_t target, Request req)
 {
     char **args = NULL;
     char **env = NULL;
-
-    pid_t pid;
-
+   
     args = (char**)malloc(sizeof(char*) * 3);
     args[0] = strdup(_binary.c_str());
     args[1] = strdup(target.c_str());
     args[2] = 0;
 
 // add request to build a complete env
-    env = build_cgi_env();
+    env = build_cgi_env(req);
+	// display_cgi_env(env, args);
 
-    // display_cgi_env(env, args);
+    pid_t pid;
+	// int fd_out[2];
+	// int fd_in[2];
+	int save_stdin;
+	int save_stdout;
+	char **env;
+	str_t body;
 
     if ((pid = fork()) == -1)
         throw str_t("error: fork failed on CGI: PID = -1");
-    else if (pid == 0)
-    {
-        
-    }
-    
+    // else if (pid == 0)
+    // {
+	// 	// STDOUT become a copy of fd_out[1], and, in case of POST, STDIN become a copy of fd_in[0]
+    //     dup2(fd_out[1], STDOUT_FILENO);
+	// 	close(fd_out[0]);
+	// 	close(fd_out[1]);
+
+	// 	dup2(fd_in[0], STDIN_FILENO);
+	// 	close(fd_in[0]);
+	// 	close(fd_in[1]);
+
+	// 	if (execve(_binary.c_str(), args, env) < 0)
+	// 		exit(-1);				// bail d\erreur à renvoyer 
+    // }
+	// else
+	// {
+	// 	close(fd_out[1]);
+
+	// 	if (req.type() == R_POST)
+	// 	{
+	// 		if (write(fd_in[1], [req.body], req.body size) < 0)
+	// 			throw str_t("error 500: write failed in exec_cgi method");
+	// 	}
+	// 	else
+	// 	{
+	// 		if (write(fd_in[1], ))
+	// 	}
+	// }
+
+	// save stdin and out to turn them back to normal after
+	save_stdin = dup(STDIN_FILENO);
+	save_stdout = dup(STDOUT_FILENO);
+
+	
+
     free_cgi(args, env);
 }
 
@@ -94,19 +129,24 @@ void CGI::exec_cgi(str_t target)
 * Ref: https://web.developpez.com/cgic.htm
 */
 
-char **CGI::build_cgi_env()
+char **CGI::build_cgi_env(Request req)
 {
     char **env;
     strMap envMap;
+	unsigned int type;
 
     /* Get and set CGI informations */
     envMap["GATEWAY_INTERFACE"] = "CGI/1.1";
     envMap["SERVER_SOFTWARE"] = "webserv";
     envMap["SERVER_NAME"] = "127.0.0.1";
-    envMap["SERVER_PROTOCOL"] = "HTTP/1.1";
+    envMap["SERVER_PROTOCOL"] = SERVER_VERSION;
     envMap["SERVER_PORT"] = ""; // depuis le port recup dans le request??? need to convert char* to string, using constructor of std::string?
-    envMap["REQUEST_METHOD"] = ""; // from request
-    envMap["PATH_INFO"] = ""; // uri from request
+
+	type = req.type();
+	str_t method_type = std::to_string(type);
+	envMap["REQUEST_METHOD"] = method_type; // from request
+    
+	envMap["PATH_INFO"] = ""; // uri from request
     envMap["PATH_TRANSLATED"] = ""; // need request location and uri
     envMap["SCRIPT_NAME"] = ""; // need from request
     envMap["QUERY_STRING"] = ""; // "
@@ -134,11 +174,12 @@ char **CGI::build_cgi_env()
 int main ()
 {
     CGI cgi;
+	Request req("uwu", 2);
 
     // set binary (path) for the cgi
     cgi.set_binary("BINARY NAME");
     // execute cgi
-    cgi.exec_cgi("CGI ARG");
+    cgi.exec_cgi("CGI ARG", req);
 
     return 0;
 }
