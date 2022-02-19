@@ -35,7 +35,7 @@ Client::~Client(void)
 
 void	Client::add_request()
 {
-	_req.push_back(Request(_input.substr(0, _headers_len + _content_len), _fd));
+	_req.push_back(Request(_input, _fd, _content_len, _nl_headers, _nl_body));
 	//std::cout << "parsed request :\n" << _input.substr(0, _headers_len + _content_len) << std::endl;
 	//std::cout << "remaining : " << _input << std::endl;
 	_input = _input.substr(_headers_len + _content_len);
@@ -60,38 +60,48 @@ int		Client::add_data()
 	memset(_buff, 0, MAXREAD);
 	int n;
 
-	n = recv(_fd, _buff, MAXREAD - 1, 0);
-	//n  = read(_fd, _buff, MAXREAD-1);
-	_input = _input + str_t(_buff);
-	memset(_buff, 0, MAXREAD);
-	
-	
+	//n = recv(_fd, _buff, MAXREAD - 1, 0);
+	n  = read(_fd, _buff, MAXREAD-1);
+	_input = _input + str_t(_buff);	
+	std::cout << _input;
 	if ((pos = find_nocase<std::string>(_input, "CONTENT-LENGTH")) != _input.npos)
 	{
-		if (find_nocase<std::string>(_input, "\n", pos) != _input.npos)
+		std::cout << "found content len" << std::endl;
+		if (_input.find("\n", pos) != _input.npos)
 		{
-			_content_len = atoi(_input.substr(pos + 17).c_str());
+			_content_len = atoi(_input.substr(pos + 16).c_str());
+			std::cout << "content len = " << _content_len << std::endl;
 		}
 	}
 	if (((pos = _input.find("\r\n\r\n")) != _input.npos))
 	{
-		_headers_len  = pos + 4;
+		for (size_t i = 0; i < pos; i++)
+			if (_input[i] == '\n')
+				_nl_headers++;
+		for (size_t i = 0 ; i < _content_len; i++)
+			if (_input[i + pos + 4] == '\n')
+				_nl_body++;
+		std::cout << "nl headers = " << _nl_headers << std::endl;
+		std::cout << "nl body = " << _nl_body << std::endl;
+		
 	}
 
-	if (_input.size() >= _headers_len + _content_len && _input.size())
+	if (_input.size())			// not good obvsly, we need to check if req is complete
 	{
         add_request();
-		_input = _input.substr(_headers_len + _content_len);
+		_input.clear();
+		//_input = _input.substr(_headers_len + _content_len);
 		//std::cout << "n is :" << n << std::endl;
 	}
 
-	char            buff[MAXREAD+1];
-	snprintf((char*)buff, sizeof(buff), "HTTP/1.1 200 \r\n\r\n<!OKDOCTYPE html>\n<head>\n</head>\n<body>\n<div>Hello There :)</div>\n<img src=\"image.jpg\"/>\n</body>\n</html>");
+	//char            buff[MAXREAD+1];
+	//snprintf((char*)buff, sizeof(buff), "HTTP/1.1 200 \r\n\r\n<!OKDOCTYPE html>\n<head>\n</head>\n<body>\n<div>Hello There :)</div>\n<img src=\"image.jpg\"/>\n</body>\n</html>");
 
-    write(_fd, buff, strlen(buff));
+    //write(_fd, buff, strlen(buff));
+	fsync(_fd);
    	close(_fd);
 
-	if (n < 0)
+	if (n == 0)
 	{
 		std::cout << _input << std::endl;
 		return (1);

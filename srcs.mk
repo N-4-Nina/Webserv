@@ -1,9 +1,9 @@
 SRCS = \
-Client.cpp\
-Request.cpp\
-str_manips.cpp\
-Response.cpp\
 EvMa.cpp\
-time_in_ms.cpp\
+str_manips.cpp\
 main.cpp\
+Response.cpp\
+Request.cpp\
+Client.cpp\
+time_in_ms.cpp\
 \

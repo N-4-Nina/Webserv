@@ -2,7 +2,8 @@
 #include "str_manips.hpp"
 #include "find_nocase.hpp"
 
-Request::Request(str_t input, int fd) : _fd((fd))
+Request::Request(str_t input, int fd, size_t cl, size_t nl_head, size_t nl_body)
+: _fd((fd)), _cl(cl), _nl_headers(nl_head), _nl_body(nl_body)
 {
 	parse(input);
 }
@@ -67,11 +68,12 @@ size_t	Request::parse_Url(str_t const &line)
 	return (end);
 }
 
-int	Request::parse_TopLine(str_t line)
+int	Request::parse_TopLine(str_t &input)
 {
 	size_t			found = R_DELETE + 1;
 	static	str_t	strTypes[3] = {"GET", "POST", "DELETE"};
 
+	str_t line = newLine(input);
 	for (size_t i = R_GET; i <= R_DELETE; i++)
 	{
 		if (line.find(strTypes[i]) != line.npos)
@@ -98,53 +100,72 @@ unsigned int Request::type()
 
 int	Request::parse(str_t input)
 {
-	int					ret;
+	//int					ret;
 	str_t				line;
 	std::vector<str_t>	lines;
 	int					sum = 0;
-	int					check = 0;
-	int					cl;
-	int					hl;
-
-	while ((line = newLine(input)).size())
-	{
-		lines.push_back(line);
-		sum += line.size();
-	}
-	for (std::vector<str_t>::iterator it = lines.begin(); it != lines.end(); it++)
-	{
-		if (find_nocase<str_t>(*it, "content-length") != it->npos)
-		{
-			int i;
-			str_t str = it->substr(16);
-			std::istringstream(str) >> i;
-			cl = i;
-			hl = sum - cl;
-			break;
-		}
-	}
-
-	if ((ret = parse_TopLine(lines[0])))
+	size_t					check = 0;
+	int ret;
+	
+	 if (!input.size())
+	 	return (1);
+	
+	if ((ret = parse_TopLine(input)))
 	 	return (ret);
 	
-	std::vector<str_t>::iterator it = lines.begin();
-	for (; it != lines.end(); it++)
+	while (check < _nl_headers)
 	{
-		if (check >= hl)
-			break;
+		line = newLine(input);
 		strPair p;
-		size_t	limit = it->find(':');
-		p.first = str_toUpper(it->substr(0, limit++));
-		while (isspace((*it)[limit++]));
+		size_t	limit = line.find(':');
+		p.first = str_toUpper(line.substr(0, limit++));
+		while (isspace(line[limit++]));
 		limit--;
-		p.second = it->substr(limit, line.npos);
+		p.second = line.substr(limit, line.npos);
 		_headers.insert(p);
-		check += it->size();
+		check++;
 	}
+	check = 0;
+	line = newLine(input);
+	while (check < _nl_body)
+	{
+		line = newLine(input);
+		_body.push_back(line);
+		check++;
+	}
+	check = 0;
+	sum = _cl + _hl;
+	
+	std::vector<str_t>::iterator it = lines.begin();
+	// for (; it != lines.end(); it++)
+	// {
+	// 	if (check == _nl_headers)
+	// 		break;
+	// 	strPair p;
+	// 	size_t	limit = it->find(':');
+	// 	p.first = str_toUpper(it->substr(0, limit++));
+	// 	while (isspace((*it)[limit++]));
+	// 	limit--;
+	// 	p.second = it->substr(limit, line.npos);
+	// 	_headers.insert(p);
+	// 	check++;
+	// }
 
-	_body = std::vector<str_t>(it, lines.end());
-
+	std::cout << "-----HEADERS-----\n";
+	for (strMap::iterator itt = _headers.begin(); itt != _headers.end(); itt++)
+	{
+		std::cout << itt->first << std::endl;
+	}
 	std::cout << "----------\n";
+
+	for (it = lines.begin() +  _hl; it != lines.end(); it++)
+	{
+		std::cout << *it << std::endl;
+		_body.push_back(*it);
+	}
+	//_body = std::vector<str_t>(lines.begin() + check, lines.end());
+
+	std::cout << "-----BODY-----\n";
 	for (std::vector<str_t>::iterator itb = _body.begin(); itb != _body.end(); itb++)
 	{
 		std::cout << *itb << std::endl;

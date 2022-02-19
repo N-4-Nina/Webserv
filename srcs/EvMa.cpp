@@ -80,25 +80,10 @@ void	EvMa::init_epoll()
 		fatal("epoll ctl");
 }
 
-void enable_keepalive(int sock)
-{
-    int yes = 1;
-    setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(int));
-
-    // int idle = 1;
-    // setsockopt(sock, IPPROTO_TCP, TCP_KEEPIDLE, &idle, sizeof(int));
-
-    // int interval = 1;
-    // setsockopt(sock, IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(int));
-
-    // int maxpkt = 10;
-    // setsockopt(sock, IPPROTO_TCP, TCP_KEEPCNT, &maxpkt, sizeof(int));
-}
-
 void	EvMa::add_to_interest(int fd)
 {
 	unlock_socket(fd);
-	enable_keepalive(fd);
+	//enable_keepalive(fd);
 	_event.data.fd = fd;
 	_event.events = EPOLLIN | EPOLLET;
 	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &_event) == -1)

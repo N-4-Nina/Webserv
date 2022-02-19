@@ -27,6 +27,8 @@ class Client
 		std::vector<Request>	_req;
 		str_t					_input;
 		char            		_buff[MAXREAD+1];
+		size_t					_nl_headers;
+		size_t					_nl_body;
 		unsigned int			_headers_len;
 		unsigned int			_content_len;
 		time_t					_expire;
