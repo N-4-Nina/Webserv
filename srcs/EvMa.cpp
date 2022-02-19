@@ -75,7 +75,7 @@ void	EvMa::init_epoll()
 	_events = static_cast<event_t*>(calloc(_max_event, sizeof(event_t)));
 
 	_event.data.fd = _socket_fd;
-	_event.events = EPOLLIN | EPOLLOUT;
+	_event.events = EPOLLIN | EPOLLET;
 	if (epoll_ctl (_epoll_fd, EPOLL_CTL_ADD, _socket_fd, &_event) == -1) /*intialize interest list*/
 		fatal("epoll ctl");
 }

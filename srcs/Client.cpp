@@ -59,13 +59,13 @@ int		Client::add_data()
 	size_t pos;
 	memset(_buff, 0, MAXREAD);
 	int n;
-	n  = read(_fd, _buff, MAXREAD-1);
-	if (n < 0)
-		return (1);
-	
-	_input = _input + str_t(_buff);
 
-	std::cout << _input << std::endl;
+	n = recv(_fd, _buff, MAXREAD - 1, 0);
+	//n  = read(_fd, _buff, MAXREAD-1);
+	_input = _input + str_t(_buff);
+	memset(_buff, 0, MAXREAD);
+	
+	
 	if ((pos = find_nocase<std::string>(_input, "CONTENT-LENGTH")) != _input.npos)
 	{
 		if (find_nocase<std::string>(_input, "\n", pos) != _input.npos)
@@ -84,7 +84,18 @@ int		Client::add_data()
 		_input = _input.substr(_headers_len + _content_len);
 		//std::cout << "n is :" << n << std::endl;
 	}
-	
+
+	char            buff[MAXREAD+1];
+	snprintf((char*)buff, sizeof(buff), "HTTP/1.1 200 \r\n\r\n<!OKDOCTYPE html>\n<head>\n</head>\n<body>\n<div>Hello There :)</div>\n<img src=\"image.jpg\"/>\n</body>\n</html>");
+
+    write(_fd, buff, strlen(buff));
+   	close(_fd);
+
+	if (n < 0)
+	{
+		std::cout << _input << std::endl;
+		return (1);
+	}
 	return (0);
 		
 }
