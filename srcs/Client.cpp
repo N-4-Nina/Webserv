@@ -35,10 +35,11 @@ Client::~Client(void)
 
 void	Client::add_request()
 {
-	_req.push_back(Request(_input, _fd, _content_len, _nl_headers, _nl_body));
+	_req.push_back(Request(_input, _fd, _nl_headers, _nl_body));
 	//std::cout << "parsed request :\n" << _input.substr(0, _headers_len + _content_len) << std::endl;
 	//std::cout << "remaining : " << _input << std::endl;
-	_input = _input.substr(_headers_len + _content_len);
+	_input.clear();
+	//_input = _input.substr(_headers_len + _content_len);
 	//std::cout << "remaining : " << _input << std::endl;
 	_headers_len = 0;
 	_content_len = 0;
@@ -60,7 +61,6 @@ int		Client::add_data()
 	memset(_buff, 0, MAXREAD);
 	int n;
 
-	//n = recv(_fd, _buff, MAXREAD - 1, 0);
 	n  = read(_fd, _buff, MAXREAD-1);
 	_input = _input + str_t(_buff);	
 	std::cout << _input;

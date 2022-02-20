@@ -13,7 +13,7 @@ enum
 class Request
 {
 	public:
-		Request(str_t input, int fd, size_t cl, size_t nl_head, size_t nl_body);
+		Request(str_t input, int fd, size_t nl_head, size_t nl_body);
 		//Request(const Request &ref);
 		Request	&operator=(const Request &ref);
 		~Request(void);
@@ -30,8 +30,7 @@ class Request
 		int			parse_TopLine(str_t &line);
 
 		int						_fd;
-		size_t					_cl;
-		size_t					_hl;
+		//size_t					_cl;
 		unsigned	int			_type;
 		strMap					_headers;
 		//URL

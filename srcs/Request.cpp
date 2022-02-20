@@ -2,8 +2,8 @@
 #include "str_manips.hpp"
 #include "find_nocase.hpp"
 
-Request::Request(str_t input, int fd, size_t cl, size_t nl_head, size_t nl_body)
-: _fd((fd)), _cl(cl), _nl_headers(nl_head), _nl_body(nl_body)
+Request::Request(str_t input, int fd, size_t nl_head, size_t nl_body)
+: _fd((fd)), _nl_headers(nl_head), _nl_body(nl_body)
 {
 	parse(input);
 }
@@ -102,8 +102,7 @@ int	Request::parse(str_t input)
 {
 	//int					ret;
 	str_t				line;
-	std::vector<str_t>	lines;
-	int					sum = 0;
+	//int					sum = 0;
 	size_t					check = 0;
 	int ret;
 	
@@ -112,10 +111,12 @@ int	Request::parse(str_t input)
 	
 	if ((ret = parse_TopLine(input)))
 	 	return (ret);
-	
-	while (check < _nl_headers)
+	_nl_headers--;
+	while (check <= _nl_headers)
 	{
 		line = newLine(input);
+		if (line  == "")
+			break ;
 		strPair p;
 		size_t	limit = line.find(':');
 		p.first = str_toUpper(line.substr(0, limit++));
@@ -134,36 +135,14 @@ int	Request::parse(str_t input)
 		check++;
 	}
 	check = 0;
-	sum = _cl + _hl;
-	
-	std::vector<str_t>::iterator it = lines.begin();
-	// for (; it != lines.end(); it++)
-	// {
-	// 	if (check == _nl_headers)
-	// 		break;
-	// 	strPair p;
-	// 	size_t	limit = it->find(':');
-	// 	p.first = str_toUpper(it->substr(0, limit++));
-	// 	while (isspace((*it)[limit++]));
-	// 	limit--;
-	// 	p.second = it->substr(limit, line.npos);
-	// 	_headers.insert(p);
-	// 	check++;
-	// }
+	// sum = _cl + _hl;
 
 	std::cout << "-----HEADERS-----\n";
 	for (strMap::iterator itt = _headers.begin(); itt != _headers.end(); itt++)
 	{
-		std::cout << itt->first << std::endl;
+		std::cout << itt->first << "  :  "  << itt->second << std::endl;
 	}
 	std::cout << "----------\n";
-
-	for (it = lines.begin() +  _hl; it != lines.end(); it++)
-	{
-		std::cout << *it << std::endl;
-		_body.push_back(*it);
-	}
-	//_body = std::vector<str_t>(lines.begin() + check, lines.end());
 
 	std::cout << "-----BODY-----\n";
 	for (std::vector<str_t>::iterator itb = _body.begin(); itb != _body.end(); itb++)
@@ -171,6 +150,7 @@ int	Request::parse(str_t input)
 		std::cout << *itb << std::endl;
 	}
 	std::cout << "----------\n";
+
 	return (EXIT_SUCCESS);
 }
 

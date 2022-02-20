@@ -194,10 +194,7 @@ std::vector<Config>	parsing_config(int argc, char **argv)
             config = parse_config(argv[1]);
     }
 	catch (str_t error)
-    {
-        std::cerr << error << std::endl;
-        return std::vector<Config>();
-    }
+        {fatal(error);}
 
     // print Config
     for (std::vector<Config>::iterator it = config.begin() ; it < config.end() ; it++)

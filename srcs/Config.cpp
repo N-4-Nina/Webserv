@@ -1,6 +1,9 @@
 #include "Config.hpp"
 
-Config::Config(str_t config)
+Config::Config(str_t config) : 
+_host("localhost"), _server_name(1, "webserv"), 
+_client_max_body_size(1000000), _root("/"), _index(1, "index.html"),
+_autoindex("off")
 {
 	size_t pos = -1;
 	str_t tmp;
@@ -115,7 +118,7 @@ void Config::set_server_name(str_t line)
 	
 	space = line.find(" ");
 
-	while(space != str_t::npos)
+	while (space != str_t::npos)
 	{
 		if (line.find(" ", space + 1) != str_t::npos)
 			this->_server_name.push_back(line.substr(space + 1, line.find(' ', space + 1) - space - 1));
@@ -123,6 +126,8 @@ void Config::set_server_name(str_t line)
 			this->_server_name.push_back(line.substr(space + 1));
 		space = line.find(' ', space + 1);
 	}
+	if (_server_name.size())
+		_host = _server_name[0];
 }
 	
 void Config::set_error_page(str_t config)
@@ -187,13 +192,15 @@ void Config::set_index(str_t line)
 		return;
 	
 	space = line.find(" ");
-	
+	int clear = 1;
 	while (space != std::string::npos)
 	{
 		if (line.find(" ", space + 1) != std::string::npos)
 			this->_index.push_back(line.substr(space + 1, line.find(' ', space + 1) - space - 1));
 		else
 			this->_index.push_back(line.substr(space + 1));
+		if (clear && !(clear = 0))
+			_index.erase(_index.begin());
 		space = line.find(' ', space + 1);
 	}
 }
@@ -203,10 +210,7 @@ void Config::set_autoindex(str_t line)
 	str_t tmp;
 
 	if (line == "")
-	{
-		this->_autoindex = "off";
 		return ;
-	}
 	tmp = line.substr(line.find(" ") + 1);
 	if (tmp == "on" || tmp == "off")
 		this->_autoindex = tmp;
