@@ -56,6 +56,10 @@ void	EvMa::init_socket()
         fatal("could not create socket");
 	}
 
+
+	int optionValue = 1;
+    setsockopt(_socket_fd, SOL_SOCKET, SO_REUSEADDR, &optionValue, sizeof(optionValue));
+
 	if ((bind(_socket_fd , (sockaddr*) &servaddr, sizeof(servaddr))) < 0)
         fatal("could not bind");
     
@@ -79,6 +83,20 @@ void	EvMa::init_epoll()
 	if (epoll_ctl (_epoll_fd, EPOLL_CTL_ADD, _socket_fd, &_event) == -1) /*intialize interest list*/
 		fatal("epoll ctl");
 }
+
+// void enable_keepalive(int sock) {
+//     int yes = 1;
+//     setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(int));
+
+//     int idle = 1;
+//     setsockopt(sock, IPPROTO_TCP, TCP_KEEPIDLE, &idle, sizeof(int));
+
+//     int interval = 1;
+//     setsockopt(sock, IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(int));
+
+//     int maxpkt = 10;
+//     setsockopt(sock, IPPROTO_TCP, TCP_KEEPCNT, &maxpkt, sizeof(int));
+// }
 
 void	EvMa::add_to_interest(int fd)
 {

@@ -98,8 +98,8 @@ int		Client::add_data()
 	//snprintf((char*)buff, sizeof(buff), "HTTP/1.1 200 \r\n\r\n<!OKDOCTYPE html>\n<head>\n</head>\n<body>\n<div>Hello There :)</div>\n<img src=\"image.jpg\"/>\n</body>\n</html>");
 
     //write(_fd, buff, strlen(buff));
-	fsync(_fd);
-   	close(_fd);
+	//fsync(_fd);
+   	//close(_fd);
 
 	if (n == 0)
 	{
