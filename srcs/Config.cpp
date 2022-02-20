@@ -1,7 +1,7 @@
 #include "Config.hpp"
 
 Config::Config(str_t config) : 
-_host("localhost"), _server_name(1, "webserv"), 
+_host("localhost"), _port(1, 80),  _server_name(1, "webserv"), 
 _client_max_body_size(1000000), _root("/"), _index(1, "index.html"),
 _autoindex("off")
 {
@@ -40,17 +40,7 @@ void Config::set_host_port(str_t line)
 	std::stringstream strst;
 
 	if (line == "")
-	{
-		this->_host = "localhost";
-		tmp_port = 80;
-		for (std::vector<int>::iterator it = this->_port.begin() ; it != this->_port.end() ; ++it)
-		{
-			if (tmp_port == *it)
-				return ;
-		}
-		this->_port.push_back(tmp_port);
 		return ;
-	}
 
 	space_pos = line.find(" ");
 	split_pos = line.find(":");
@@ -84,6 +74,7 @@ void Config::set_host_port(str_t line)
 				if (tmp_port == *it)
 					throw str_t("error: duplicate port");
 			}
+			this->_port.pop_back();
 			this->_port.push_back(tmp_port);
 		}
 	}
@@ -110,8 +101,6 @@ void Config::set_host_port(str_t line)
 void Config::set_server_name(str_t line)
 {
 	size_t space;
-
-	this->_server_name.push_back("localhost");
 
 	if (line == "")
 		return ;
