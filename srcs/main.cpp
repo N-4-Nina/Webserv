@@ -1,6 +1,7 @@
-#include "../include/common.hpp"
-#include "../include/Request.hpp"
+#include "common.hpp"
+#include "Request.hpp"
 #include "EvMa.hpp"
+#include "Config.hpp"
 
 #define DEFAULT_PORT	8002
 #define MAX_EVENTS		5
@@ -22,12 +23,8 @@ int main(int argc, char **argv)
 {
     strMap          req_headers;
 
-
-    if (argc != 2)
-        fatal("Usage: ./webserv [port] (until config file)"); //using user defined port
-
-
-    EvMa	ev(argv[1]);
+    std::vector<Config> conf = parsing_config(argc, argv);
+    EvMa	ev(conf[0]);
 
     ev.loop();
     // for (;;)

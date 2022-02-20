@@ -125,7 +125,7 @@ str_t Location::search_config(str_t config, str_t key)
         return ("");
     
     while (config[begin - 2] != ';' && config[begin - 2] != '{' && config[begin - 2] != '}'
-            && config[begin - 2] != str_t::npos)
+            && begin - 2 != str_t::npos)
     {
         begin = config.find(key, begin + 1);
         if (begin == str_t::npos)

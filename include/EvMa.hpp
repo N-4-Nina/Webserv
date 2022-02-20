@@ -3,10 +3,12 @@
 
 #include "common.hpp"
 #include "Client.hpp"
+#include "Config.hpp"
+
 class EvMa
 {
 	public:
-		EvMa(const char *port = "8000", int max_event = 1024);
+		EvMa(Config &conf);
 		//EvMa(const EvMa &ref);				a implementer
 		//EvMa	&operator=(const EvMa &ref);
 		~EvMa(void);

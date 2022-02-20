@@ -3,16 +3,16 @@
 #include "Client.hpp"
 
 // a terme devra prendre une ref sur config (et le garder en tant qu'attribut)
-EvMa::EvMa(const char *port, int max_event)
+EvMa::EvMa(Config &conf)
 {
 	/* should put all of this in init list -- also put missing stuff (nb_events..)*/
 
 	//_port = strdup(port);	// duplicate because default value
-	_portNb = atoi(port);
-	_max_event = max_event;
+	_portNb = conf.port()[0];		//warning = should implement multiple listening socket
+	_max_event = conf.client_max();
 	_event_nb = 0;
 
-	_clients.reserve(max_event);
+	_clients.reserve(_max_event);
 	init_socket();			//so maybe private ??
 	init_epoll();
 }

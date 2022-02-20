@@ -51,5 +51,5 @@ class Config
 };
 
 std::ostream &operator<<(std::ostream &os, const Config &src);
-
+std::vector<Config>	parsing_config(int argc, char **argv);
 #endif

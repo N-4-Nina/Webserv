@@ -208,8 +208,8 @@ std::vector<Config>	parsing_config(int argc, char **argv)
 	return (config);
 }
 
-int	main(int argc, char **argv)
-{
-	std::vector<Config> config = parsing_config(argc, argv);
-	return 0;
-}
+// int	main(int argc, char **argv)
+// {
+// 	std::vector<Config> config = parsing_config(argc, argv);
+// 	return 0;
+// }
