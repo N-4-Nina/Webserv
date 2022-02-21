@@ -1,7 +1,7 @@
 #include "Config.hpp"
 
 Config::Config(str_t config) : 
-_host("localhost"), _port(1, 80),  _server_name(1, "webserv"), 
+_host("localhost"), _ports(1, 80),  _server_name(1, "webserv"), 
 _client_max_body_size(1000000), _root("/"), _index(1, "index.html"),
 _autoindex("off")
 {
@@ -55,12 +55,12 @@ void Config::set_host_port(str_t line)
 				if (this->_host != "localhost")
 					throw str_t("error: wrong IP");
 				tmp_port = 80;
-				for (std::vector<int>::iterator it = this->_port.begin() ; it != this->_port.end() ; ++it)
+				for (std::vector<int>::iterator it =  _ports.begin() ; it !=  _ports.end() ; ++it)
 				{
 					if (tmp_port == *it)
 						return ;
 				}
-				this->_port.push_back(tmp_port);
+				 _ports.push_back(tmp_port);
 			}
 		}
 		if (tmp_port != 80)
@@ -69,13 +69,13 @@ void Config::set_host_port(str_t line)
 			strst << line.substr(space_pos + 1);
 			strst >> tmp_port;
 
-			for (std::vector<int>::iterator it = this->_port.begin() ; it != this->_port.end() ; ++it)
+			for (std::vector<int>::iterator it =  _ports.begin() ; it !=  _ports.end() ; ++it)
 			{
 				if (tmp_port == *it)
 					throw str_t("error: duplicate port");
 			}
-			this->_port.pop_back();
-			this->_port.push_back(tmp_port);
+			 _ports.pop_back();
+			 _ports.push_back(tmp_port);
 		}
 	}
 	else
@@ -88,12 +88,12 @@ void Config::set_host_port(str_t line)
 		strst << line.substr(split_pos + 1);
 		strst >> tmp_port;
 
-		for (std::vector<int>::iterator it = this->_port.begin() ; it != this->_port.end() ; ++it)
+		for (std::vector<int>::iterator it =  _ports.begin() ; it !=  _ports.end() ; ++it)
 		{
 			if (tmp_port == *it)
 				return ;
 		}
-		this->_port.push_back(tmp_port);
+		 _ports.push_back(tmp_port);
 	}
 }
 
@@ -231,7 +231,7 @@ void Config::set_location(str_t line)
 
 str_t Config::host() const { return (this->_host ); }
 
-std::vector<int> Config::port() const { return (this->_port); }
+std::vector<int> Config::ports() const { return ( _ports); }
 
 std::vector<str_t> Config::server_name() const { return (this->_server_name); }
 
@@ -345,7 +345,7 @@ std::ostream& operator<<(std::ostream& os, Config const& src)
 	os << "host: " << src.host() << std::endl;
 	
 	os << "ports: " << std::endl;
-	std::vector<int> ports = src.port();
+	std::vector<int> ports = src.ports();
 	for (std::vector<int>::iterator it = ports.begin() ; it != ports.end() ; ++it)
 		os << "\t- " << *it << std::endl;
 	

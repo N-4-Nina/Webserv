@@ -21,15 +21,21 @@
 #include <unistd.h>
 #include <vector>
 
+class Server;
+class Config;
+class Client;
 
 typedef std::string             str_t;
 typedef std::pair<str_t, str_t> strPair;
 typedef	std::map<str_t, str_t>	strMap;
 
-// typedef std::pair<int, time_t>  expiry;
-// typedef std::list<expiry>		expiryList;
-//typedef expiryList::iterator    expiryIt;
+typedef std::map<int, Server>	Cluster;
+typedef	std::map<int, Client>	Clients_pool;
+typedef	std::map<int, int>		listen_sockets;
 
+
+typedef std::vector<Config>		config_v;
+typedef std::vector<int>		int_v;
 
 typedef struct epoll_event      event_t;
 typedef struct addrinfo         adrinfo_t;
@@ -38,7 +44,9 @@ time_t	time_in_ms(void);
 
 void    fatal(str_t str);
 void    assert(bool scal, str_t log);
+int		unlock_socket(int fd);
 
 #define CRLF            "\r\n"
 #define SERVER_VERSION  "HTTP/1.1"
 #define MAXREAD			4096
+#define MAXCONN			512

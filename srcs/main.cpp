@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     strMap          req_headers;
 
     std::vector<Config> conf = parsing_config(argc, argv);
-    EvMa	ev(conf[0]);
+    EvMa	ev(conf);
 
     ev.loop();
     // for (;;)

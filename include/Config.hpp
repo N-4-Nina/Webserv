@@ -15,7 +15,7 @@ class Config
         ~Config(void);
 
         str_t                   host() const;
-        std::vector<int>        port() const;
+        std::vector<int>        ports() const;
         std::vector<str_t>      server_name() const;
         strMap                  error_page() const;
         size_t                  client_max() const;
@@ -26,7 +26,7 @@ class Config
 
     private:
         str_t                   _host;
-        std::vector<int>        _port;
+        std::vector<int>        _ports;
         std::vector<str_t>      _server_name;
         strMap                  _error_page;
         size_t                  _client_max_body_size;

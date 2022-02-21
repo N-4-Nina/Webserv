@@ -5,9 +5,10 @@ Client::Client(void)
 {
 }
 
-Client::Client(int fd) : _fd(fd)
+Client::Client(int fd, int serv) : _fd(fd), _server_id(serv)
 {
 	memset(_buff, 0, MAXREAD+1);
+	(void)_server_id;
 }
 
 // Client::Client(const Client &ref)

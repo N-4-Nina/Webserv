@@ -9,7 +9,8 @@
 class Client
 {
 	public:
-		Client(int fd);
+		Client(void);
+		Client(int fd, int serv);
 		//Client(const Client &ref);
 		Client	&operator=(const Client &ref);
 		~Client(void);
@@ -22,8 +23,8 @@ class Client
 		void	touch();
 
 	private:
-		Client(void);
 		int						_fd;
+		int						_server_id;
 		std::vector<Request>	_req;
 		str_t					_input;
 		char            		_buff[MAXREAD+1];
@@ -34,6 +35,8 @@ class Client
 		time_t					_expire;
 };
 
-typedef std::vector<Client>		client_v;
+//typedef std::vector<Client>		client_v;
+typedef	std::vector<Client *>	Expire_List;
+typedef	Expire_List::iterator	Expire_iterator;
 
 #endif

@@ -139,7 +139,7 @@ void clean_config(str_t& config)
     }
 }
 
-std::vector<Config> parse_config(const char* config)
+config_v parse_config(const char* config)
 {
   	// open the file
     std::ifstream config_open;
@@ -169,7 +169,7 @@ std::vector<Config> parse_config(const char* config)
     // std::cout << "Block:" << std::endl;
     // printVec(block);
 
-    std::vector<Config> new_config;
+    config_v new_config;
     {
         // fill it with a buffer 
         Config tmp_config(config_final.substr(block[0], (block[1] - block[0])));
@@ -182,9 +182,9 @@ std::vector<Config> parse_config(const char* config)
     return (new_config);
 }
 
-std::vector<Config>	parsing_config(int argc, char **argv)
+config_v	parsing_config(int argc, char **argv)
 {
-	std::vector<Config> config;
+	config_v config;
 
 	try
     {
@@ -197,7 +197,7 @@ std::vector<Config>	parsing_config(int argc, char **argv)
         {fatal(error);}
 
     // print Config
-    for (std::vector<Config>::iterator it = config.begin() ; it < config.end() ; it++)
+    for (config_v::iterator it = config.begin() ; it < config.end() ; it++)
     {
         std::cout << *it << std::endl;
     }
@@ -207,6 +207,6 @@ std::vector<Config>	parsing_config(int argc, char **argv)
 
 // int	main(int argc, char **argv)
 // {
-// 	std::vector<Config> config = parsing_config(argc, argv);
+// 	config_v config = parsing_config(argc, argv);
 // 	return 0;
 // }
