@@ -4,6 +4,7 @@
 #include "common.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
+#include "Server.hpp"
 
 #define PARSED_CL	1
 #define PARSED_CNL	2
@@ -13,7 +14,7 @@ class Client
 {
 	public:
 		Client(void);
-		Client(int fd, int serv);
+		Client(int fd, Server *serv);
 		//Client(const Client &ref);
 		Client	&operator=(const Client &ref);
 		~Client(void);
@@ -29,6 +30,7 @@ class Client
 	private:
 		int						_fd;
 		int						_server_id;
+		Server					*_serv;
 		std::vector<Request>	_req;
 		str_t					_input;
 		char            		_buff[MAXREAD+1];

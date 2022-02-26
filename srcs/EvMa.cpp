@@ -79,12 +79,12 @@ void	EvMa::add_to_interest(int fd, Server *serv)
 	unlock_socket(fd);
 	//enable_keepalive(fd);
 	_event.data.fd = fd;
-	_event.events = EPOLLIN | EPOLLOUT | EPOLLET;
+	_event.events = EPOLLIN | EPOLLOUT;
 	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &_event) == -1)
 		fatal("failed to add incoming connection to interest list.");
 	//expiry ex = std::make_pair(fd, time_in_ms() + 5000);
 	//_clients.push_back(ex);
-	Client tmp(fd, serv->id());
+	Client tmp(fd, serv);
 	_clients[fd] = tmp;
 	_clients[fd].touch();
 	std::cout << "added connection. fd is: " << fd << std::endl;

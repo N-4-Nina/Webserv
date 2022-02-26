@@ -1,13 +1,14 @@
 #include "Client.hpp"
 #include "find_nocase.hpp"
 
-Client::Client(void): _fd(-1), _server_id(0), _nl_headers(0), _nl_body(0), _content_len(0), _ready(false)
+Client::Client(void): _fd(-1), _server_id(0), _serv(NULL), _nl_headers(0), _nl_body(0), _content_len(0), _ready(false)
 {
 }
 
-Client::Client(int fd, int serv) : _fd(fd), _server_id(serv), _nl_headers(0), _nl_body(0), _content_len(0), _ready(false)
+Client::Client(int fd, Server *serv) : _fd(fd), _serv(serv), _nl_headers(0), _nl_body(0), _content_len(0), _ready(false)
 {
 	_parse_flags = 0;
+	_server_id = serv->id();
 	memset(_buff, 0, MAXREAD+1);
 	(void)_server_id;
 }
@@ -27,6 +28,7 @@ Client	&Client::operator=(const Client &ref)
 		strcpy(_buff, ref._buff);
 		_headers_len = ref._headers_len;
 		_content_len = ref._content_len;
+		_serv = ref._serv;
 	}
 	return (*this);
 }
@@ -133,7 +135,7 @@ void	Client::respond()
 	for (size_t i = 0; i < _req.size(); i++)
 	{
 		std::cout << "response " << i << std::endl;
-		Response res(_req[i]);
+		Response res(_req[i], _serv->conf());
 		res.send();
 	}
 	_ready = false;

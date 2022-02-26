@@ -6,6 +6,7 @@ Server::Server(Config &conf)
 {
 	init_listen(conf.ports());
 	_portNb = conf.ports().size();
+	_conf = &conf;
 }
 
 Server::Server(const Server &ref)
@@ -19,6 +20,7 @@ Server	&Server::operator=(const Server &ref)
 	{
 		_ls = ref._ls;
 		_portNb = ref._portNb;
+		_conf = ref._conf;
 	}
 	return (*this);
 }
@@ -31,6 +33,10 @@ int		Server::id()
 {
 	return (_id);
 }
+
+Config	*Server::conf(void)
+{ return (_conf); }
+
 bool	Server::is_listen(int fd)
 {
 	for (listen_sockets::iterator it = _ls.begin(); it != _ls.end(); it++)

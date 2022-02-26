@@ -3,6 +3,8 @@
 
 #include "common.hpp"
 #include "Request.hpp"
+#include "Config.hpp"
+#include "Location.hpp"
 
 enum 
 {
@@ -35,7 +37,7 @@ enum
 class Response
 {
 	public:
-		Response(Request req);
+		Response(Request &req, Config *conf);
 		//Response(const Response &ref);
 		//Response	&operator=(const Response &ref);
 		~Response(void);
@@ -43,7 +45,10 @@ class Response
 		unsigned int	status();
 		void			send();
 	private:
+		void	set_route(Request &req);
 		Response(void);
+		Config									*_conf;
+		std::string								_route;
 		unsigned int							_status;
 		int										_fd;
 		static	std::map<unsigned int, str_t>	_messages;
