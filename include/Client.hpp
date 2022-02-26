@@ -5,6 +5,9 @@
 #include "Request.hpp"
 #include "Response.hpp"
 
+#define PARSED_CL	1
+#define PARSED_CNL	2
+#define PARSED_BNL	4
 
 class Client
 {
@@ -21,6 +24,7 @@ class Client
 		time_t	expire();
 		char	*buff();
 		void	touch();
+		bool	isReady();
 
 	private:
 		int						_fd;
@@ -30,9 +34,11 @@ class Client
 		char            		_buff[MAXREAD+1];
 		size_t					_nl_headers;
 		size_t					_nl_body;
+		unsigned int			_parse_flags;
 		unsigned int			_headers_len;
 		unsigned int			_content_len;
 		time_t					_expire;
+		bool					_ready;
 };
 
 //typedef std::vector<Client>		client_v;

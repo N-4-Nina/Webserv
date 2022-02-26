@@ -48,5 +48,5 @@ int		unlock_socket(int fd);
 
 #define CRLF            "\r\n"
 #define SERVER_VERSION  "HTTP/1.1"
-#define MAXREAD			4096
+#define MAXREAD			1
 #define MAXCONN			512

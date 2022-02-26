@@ -43,15 +43,13 @@ bool	Server::is_listen(int fd)
 void	Server::add_to_epoll(int epoll_fd)
 {
 	event_t	tmp;
-	tmp.events = EPOLLIN | EPOLLET;
+	tmp.events = EPOLLIN | EPOLLIN | EPOLLET;
 	for (listen_sockets::iterator it = _ls.begin(); it != _ls.end(); it++)
 	{
 		tmp.data.fd = it->first;
 		if (epoll_ctl (epoll_fd, EPOLL_CTL_ADD, it->first, &tmp) == -1) /*intialize interest list*/
 			fatal("epoll add listen");
 	}
-	
-	
 }
 
 void	Server::init_listen(int_v ports)

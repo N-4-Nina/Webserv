@@ -74,6 +74,7 @@ int	Request::parse_TopLine(str_t &input)
 	static	str_t	strTypes[3] = {"GET", "POST", "DELETE"};
 
 	str_t line = newLine(input);
+	std::cout << "---------top line = " << line << std::endl;
 	for (size_t i = R_GET; i <= R_DELETE; i++)
 	{
 		if (line.find(strTypes[i]) != line.npos)
@@ -100,9 +101,7 @@ unsigned int Request::type()
 
 int	Request::parse(str_t input)
 {
-	//int					ret;
 	str_t				line;
-	//int					sum = 0;
 	size_t					check = 0;
 	int ret;
 	
