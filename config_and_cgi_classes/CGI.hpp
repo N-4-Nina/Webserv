@@ -11,8 +11,8 @@
 #ifndef CGI_HPP
 # define CGI_HPP
 
-# include "../include/common.hpp"
-#include "../include/Request.hpp"
+# include "common.hpp"
+#include "Request.hpp"
 
 class CGI
 {
@@ -21,16 +21,17 @@ class CGI
         ~CGI();
 
         void set_binary(str_t path);
-        void set_input(str_t content); //  in a CGI-BIN environment, you read the data from STDIN
+     //   void set_input(str_t content); //  in a CGI-BIN environment, you read the data from STDIN
 
-        void exec_cgi(str_t target, Request req);
+        void exec_cgi(str_t target, strMap headers, std::vector<str_t> body, unsigned int type);
 
     private:
         str_t _binary;
-        str_t _input;
+        // unsigned int _type;
 		str_t _body;
+    //    str_t _input;
         
-        char **build_cgi_env(Request req);
+        char **build_cgi_env(strMap headers, unsigned int type);
 };
 
 #endif
