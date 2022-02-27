@@ -122,6 +122,7 @@ void Location::set_cgi_extension(str_t line)
 
 str_t Location::autoindex() const { return (this->_autoindex); }
 
+std::list<str_t> Location::index() { return (this->_index); }
 std::list<str_t> Location::index() const { return (this->_index); }
 
 str_t Location::cgi_path() const { return (this->_cgi_path); }

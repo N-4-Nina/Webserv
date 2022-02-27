@@ -1,14 +1,14 @@
 SRCS = \
+Client.cpp\
+Request.cpp\
 Location.cpp\
-EvMa.cpp\
+socket_manips.cpp\
+Server.cpp\
 str_manips.cpp\
 Config.cpp\
 parse_config.cpp\
-Server.cpp\
-main.cpp\
-socket_manips.cpp\
 Response.cpp\
-Request.cpp\
-Client.cpp\
+EvMa.cpp\
 time_in_ms.cpp\
+main.cpp\
 \

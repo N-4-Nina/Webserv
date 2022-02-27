@@ -86,8 +86,8 @@ void			Response::set_body_ress(Request &req, Config *conf)
 		std::cout << "piou404\n";
 	}
 	
-    buf << page.rdbuf();
-
+    buf << path;
+	std::cout << buf.str();
 	_body = buf.str();
 }
 
@@ -126,7 +126,7 @@ void			Response::select_location(Request &req)
 			}
 			for (std::list<str_t>::iterator lit = it->index().begin(); lit != it->index().end(); lit++)
 			{
-				if (req._ressource.find(*lit, it->route().size()))
+				if (req._ressource.find(*lit, it->route().size()) != lit->npos)
 				{
 					_flags |= RES_ISINDEX;
 					_flags |= RES_INDEXDEF;
@@ -135,9 +135,17 @@ void			Response::select_location(Request &req)
 			}
 			return;
 		}
-
 	}
-
+	//after this we come back to the default (server block)
+	for (std::list<str_t>::const_iterator lit = _conf->index().begin(); lit != _conf->index().end(); lit++)
+	{
+		if (req._ressource.find(*lit) == 0)
+		{
+			_flags |= RES_ISINDEX;
+			_flags |= RES_INDEXDEF;
+			_index = *lit;
+		}
+	}
 }
 
 void			Response::write_head()
@@ -147,6 +155,8 @@ void			Response::write_head()
 	write(_fd, "HTTP/1.1 ", 9);
 	sprintf(statusbuf, "%d", _status);
 	write(_fd, statusbuf, 3);
+	//write other headers
+	write(_fd, "\n\r\n\r", 4);
 }
 
 void			Response::write_body()
@@ -158,6 +168,8 @@ void			Response::send()
 {
 	(void)_fd;
 	(void)_body;
+	std::cout << "bye\n";
 	write_head();
 	write_body();
+	std::cout << "hello\n";
 }
