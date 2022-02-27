@@ -219,6 +219,7 @@ void Config::set_location(str_t line)
 	{
 		it = tmp.begin();
 		block = line.substr(tmp[0], (tmp[1] - tmp[0]));
+		std::cout << block;
 		Location new_location(block);
 		this->_location.push_back(new_location);
 		tmp.erase(tmp.begin(), tmp.begin() + 2);
@@ -245,7 +246,7 @@ std::list<str_t> Config::index() const { return (this->_index); }
 
 str_t Config::autoindex() const { return (this->_autoindex); }
 
-std::vector<Location> Config::location() const { return (this->_location); }
+location_v Config::location() const { return (this->_location); }
 
 /*
 * Member functions
@@ -370,8 +371,8 @@ std::ostream& operator<<(std::ostream& os, Config const& src)
 		os << "\t- " << *it << std::endl;
 	
 	os << "location: " << std::endl;
-	std::vector<Location> location = src.location();
-	for (std::vector<Location>::iterator it = location.begin() ; it != location.end() ; ++it)
+	location_v location = src.location();
+	for (location_v::iterator it = location.begin() ; it != location.end() ; ++it)
 		os << *it << std::endl;
 	
 	return (os);

@@ -34,6 +34,11 @@ enum
 // OR WIKIPEDIA
 };
 
+#define RES_LOCATED 	1
+#define RES_ISCGI		2
+#define RES_ISINDEX 	4
+#define RES_INDEXDEF	8
+
 class Response
 {
 	public:
@@ -45,14 +50,23 @@ class Response
 		unsigned int	status();
 		void			send();
 	private:
-		void	set_route(Request &req);
+		void	select_location(Request &req);
+		void	set_body_ress(Request &req, Config *conf);
+		//bool	find_ressource();
+		bool	cgi_match(str_t uri);
+		void	write_head();
+		void	write_body();
 		Response(void);
 		Config									*_conf;
-		std::string								_route;
+		str_t								_route;
+		FLAGS									_flags;
+		Location								*_loc;
 		unsigned int							_status;
 		int										_fd;
 		static	std::map<unsigned int, str_t>	_messages;
-		void									*_body;
+		str_t									_index;
+		str_t									_head;
+		str_t									_body;
 };
 
 #endif

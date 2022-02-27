@@ -146,6 +146,7 @@ Client	&EvMa::find_by_fd(int fd)
 		if (_clients[i].fd() == fd)
 			return (_clients[i]);
 	}
+	//throw exception
 	return (_clients[0]);
 }
 

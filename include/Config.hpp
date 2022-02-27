@@ -22,7 +22,7 @@ class Config
 		str_t                   root() const;
 		std::list<str_t>        index() const;
 		str_t                   autoindex() const;
-		std::vector<Location>   location() const;
+		location_v   			location() const;
 
 	private:
 		str_t                   _host;
@@ -33,7 +33,7 @@ class Config
 		str_t                   _root;
 		std::list<str_t>        _index;
 		str_t                   _autoindex;
-		std::vector<Location>   _location;
+		location_v   			_location;
 	   
 		str_t               search_config(str_t config, str_t key);
 		std::vector<size_t> search_location(str_t config);

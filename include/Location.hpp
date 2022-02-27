@@ -9,6 +9,7 @@ class Location
 	public:
 		Location(str_t block);
 		Location(const Location &rhs);
+		Location &operator=(const Location &ref);
 		~Location();
 
 		str_t 				autoindex() const;
@@ -16,6 +17,7 @@ class Location
 		str_t				root() const;
 		str_t				cgi_path() const;
 		str_t				cgi_extension() const ;
+		str_t				route() const ;
 		// strMap				fastcgi_param() const;
 
 		str_t search_config(str_t config, str_t key);
@@ -24,6 +26,7 @@ class Location
 		str_t				_autoindex;
 		std::list<str_t>	_index;
 		str_t				_root;
+		str_t				_route;
 		str_t				_cgi_path;
 		str_t				_cgi_extension;
 
@@ -33,6 +36,7 @@ class Location
 		void set_index(str_t line);
 		void set_cgi_path(str_t line);
 		void set_cgi_extension(str_t line);
+		void set_root(str_t line);
 
 		// void set_fastcgi_param(str_t line);
 

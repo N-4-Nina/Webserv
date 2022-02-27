@@ -6,7 +6,8 @@
 
 Location::Location(str_t block)
 {
-    this->_root = block.substr(0, block.find(" "));
+    this->_route = block.substr(0, block.find(" "));
+    set_root(search_config(block, "root"));
     set_autoindex(search_config(block, "autoindex"));
     set_index(search_config(block, "index"));
     set_cgi_path(search_config(block, "cgi_path"));
@@ -19,11 +20,33 @@ Location::Location(const Location &ref)
     *this = ref;
 }
 
+Location &Location::operator=(const Location &ref)
+{
+    if (this != &ref)
+    {
+        _autoindex = ref._autoindex;
+		_index = ref._index;
+		_root = ref._root;
+		_route = ref._route;
+		_cgi_path = ref._cgi_path;
+		_cgi_extension = ref._cgi_extension;
+    }
+    return (*this);
+}
+
 Location::~Location() {}
 
 /*
 * Setters
 */
+
+void Location::set_root(str_t line)
+{
+    if (line == "")
+        this->_autoindex = "";
+    else
+        this->_root = line.substr(line.find(" ") + 1);
+}
 
 void Location::set_autoindex(str_t line)
 {
@@ -107,6 +130,8 @@ str_t Location::cgi_extension() const { return (this->_cgi_extension); }
 
 str_t Location::root() const { return (this->_root); }
 
+str_t Location::route() const { return (this->_route); }
+
 // strMap Location::fastcgi_param() const { return (this->_fastcgi_param); }
 
 /*
@@ -154,6 +179,7 @@ str_t Location::search_config(str_t config, str_t key)
 std::ostream& operator<<(std::ostream& os, Location const& src)
 {
     os << "{" << std::endl;
+    os << "\troute: " << src.route() << std::endl;
     os << "\troot: " << src.root() << std::endl;
     
     os << "\tautoindex: " << src.autoindex() << std::endl;
