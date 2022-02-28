@@ -13,8 +13,7 @@ class Location
 		~Location();
 
 		str_t 				autoindex() const;
-		std::list<str_t>	index() const;
-		std::list<str_t>	index();
+		std::list<str_t>	&index();
 		str_t				root() const;
 		str_t				cgi_path() const;
 		str_t				cgi_extension() const ;

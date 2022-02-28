@@ -20,7 +20,7 @@ class Config
 		strMap                  error_page() const;
 		size_t                  client_max() const;
 		str_t                   root() const;
-		std::list<str_t>        index() const;
+		std::list<str_t>        &index();
 		str_t                   autoindex() const;
 		location_v   			location() const;
 

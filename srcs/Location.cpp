@@ -122,8 +122,7 @@ void Location::set_cgi_extension(str_t line)
 
 str_t Location::autoindex() const { return (this->_autoindex); }
 
-std::list<str_t> Location::index() { return (this->_index); }
-std::list<str_t> Location::index() const { return (this->_index); }
+std::list<str_t> &Location::index() { return (_index); }
 
 str_t Location::cgi_path() const { return (this->_cgi_path); }
 
@@ -179,28 +178,29 @@ str_t Location::search_config(str_t config, str_t key)
 
 std::ostream& operator<<(std::ostream& os, Location const& src)
 {
-    os << "{" << std::endl;
-    os << "\troute: " << src.route() << std::endl;
-    os << "\troot: " << src.root() << std::endl;
+//     os << "{" << std::endl;
+//     os << "\troute: " << src.route() << std::endl;
+//     os << "\troot: " << src.root() << std::endl;
     
-    os << "\tautoindex: " << src.autoindex() << std::endl;
-    os << "\tindex:" << std::endl;
-    std::list<std::string> index = src.index();
+//     os << "\tautoindex: " << src.autoindex() << std::endl;
+//     os << "\tindex:" << std::endl;
+//     std::list<std::string> index = src.index();
 
-    for (std::list<std::string>::iterator it = index.begin() ; it != index.end() ; ++it)
-        os << "\t\t- " << *it << std::endl;
+//     for (std::list<std::string>::iterator it = index.begin() ; it != index.end() ; ++it)
+//         os << "\t\t- " << *it << std::endl;
     
-    os << "\tcgi_path: " << src.cgi_path() <<std::endl;
+//     os << "\tcgi_path: " << src.cgi_path() <<std::endl;
     
-   os << "\tcgi_extension: " << src.cgi_extension() <<std::endl;
+//    os << "\tcgi_extension: " << src.cgi_extension() <<std::endl;
 
-    // os << "\tfastcgi_param: " << std::endl;
-    // strMap param = src.fastcgi_param();
+//     // os << "\tfastcgi_param: " << std::endl;
+//     // strMap param = src.fastcgi_param();
 
-    // for (strMap::iterator it = param.begin() ; it != param.end() ; ++it)
-	// 	os << it->first << " => " << it->second << std::endl;
-	// os << std::endl;	
+//     // for (strMap::iterator it = param.begin() ; it != param.end() ; ++it)
+// 	// 	os << it->first << " => " << it->second << std::endl;
+// 	// os << std::endl;	
 
-    os << "}" << std::endl;
+//     os << "}" << std::endl;
+(void)src;
     return (os);
 }
