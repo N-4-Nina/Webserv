@@ -139,7 +139,17 @@ void	Client::respond()
 		res.send();
 	}
 	_ready = false;
+	//_req.clear();
+	//_input.clear();
+	//memset(_buff, 0, MAXREAD+1);
+	//_nl_headers = 0;
+	//_nl_body = 0;
+	//_parse_flags = 0;
+	//_headers_len = 0;
+	//_content_len = 0;
+	//_ready = false;
 	close (_fd);
+
 }
 
 void	Client::touch()

@@ -246,7 +246,7 @@ std::list<str_t> &Config::index() { return (this->_index); }
 
 str_t Config::autoindex() const { return (this->_autoindex); }
 
-location_v Config::location() const { return (this->_location); }
+location_v &Config::location() { return (this->_location); }
 
 /*
 * Member functions

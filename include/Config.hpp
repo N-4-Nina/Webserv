@@ -22,7 +22,7 @@ class Config
 		str_t                   root() const;
 		std::list<str_t>        &index();
 		str_t                   autoindex() const;
-		location_v   			location() const;
+		location_v   			&location();
 
 	private:
 		str_t                   _host;

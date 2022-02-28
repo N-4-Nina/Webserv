@@ -52,6 +52,7 @@ class Response
 	private:
 		void	select_location(Request &req);
 		void	set_body_ress(Request &req, Config *conf);
+		void	add_header(str_t key, str_t val);
 		//bool	find_ressource();
 		bool	cgi_match(str_t uri);
 		void	write_head();
@@ -64,6 +65,7 @@ class Response
 		unsigned int							_status;
 		int										_fd;
 		static	std::map<unsigned int, str_t>	_messages;
+		strMap									_headers;
 		str_t									_index;
 		str_t									_head;
 		str_t									_body;
