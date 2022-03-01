@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 #include "Config.hpp"
+#include "str_manips.hpp"
 
 // print vectors to debug
 template<typename T>
@@ -55,14 +56,7 @@ std::vector<size_t> get_server(std::string config)
     return (block);
 }
 
-// get the line nb where is the wrong char
-template <class T>
-str_t to_string(T n)
-{
-    std::ostringstream output;
-        output << n;
-    return (output.str());
-}
+
 
 void check_semicolon(str_t& config_final, size_t i, int nb_line, bool line_location)
 {

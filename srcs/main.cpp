@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 
     std::vector<Config> conf = parsing_config(argc, argv);
     EvMa	ev(conf);
-
+    initialize_mime_types();
     ev.loop();
     // for (;;)
     // {

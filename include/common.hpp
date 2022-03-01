@@ -49,6 +49,7 @@ time_t	time_in_ms(void);
 void    fatal(str_t str);
 void    assert(bool scal, str_t log);
 int		unlock_socket(int fd);
+void	initialize_mime_types();
 
 #define CRLF            "\r\n"
 #define SERVER_VERSION  "HTTP/1.1"

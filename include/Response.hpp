@@ -49,14 +49,15 @@ class Response
 		void 			set_status(unsigned int s);
 		unsigned int	status();
 		void			send();
+		static	strMap							_mimeTypes;
 	private:
 		void	select_location(Request &req);
 		void	set_body_ress(Request &req, Config *conf);
+		void	set_headers(str_t path);
 		void	add_header(str_t key, str_t val);
 		//bool	find_ressource();
 		bool	cgi_match(str_t uri);
-		void	write_head();
-		void	write_body();
+		str_t	add_head();
 		Response(void);
 		Config									*_conf;
 		str_t								_route;
@@ -66,6 +67,7 @@ class Response
 		int										_fd;
 		static	std::map<unsigned int, str_t>	_messages;
 		strMap									_headers;
+		
 		str_t									_index;
 		str_t									_head;
 		str_t									_body;

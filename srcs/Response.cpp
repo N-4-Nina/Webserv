@@ -1,4 +1,5 @@
-#include "../include/Response.hpp"
+#include "Response.hpp"
+#include "str_manips.hpp"
 
 Response::Response(void)
 {
@@ -100,10 +101,11 @@ void			Response::set_body_ress(Request &req, Config *conf)
 	else
 	{
 		path = conf->root() + req._ressource;
-		if (!access(path.c_str(), F_OK))
-			add_header("content-type", "image/jpeg");
-		else
+		if (access(path.c_str(), F_OK))
+		{
 			set_status(404);
+			return;
+		}
 	}
 	std::ifstream       page;
     std::stringstream   buf;
@@ -111,7 +113,7 @@ void			Response::set_body_ress(Request &req, Config *conf)
 	if (!page.is_open())
 	{
 		set_status(404);
-		std::cout << "piou404\n";
+		std::cout << "Could not open ressource file.\n";
 	}
 	else
     {
@@ -121,7 +123,24 @@ void			Response::set_body_ress(Request &req, Config *conf)
 		//_body << page;
 		//std::cout << buf.str();
 		_body = buf.str();
+		set_headers(path);
 	}
+}
+
+void	Response::set_headers(str_t path)
+{
+	/* Setting content-type */
+	size_t point;
+	/* Setting default value before proceeding */
+	add_header("content-type", _mimeTypes[".txt"]);
+	if ((point = path.find(".")) != path.npos)
+	{
+		str_t ext = path.substr(point, path.npos);
+		if (_mimeTypes.count(ext))
+			add_header("content-type", _mimeTypes[ext]);
+	}
+
+	add_header("content-length", to_string<size_t>(_body.size()));
 }
 
 unsigned int	Response::status()
@@ -186,40 +205,28 @@ void			Response::select_location(Request &req)
 	}
 }
 
-void			Response::write_head()
+str_t			Response::add_head()
 {
-	char statusbuf[4];
+	str_t		buffer;
 
-	statusbuf[3] =0;
-	write(_fd, "HTTP/1.1 ", 9);
-	sprintf(statusbuf, "%d", _status);
-	write(_fd, statusbuf, 3);
-	write(_fd, "\n", 1);
-
+	buffer = "HTTP/1.1 ";
+	buffer += to_string<size_t>(_status);
+	buffer += "\n";
 	for (strMap::iterator it = _headers.begin(); it != _headers.end(); it++)
 	{
-		write(_fd, it->first.c_str(), it->first.size());
-		write(_fd, ":", 1);
-		write(_fd, it->second.c_str(), it->second.size());
-		write(_fd, "\n", 1);
+		buffer += it->first;
+		buffer += ":";
+		buffer += it->second;
+		buffer += "\n";
 	}
-
-	if (_headers.size() == 0)
-		write(_fd, "Content-Type: text/html\n", 25);
-	//write(_fd, "Transfer-Encoding: deflate\n", 24);
-	//write(_fd, "Content-length: 141\n", 39);
-	write(_fd, statusbuf, 3);
-	write(_fd, "\n\r\n\r", 4);
+	buffer += CRLF;
+	return (buffer);
 }
 
-void			Response::write_body()
-{
-	write(_fd, _body.c_str(), _body.size());
-}
 
 void			Response::send()
 {
-	write_head();
-	write_body();
-
+	str_t  res = add_head();
+	res += _body;
+	write(_fd, res.c_str(), res.size());
 }
