@@ -14,6 +14,8 @@
 # include "common.hpp"
 # include "Request.hpp"
 # include "str_manips.hpp"
+# include <sys/types.h>
+# include <sys/wait.h>
 
 class CGI
 {
@@ -22,15 +24,11 @@ class CGI
         ~CGI();
 
         void set_binary(str_t path);
-     //   void set_input(str_t content); //  in a CGI-BIN environment, you read the data from STDIN
-
         void exec_cgi(str_t target, Request req);
 
     private:
         str_t _binary;
-        // unsigned int _type;
 		str_t _body;
-    //    str_t _input;
         
         char **build_cgi_env(Request req);
 };

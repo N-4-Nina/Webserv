@@ -5,6 +5,7 @@
 #include "Request.hpp"
 #include "Config.hpp"
 #include "Location.hpp"
+#include "CGI.hpp"
 
 enum 
 {

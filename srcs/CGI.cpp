@@ -1,6 +1,9 @@
 #include "CGI.hpp"
 #include "Config.hpp"
 
+// the caacity of a pipe
+#define CGI_BUF_SIZE 65536
+
 // print the env and args for testing
 void display_cgi_env(char **env, char **args)
 {
@@ -22,11 +25,6 @@ void CGI::set_binary(str_t path)
     _binary = path;
 }
 
-// void CGI::set_input(str_t content)
-// {
-//     _input = content;
-// }
-
 void free_str_tab(char **str_tab)
 {	
 	int i = -1;
@@ -44,14 +42,13 @@ void free_cgi(char **args, char **env)
 }
 
 void CGI::exec_cgi(str_t target, Request req)
-{    
+{
 	char **args = NULL;
     char **env = NULL;
     std::ostringstream output;
-    //_body = NULL;
 
-    if (!req.body().empty())
-    {
+   if (!req.body().empty())
+   {
         int i = req.body().size();
         while (i > 0)
         {
@@ -60,13 +57,14 @@ void CGI::exec_cgi(str_t target, Request req)
             i--;
         }
         _body = output.str();
-    
-        std::cout << "BODY: "<< _body << std::endl;
-    }
+
+        // std::cout << "BODY: " << _body << std::endl;
+   }
 
     if (!_body.empty())
     {
-
+        int ret = 1;
+        char tmp[CGI_BUF_SIZE];
         args = (char**)malloc(sizeof(char*) * 3);
         args[0] = strdup(_binary.c_str());
         args[1] = strdup(target.c_str());
@@ -76,6 +74,7 @@ void CGI::exec_cgi(str_t target, Request req)
     // add request to build a complete env
         env = build_cgi_env(req);
         // display_cgi_env(env, args);
+
 
         pid_t pid;
         int save_stdin;
@@ -91,16 +90,14 @@ void CGI::exec_cgi(str_t target, Request req)
         // fileno - map a stream pointer to a file descriptor
         long	fd_in = fileno(file_in);
         long	fd_out = fileno(file_out);
-        // int		ret = 1;
 
         write(fd_in, _body.c_str(), _body.size());
         lseek(fd_in, 0, SEEK_SET);
 
         if ((pid = fork()) == -1)
-            throw str_t("error: fork failed on CGI: PID = -1");
+            fatal("error: fork failed on CGI: PID = -1");
         else if (pid == 0)
         {
-
             // STDOUT become a copy of fd_out, and, in case of POST, STDIN become a copy of fd_in
             dup2(fd_in, STDIN_FILENO);
             dup2(fd_out, STDOUT_FILENO);
@@ -109,10 +106,24 @@ void CGI::exec_cgi(str_t target, Request req)
                 exit(-1);				// bail d\erreur à renvoyer 
 
         }
-        // else
-        // {
+        else
+        {
+            waitpid(-1, NULL, 0);
+            lseek(fd_out, 0, SEEK_SET);
 
-        // }
+            while (ret > 0)
+            {
+                memset(tmp, 0, CGI_BUF_SIZE);
+                ret = read(fd_out, tmp, CGI_BUF_SIZE - 1);
+                _body += tmp;
+            }
+
+            close(fd_out);
+            close(fd_in);
+
+            dup2(save_stdin, STDIN_FILENO);
+            dup2(save_stdout, STDOUT_FILENO);
+        }
 
         free_cgi(args, env);
     }
