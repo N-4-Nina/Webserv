@@ -141,19 +141,19 @@ char **CGI::build_cgi_env(strMap headers, unsigned int type)
     (void)type;
 
     char **env = NULL;
-    // strMap envMap;
+    strMap envMap;
 	// // unsigned int type;
 
-    // /* Get and set CGI informations */
-    // envMap["GATEWAY_INTERFACE"] = "CGI/1.1";
-    // envMap["SERVER_SOFTWARE"] = "webserv";
-    // envMap["SERVER_NAME"] = "127.0.0.1";
-    // envMap["SERVER_PROTOCOL"] = SERVER_VERSION;
+    /* Get and set CGI informations */
+    envMap["GATEWAY_INTERFACE"] = "CGI/1.1";
+    envMap["SERVER_SOFTWARE"] = "webserv";
+    envMap["SERVER_NAME"] = "127.0.0.1";
+    envMap["SERVER_PROTOCOL"] = SERVER_VERSION;
     // envMap["SERVER_PORT"] = ""; // depuis le port recup dans le request??? need to convert char* to string, using constructor of std::string?
 
-	// // type = req.type();
-	// str_t method_type = to_string(type);
-	// envMap["REQUEST_METHOD"] = method_type; // from request
+	// type = req.type();
+	str_t method_type = to_string(type);
+	envMap["REQUEST_METHOD"] = method_type; // from request
     
 	// envMap["PATH_INFO"] = ""; // uri from request
     // envMap["PATH_TRANSLATED"] = ""; // need request location and uri

@@ -4,7 +4,7 @@
 
 ☑️ creer un object Config non vide
 
-🔘 port 80 moins moche
+☑️ port 80 moins moche
 
 🔘 checker le nombre de {}
 
@@ -19,6 +19,10 @@
 🔘 recuperer les variables send par le client
 
 🔘 need un get_method dans resquest pour savoir s'il s'agit de POST ou GET pour le CGI
+
+<--- opti --->
+
+opti notament le trop grand nombre de write()
 
 
 
