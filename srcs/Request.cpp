@@ -155,3 +155,6 @@ int	Request::parse(str_t input)
 
 strMap	&Request::headers()
 { return (_headers); }
+
+std::vector<str_t>	Request::body()
+{ return (_body); }

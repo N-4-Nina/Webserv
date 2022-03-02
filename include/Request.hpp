@@ -23,6 +23,8 @@ class Request
 		str_t					_ressource;		//should maybe be called _route...
 
 		strMap	&headers();
+		std::vector<str_t>	body();
+
 	private:
 
 		int			parse_QueryString(size_t start);
