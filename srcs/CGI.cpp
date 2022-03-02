@@ -43,22 +43,22 @@ void free_cgi(char **args, char **env)
     env = NULL;
 }
 
-void CGI::exec_cgi(str_t target, strMap headers, std::vector<str_t> body, unsigned int type)
+void CGI::exec_cgi(str_t target, Request req)
 {    
 	char **args = NULL;
     char **env = NULL;
-    std::ostringstream output;
+    // std::ostringstream output;
 
-    int i = body.size();
-    while (i > 0)
-    {
-        output << body.back();
-        output << "\n";
-        i--;
-    }
-	_body = output.str();
+    // int i = body.size();
+    // while (i > 0)
+    // {
+    //     output << body.back();
+    //     output << "\n";
+    //     i--;
+    // }
+	// _body = output.str();
    
-    std::cout << _body << std::endl;
+    // std::cout << _body << std::endl;
     
 
     args = (char**)malloc(sizeof(char*) * 3);
@@ -66,8 +66,9 @@ void CGI::exec_cgi(str_t target, strMap headers, std::vector<str_t> body, unsign
     args[1] = strdup(target.c_str());
     args[2] = 0;
 
+
 // add request to build a complete env
-    env = build_cgi_env(headers, type);
+    env = build_cgi_env(req);
 	// display_cgi_env(env, args);
 
     pid_t pid;
@@ -135,48 +136,46 @@ void CGI::exec_cgi(str_t target, strMap headers, std::vector<str_t> body, unsign
 * Ref: https://web.developpez.com/cgic.htm
 */
 
-char **CGI::build_cgi_env(strMap headers, unsigned int type)
+char **CGI::build_cgi_env(Request req)
 {
-    (void)headers;
-    (void)type;
-
-    char **env = NULL;
+    char **env;
     strMap envMap;
-	// // unsigned int type;
+
+    if (req.type() == 0)
+        envMap["REQUEST_METHOD"] = "R_GET";
+    else if (req.type() == 1)
+        envMap["REQUEST_METHOD"] = "R_POST";
+    else
+        fatal("CGI can't work with another method than GET or POST"); // ne devrait pas etre delete dans tous les cas (cgi fonctionnent justes avec get et post)
 
     /* Get and set CGI informations */
     envMap["GATEWAY_INTERFACE"] = "CGI/1.1";
     envMap["SERVER_SOFTWARE"] = "webserv";
     envMap["SERVER_NAME"] = "127.0.0.1";
     envMap["SERVER_PROTOCOL"] = SERVER_VERSION;
-    // envMap["SERVER_PORT"] = ""; // depuis le port recup dans le request??? need to convert char* to string, using constructor of std::string?
+    envMap["SERVER_PORT"] = ""; // depuis le port recup dans le request??? need to convert char* to string, using constructor of std::string?
+	envMap["PATH_INFO"] = ""; // uri from request
+    envMap["PATH_TRANSLATED"] = ""; // need request location and uri
+    envMap["SCRIPT_NAME"] = ""; // need from request
+    envMap["QUERY_STRING"] = ""; // "
+    envMap["CONTENT_LENGTH"] = ""; // body size
+    envMap["REMOTE_ADDR"] = ""; // client ip
+    envMap["CONTENT_TYPE"] = ""; // content type from req
+    envMap["REQUEST_URI"] = ""; // uri from req
+    //envMap["REDIRECT_STATUS"] = "200"; //
 
-	// type = req.type();
-	str_t method_type = to_string(type);
-	envMap["REQUEST_METHOD"] = method_type; // from request
-    
-	// envMap["PATH_INFO"] = ""; // uri from request
-    // envMap["PATH_TRANSLATED"] = ""; // need request location and uri
-    // envMap["SCRIPT_NAME"] = ""; // need from request
-    // envMap["QUERY_STRING"] = ""; // "
-    // envMap["CONTENT_LENGTH"] = ""; // body size
-    // envMap["REMOTE_ADDR"] = ""; // client ip
-    // envMap["CONTENT_TYPE"] = ""; // content type from req
-    // envMap["REQUEST_URI"] = ""; // uri from req
-    // //envMap["REDIRECT_STATUS"] = "200"; //
+    /* Request headers pass to CGI */
+    envMap["HTTP_EXAMPLE"] = "EXAMPLE"; // needs HTTP prefix
+    // to code
 
-    // /* Request headers pass to CGI */
-    // envMap["HTTP_EXAMPLE"] = "EXAMPLE"; // needs HTTP prefix
-    // // to code
+    int i = -1;
+    env = (char**)malloc(sizeof(char*) * (envMap.size() + 1));
 
-    // int i = -1;
-    // env = (char**)malloc(sizeof(char*) * (envMap.size() + 1));
+    for (strMap::iterator it = envMap.begin() ; it != envMap.end() ; it++)
+        env[++i] = (char*)strdup((it->first + "=" + it->second).c_str());
 
-    // for (strMap::iterator it = envMap.begin() ; it != envMap.end() ; it++)
-    //     env[++i] = (char*)strdup((it->first + "=" + it->second).c_str());
-
-    // env[++i] = 0;
-    // envMap.clear();
+    env[++i] = 0;
+    envMap.clear();
     return (env);
 }
 
