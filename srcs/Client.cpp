@@ -89,7 +89,7 @@ int		Client::add_data()
 		}
 	}
 	size_t i;
-	if (((pos = _input.find("\r\n\r\n")) != _input.npos))
+	if (((pos = _input.find("\r\n\r\n")) != _input.npos) || ((pos = _input.find("\n\n")) != _input.npos))
 	{
 		if (!(_parse_flags & PARSED_CNL))
 		{
