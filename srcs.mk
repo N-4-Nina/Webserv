@@ -3,6 +3,7 @@ CGI.cpp\
 Location.cpp\
 EvMa.cpp\
 str_manips.cpp\
+resp_codes.cpp\
 Config.cpp\
 parse_config.cpp\
 Server.cpp\

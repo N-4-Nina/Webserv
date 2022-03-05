@@ -30,12 +30,13 @@ class Location
 		str_t search_config(str_t config, str_t key);
 
 	private:
-		//str_t				_autoindex;
 		std::list<str_t>	_index;
 		str_t				_root;
 		str_t				_route;
 		str_t				_cgi_path;
 		str_t				_cgi_extension;
+		str_t				_upload_path;
+
 		FLAGS				_flags;
 
 		// strMap				_fastcgi_param;
@@ -45,6 +46,8 @@ class Location
 		void set_cgi_path(str_t line);
 		void set_cgi_extension(str_t line);
 		void set_root(str_t line);
+		void set_upload_pass(str_t line);
+		void set_upload_path(str_t line);
 
 		// void set_fastcgi_param(str_t line);
 

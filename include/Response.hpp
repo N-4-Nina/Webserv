@@ -51,11 +51,14 @@ class Response
 		unsigned int	status();
 		void			send();
 		static	strMap							_mimeTypes;
+		static	std::map<unsigned int, str_t>	_codes;
+		static	str_t							_error_page[2];
 	private:
 		void	select_location(Request &req);
 		void	set_body_ress(Request &req, Config *conf);
 		void	set_headers(str_t path);
 		void	add_header(str_t key, str_t val);
+		void	get_error_page();
 		//bool	find_ressource();
 		bool	cgi_match(str_t uri);
 		str_t	add_head();
@@ -66,7 +69,6 @@ class Response
 		Location								*_loc;
 		unsigned int							_status;
 		int										_fd;
-		static	std::map<unsigned int, str_t>	_messages;
 		strMap									_headers;
 		
 		str_t									_index;

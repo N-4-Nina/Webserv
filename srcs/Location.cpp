@@ -12,6 +12,8 @@ Location::Location(str_t block)
 	set_index(search_config(block, "index"));
 	set_cgi_path(search_config(block, "cgi_path"));
 	set_cgi_extension(search_config(block, "cgi_extension"));
+	set_upload_pass(search_config(block, "upload_pass"));
+	set_upload_path(search_config(block, "upload_path"));
 	if (_cgi_extension != "" && _cgi_path != "")
 		_flags |= LOC_CGI;
 	// set_fastcgi_param(search_config(block, "fastcgi_param"));
@@ -19,7 +21,13 @@ Location::Location(str_t block)
 
 Location::Location(const Location &ref)
 {
-	*this = ref;
+	_index = ref._index;
+	_root = ref._root;
+	_route = ref._route;
+	_cgi_path = ref._cgi_path;
+	_cgi_extension = ref._cgi_extension;
+	_flags = ref._flags;
+	_upload_path = ref._upload_path;
 }
 
 Location &Location::operator=(const Location &ref)
@@ -33,6 +41,7 @@ Location &Location::operator=(const Location &ref)
 		_cgi_path = ref._cgi_path;
 		_cgi_extension = ref._cgi_extension;
 		_flags = ref._flags;
+		_upload_path = ref._upload_path;
 	}
 	return (*this);
 }
@@ -94,6 +103,31 @@ void Location::set_cgi_extension(str_t line)
 	   this->_cgi_extension = "";
 	else
 		this->_cgi_extension = line.substr(line.find(" ") + 1);
+}
+
+void Location::set_upload_pass(str_t line)
+{
+	if (line == "")
+		return;
+	str_t tmp = line.substr(line.find(" ") + 1);
+	if (tmp == "true")
+		_flags |= LOC_UPLOAD;
+	else if (tmp == "false");
+	else
+		std::cout << "bad value for upload pass";
+}
+
+void Location::set_upload_path(str_t line)
+{
+	if (line == "" || !(_flags & LOC_UPLOAD))
+		return;
+	else
+	{
+		_upload_path = line.substr(line.find(" ") + 1);
+		std::cout << _upload_path <<std::endl;
+		if (access( _upload_path.c_str(), F_OK ))
+			_flags = _flags & ~LOC_UPLOAD; //log: did not find upload directory
+	}
 }
 
 // void Location::set_fastcgi_param(str_t line)

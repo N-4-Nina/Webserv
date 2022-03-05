@@ -29,6 +29,8 @@ Response::Response(Request &req, Config *conf) : _conf(conf), _flags(0), _fd(req
 	//else
 	if (!(_flags & RES_ISCGI))
 		set_body_ress(req, conf);
+	if (_status < 200 || _status > 299)
+		get_error_page();
 }
 
 void			Response::set_status(unsigned int s)
@@ -146,6 +148,11 @@ void	Response::set_headers(str_t path)
 unsigned int	Response::status()
 {
 	return (_status);
+}
+
+void			Response::get_error_page()
+{
+	_body = _error_page[0] + to_string(_status) + " : " + _codes[_status];
 }
 
 bool			Response::cgi_match(str_t uri)

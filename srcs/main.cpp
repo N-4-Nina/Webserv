@@ -6,6 +6,8 @@
 #define DEFAULT_PORT	8002
 #define MAX_EVENTS		5
 
+void initialize_error_pages();
+
 void    fatal(str_t str)
 {
     std::cerr << str << "\n";
@@ -26,6 +28,7 @@ int main(int argc, char **argv)
     std::vector<Config> conf = parsing_config(argc, argv);
     EvMa	ev(conf);
     initialize_mime_types();
+    initialize_error_pages();
     ev.loop();
     // for (;;)
     // {
