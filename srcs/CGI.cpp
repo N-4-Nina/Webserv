@@ -41,92 +41,93 @@ void free_cgi(char **args, char **env)
     env = NULL;
 }
 
+str_t CGI::get_body(Request req)
+{
+    str_t body;
+
+    std::vector<str_t> bob = req.body();
+    for (std::vector<str_t>::iterator itb = bob.begin(); itb != bob.end(); itb++)
+        body = body + *itb;
+    return (body);
+}
+
 void CGI::exec_cgi(str_t target, Request req)
 {
 	char **args = NULL;
     char **env = NULL;
-    std::ostringstream output;
+    int ret = 1;
+    char tmp[CGI_BUF_SIZE];
 
-   if (!req.body().empty())
-   {
-        int i = req.body().size();
-        while (i > 0)
-        {
-            output << req.body().back();
-            output << "\n";
-            i--;
-        }
-        _body = output.str();
+    _body = get_body(req);
+    // std::cout << "\nBODY:\n" << _body << "\nFIN" << std::endl;
 
-        // std::cout << "BODY: " << _body << std::endl;
-   }
+    args = (char**)malloc(sizeof(char*) * 3);
+    args[0] = strdup(_binary.c_str());
+    args[1] = strdup(target.c_str());
+    args[2] = 0;
 
-    if (!_body.empty())
+	std::cout << "\n\nHEADERS\n" << std::endl;
+    for (strMap::iterator itt = req.headers().begin(); itt != req.headers().end(); itt++)
+	{
+		std::cout << itt->first << "|"  << itt->second << std::endl;
+	}
+	std::cout << "FIN\n" << std::endl;
+// add request to build a complete env
+    env = build_cgi_env(req);
+    display_cgi_env(env, args);
+
+
+
+
+    pid_t pid;
+    int save_stdin;
+    int save_stdout;
+
+    // save stdin and out to turn them back to normal after
+    save_stdin = dup(STDIN_FILENO);
+    save_stdout = dup(STDOUT_FILENO);
+
+    // tmpfile - creates a temporary binary file, open for update with a filename guaranteed to be different from any other existing file
+    FILE	*file_in = tmpfile();
+    FILE	*file_out = tmpfile();
+    // fileno - map a stream pointer to a file descriptor
+    long	fd_in = fileno(file_in);
+    long	fd_out = fileno(file_out);
+
+    write(fd_in, _body.c_str(), _body.size());
+    lseek(fd_in, 0, SEEK_SET);
+
+    if ((pid = fork()) == -1)
+        fatal("error: fork failed on CGI: PID = -1");
+    else if (pid == 0)
     {
-        int ret = 1;
-        char tmp[CGI_BUF_SIZE];
-        args = (char**)malloc(sizeof(char*) * 3);
-        args[0] = strdup(_binary.c_str());
-        args[1] = strdup(target.c_str());
-        args[2] = 0;
+      // STDOUT become a copy of fd_out, and, in case of POST, STDIN become a copy of fd_in
+        dup2(fd_in, STDIN_FILENO);
+        dup2(fd_out, STDOUT_FILENO);
 
+        if (execve(_binary.c_str(), args, env) < 0)
+            exit(-1);				// bail d\erreur à renvoyer 
 
-    // add request to build a complete env
-        env = build_cgi_env(req);
-        // display_cgi_env(env, args);
-
-
-        pid_t pid;
-        int save_stdin;
-        int save_stdout;
-
-        // save stdin and out to turn them back to normal after
-        save_stdin = dup(STDIN_FILENO);
-        save_stdout = dup(STDOUT_FILENO);
-
-        // tmpfile - creates a temporary binary file, open for update with a filename guaranteed to be different from any other existing file
-        FILE	*file_in = tmpfile();
-        FILE	*file_out = tmpfile();
-        // fileno - map a stream pointer to a file descriptor
-        long	fd_in = fileno(file_in);
-        long	fd_out = fileno(file_out);
-
-        write(fd_in, _body.c_str(), _body.size());
-        lseek(fd_in, 0, SEEK_SET);
-
-        if ((pid = fork()) == -1)
-            fatal("error: fork failed on CGI: PID = -1");
-        else if (pid == 0)
-        {
-            // STDOUT become a copy of fd_out, and, in case of POST, STDIN become a copy of fd_in
-            dup2(fd_in, STDIN_FILENO);
-            dup2(fd_out, STDOUT_FILENO);
-
-            if (execve(_binary.c_str(), args, env) < 0)
-                exit(-1);				// bail d\erreur à renvoyer 
-
-        }
-        else
-        {
-            waitpid(-1, NULL, 0);
-            lseek(fd_out, 0, SEEK_SET);
-
-            while (ret > 0)
-            {
-                memset(tmp, 0, CGI_BUF_SIZE);
-                ret = read(fd_out, tmp, CGI_BUF_SIZE - 1);
-                _body += tmp;
-            }
-
-            close(fd_out);
-            close(fd_in);
-
-            dup2(save_stdin, STDIN_FILENO);
-            dup2(save_stdout, STDOUT_FILENO);
-        }
-
-        free_cgi(args, env);
     }
+    else
+    {
+        waitpid(-1, NULL, 0);
+        lseek(fd_out, 0, SEEK_SET);
+
+        while (ret > 0)
+        {
+            memset(tmp, 0, CGI_BUF_SIZE);
+            ret = read(fd_out, tmp, CGI_BUF_SIZE - 1);
+            _body += tmp;
+        }
+
+        close(fd_out);
+        close(fd_in);
+
+        dup2(save_stdin, STDIN_FILENO);
+        dup2(save_stdout, STDOUT_FILENO);
+        }
+    free_cgi(args, env);
 }
 
 /*
@@ -154,6 +155,25 @@ void CGI::exec_cgi(str_t target, Request req)
 * Ref: https://web.developpez.com/cgic.htm
 */
 
+
+void CGI::get_host_port(Request req, strMap &envMap)
+{
+     for (strMap::iterator it = req.headers().begin() ; it != req.headers().end() ; ++it)
+    {
+        if (it->first == "host")
+        {
+            size_t points = it->second.find(":");
+            size_t start = 0;
+            size_t end = it->second.size() - 1;
+            while (start != points)
+                start++;
+            envMap["SERVER_NAME"] = it->second.substr(0, start);
+            envMap["SERVER_PORT"] = it->second.substr(points + 1, end);
+        }
+
+    }
+}
+
 char **CGI::build_cgi_env(Request req)
 {
     char **env;
@@ -166,12 +186,14 @@ char **CGI::build_cgi_env(Request req)
     else
         fatal("CGI can't work with another method than GET or POST"); // ne devrait pas etre delete dans tous les cas (cgi fonctionnent justes avec get et post)
 
-    /* Get and set CGI informations */
+    get_host_port(req, envMap);
+
     envMap["GATEWAY_INTERFACE"] = "CGI/1.1";
-    envMap["SERVER_SOFTWARE"] = "webserv";
-    envMap["SERVER_NAME"] = "127.0.0.1";
+    envMap["SERVER_SOFTWARE"] = "webserv/1.1";
     envMap["SERVER_PROTOCOL"] = SERVER_VERSION;
-    envMap["SERVER_PORT"] = ""; // depuis le port recup dans le request??? need to convert char* to string, using constructor of std::string?
+
+
+
 	envMap["PATH_INFO"] = ""; // uri from request
     envMap["PATH_TRANSLATED"] = ""; // need request location and uri
     envMap["SCRIPT_NAME"] = ""; // need from request
@@ -200,7 +222,6 @@ char **CGI::build_cgi_env(Request req)
 // int main ()
 // {
 //     CGI cgi;
-// 	Request req("uwu", 2);
 
 //     // set binary (path) for the cgi
 //     cgi.set_binary("BINARY NAME");

@@ -25,12 +25,14 @@ class CGI
 
         void set_binary(str_t path);
         void exec_cgi(str_t target, Request req);
+        str_t get_body(Request req);
 
     private:
         str_t _binary;
 		str_t _body;
         
         char **build_cgi_env(Request req);
+        void get_host_port(Request req, strMap &envMap);
 };
 
 #endif
