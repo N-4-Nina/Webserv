@@ -2,6 +2,7 @@
 #include "Config.hpp"
 
 // the caacity of a pipe
+// https://man7.org/linux/man-pages/man7/pipe.7.html
 #define CGI_BUF_SIZE 65536
 
 // print the env and args for testing
