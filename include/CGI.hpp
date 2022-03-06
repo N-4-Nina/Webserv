@@ -31,7 +31,7 @@ class CGI
         str_t _binary;
 		str_t _body;
         
-        char **build_cgi_env(Request req);
+        char **build_cgi_env(Request req, size_t body_size);
         void get_host_port(Request req, strMap &envMap);
 };
 

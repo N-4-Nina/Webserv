@@ -67,17 +67,15 @@ void CGI::exec_cgi(str_t target, Request req)
     args[1] = strdup(target.c_str());
     args[2] = 0;
 
-	std::cout << "\n\nHEADERS\n" << std::endl;
-    for (strMap::iterator itt = req.headers().begin(); itt != req.headers().end(); itt++)
-	{
-		std::cout << itt->first << "|"  << itt->second << std::endl;
-	}
-	std::cout << "FIN\n" << std::endl;
+	// std::cout << "\n\nHEADERS\n" << std::endl;
+    // for (strMap::iterator itt = req.headers().begin(); itt != req.headers().end(); itt++)
+	// {
+	// 	std::cout << itt->first << "|"  << itt->second << std::endl;
+	// }
+	// std::cout << "FIN\n" << std::endl;
 // add request to build a complete env
-    env = build_cgi_env(req);
-    display_cgi_env(env, args);
-
-
+    env = build_cgi_env(req, _body.size());
+    // display_cgi_env(env, args);
 
 
     pid_t pid;
@@ -175,35 +173,30 @@ void CGI::get_host_port(Request req, strMap &envMap)
     }
 }
 
-char **CGI::build_cgi_env(Request req)
+char **CGI::build_cgi_env(Request req, size_t body_size)
 {
     char **env;
     strMap envMap;
 
+    get_host_port(req, envMap);
+    envMap["GATEWAY_INTERFACE"] = "CGI/1.1";
+    envMap["SERVER_SOFTWARE"] = "webserv/1.0"; // le nom du serveur et sa versoin
+    envMap["SERVER_PROTOCOL"] = SERVER_VERSION;
     if (req.type() == 0)
         envMap["REQUEST_METHOD"] = "R_GET";
     else if (req.type() == 1)
         envMap["REQUEST_METHOD"] = "R_POST";
     else
         fatal("CGI can't work with another method than GET or POST"); // ne devrait pas etre delete dans tous les cas (cgi fonctionnent justes avec get et post)
-
-    get_host_port(req, envMap);
-
-    envMap["GATEWAY_INTERFACE"] = "CGI/1.1";
-    envMap["SERVER_SOFTWARE"] = "webserv/1.1";
-    envMap["SERVER_PROTOCOL"] = SERVER_VERSION;
-
-
-
-	envMap["PATH_INFO"] = ""; // uri from request
+    envMap["REQUEST_URI"] = req._ressource;
+	envMap["PATH_INFO"] = req._ressource;
     envMap["PATH_TRANSLATED"] = ""; // need request location and uri
     envMap["SCRIPT_NAME"] = ""; // need from request
+    envMap["CONTENT_LENGTH"] = to_string(body_size); // body size
     envMap["QUERY_STRING"] = ""; // "
-    envMap["CONTENT_LENGTH"] = ""; // body size
-    envMap["REMOTE_ADDR"] = ""; // client ip
     envMap["CONTENT_TYPE"] = ""; // content type from req
-    envMap["REQUEST_URI"] = ""; // uri from req
     //envMap["REDIRECT_STATUS"] = "200"; //
+    // envMap["REMOTE_ADDR"] = ""; // client ip
 
     /* Request headers pass to CGI */
     envMap["HTTP_EXAMPLE"] = "EXAMPLE"; // needs HTTP prefix
