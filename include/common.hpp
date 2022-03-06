@@ -53,5 +53,5 @@ void	initialize_mime_types();
 
 #define CRLF            "\r\n"
 #define SERVER_VERSION  "HTTP/1.1"
-#define MAXREAD			1
+#define MAXREAD			100000
 #define MAXCONN			512

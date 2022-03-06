@@ -24,6 +24,7 @@ class Location
 		str_t				cgi_path() const;
 		str_t				cgi_extension() const ;
 		str_t				route() const ;
+		str_t				upload_path() const ;
 		FLAGS				flags() const;
 		// strMap				fastcgi_param() const;
 

@@ -165,6 +165,8 @@ str_t Location::root() const { return (this->_root); }
 
 str_t Location::route() const { return (this->_route); }
 
+str_t Location::upload_path() const { return (_upload_path); }
+
 FLAGS	Location::flags() const { return (this->_flags); }
 
 // strMap Location::fastcgi_param() const { return (this->_fastcgi_param); }

@@ -1,6 +1,8 @@
 #include "Response.hpp"
 #include "str_manips.hpp"
+#include "find_nocase.hpp"
 
+#include <fstream>
 Response::Response(void)
 {
 }
@@ -22,11 +24,16 @@ Response::Response(Request &req, Config *conf) : _conf(conf), _flags(0), _fd(req
 {
 	_status = 200;
 	select_location(req);
-	//if (_flags & RES_LOCATED)
-	//	cgi_match(req._ressource);
-	//if (_flags & RES_ISCGI)
-	//	set_body_cgi()
-	//else
+	if (_flags & RES_LOCATED)
+	{
+		//	cgi_match(req._ressource);
+		//if (_flags & RES_ISCGI)
+		//	set_body_cgi()
+		if (req.type() == R_POST && (_loc->flags() & LOC_UPLOAD))			//please note that in this state we cannot upload on the default route. this is intentional.
+			upload_file(req);
+	}
+	//else if
+	
 	if (!(_flags & RES_ISCGI))
 		set_body_ress(req, conf);
 	if (_status < 200 || _status > 299)
@@ -230,6 +237,44 @@ str_t			Response::add_head()
 	return (buffer);
 }
 
+
+void			Response::upload_file(Request &req)
+{
+	if (!req.body().size())
+	{
+		set_status(500);
+		return;
+	}
+	std::ofstream	stream;
+	str_t			filename;
+	
+
+
+	std::vector<str_t>::iterator it = req.body().begin();
+	for (; *it != ""; it++)
+	{
+		size_t pos_cd ;
+		if ((pos_cd = find_nocase<str_t>(*it, "Content-Disposition")) != it->npos)
+		{	
+			size_t pos_fn = it->find("filename=");
+			str_t::iterator itStr = it->begin() + pos_fn + 1;
+			for (; itStr != it->end() && *itStr != '\"'; itStr++);
+			itStr++;
+			for (; itStr != it->end() && *itStr != '\"'; itStr++)
+				filename.append(1, *itStr);
+		} 
+	}
+	if (filename == "")
+		filename = "default_upload_name.raw";
+	str_t			filepath = _loc->upload_path() + filename;
+	std::cout << filepath <<std::endl;
+	stream.open(filepath.c_str());
+
+
+	for (; it != req.body().end(); it++)
+		stream << *it;																					//
+	stream.close();
+}
 
 void			Response::send()
 {

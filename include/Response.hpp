@@ -54,6 +54,7 @@ class Response
 		static	std::map<unsigned int, str_t>	_codes;
 		static	str_t							_error_page[2];
 	private:
+		void	upload_file(Request &req);
 		void	select_location(Request &req);
 		void	set_body_ress(Request &req, Config *conf);
 		void	set_headers(str_t path);

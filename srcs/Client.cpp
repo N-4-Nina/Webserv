@@ -1,5 +1,6 @@
 #include "Client.hpp"
 #include "find_nocase.hpp"
+#include <fstream>
 
 Client::Client(void): _fd(-1), _server_id(0), _serv(NULL), _nl_headers(0), _nl_body(0), _content_len(0), _ready(false)
 {
@@ -116,6 +117,10 @@ int		Client::add_data()
 		}
 		if (i == _content_len)
 		{
+			std::ofstream stream;
+			stream.open("./request");
+			stream << _input;
+			stream.close();
 			add_request();
 			_input.clear();
 			_ready = true;
