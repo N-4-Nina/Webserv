@@ -1,11 +1,23 @@
 #include "Request.hpp"
 #include "str_manips.hpp"
 #include "find_nocase.hpp"
+#include "flags.hpp"
 
-Request::Request(str_t input, int fd, size_t nl_head, size_t nl_body)
-: _fd((fd)), _nl_headers(nl_head), _nl_body(nl_body)
+Request::Request(int fd) : _fd(fd), _read_body(0)
 {
-	parse(input);
+
+}
+
+// Request::Request(str_t input, int fd, size_t nl_head, size_t nl_body)
+// : _fd((fd)), _nl_headers(nl_head), _nl_body(nl_body)
+// {
+// 	_flags = 0;
+// 	std::cout << nl_head << " <- head  -  body -> " << nl_body <<std::endl;
+// }
+
+Request::Request(unsigned int error, int fd) : _fd(fd), _error(error)
+{
+	_flags = 0 | REQ_ISBAD;
 }
 
 // Request::Request(const Request &ref)
@@ -22,12 +34,27 @@ Request	&Request::operator=(const Request &ref)
 		_headers = ref._headers;
 		_ressource = ref._ressource;
 		_queryParam = ref._queryParam;
+		_flags = ref._flags;
+		_read_body = ref._read_body;
 	}
 	return (*this);
 }
 
 Request::~Request(void)
 {
+}
+
+void	Request::reset()
+{
+	_type = 0;
+	_headers.clear();
+	_error = 0;
+	_flags = 0;
+	_nl_headers = 0;
+	_nl_body = 0;
+	_body.clear();
+	_queryParam.clear();
+	_read_body = 0;
 }
 
 int	Request::parse_QueryString(size_t start)
@@ -81,7 +108,10 @@ int	Request::parse_TopLine(str_t &input)
 			found = i;
 	}
 	if (found == R_DELETE + 1)
+	{
+		set_Error(400);
 		return (1);
+	}
 	_type = found;
 
 	size_t pos = parse_Url(line);
@@ -89,8 +119,23 @@ int	Request::parse_TopLine(str_t &input)
 	size_t	end = pos;
 	for (; line[end] && !isspace(line[end]); end++);
 	if (line.substr(pos, end) != SERVER_VERSION)
+	{
+		set_Error(505);
 		return (2);
+	}
+	_flags |= PARSED_TOP;
 	return (0);
+}
+
+bool Request::isBad()
+{
+	return (_flags & PARSED_ERROR);
+}
+
+void	Request::set_Error(unsigned int code)
+{
+	_flags |= PARSED_ERROR;
+	_error = code;
 }
 
 int	Request::fd()
@@ -99,59 +144,113 @@ int	Request::fd()
 unsigned int Request::type()
 { return (_type); }
 
-int	Request::parse(str_t input)
+unsigned int &Request::error()
+{ return (_error); }
+
+
+int Request::add_Header(str_t line)
 {
-	str_t				line;
-	size_t					check = 0;
-	int ret;
-	
-	 if (!input.size())
-	 	return (1);
-	
-	if ((ret = parse_TopLine(input)))
-	 	return (ret);
-	_nl_headers--;
-	while (check <= _nl_headers)
+	strPair p;
+	size_t	limit = line.find(':');
+	p.first = str_toUpper(line.substr(0, limit++));
+	while (isspace(line[limit++]));
+	limit--;
+	p.second = line.substr(limit, line.npos);
+	_headers.insert(p);
+	//std::cout << p.first << std::endl;
+	if (p.first == "content-length")
 	{
-		line = newLine(input);
-		if (line  == "")
-			break ;
-		strPair p;
-		size_t	limit = line.find(':');
-		p.first = str_toUpper(line.substr(0, limit++));
-		while (isspace(line[limit++]));
-		limit--;
-		p.second = line.substr(limit, line.npos);
-		_headers.insert(p);
-		check++;
+		_cl = static_cast<size_t>(atoi(p.second.c_str()));
+		_flags |= PARSED_CL; 
 	}
-	check = 0;
-	line = newLine(input);
-	while (check < _nl_body)
+	else if (p.first == "content-type")
 	{
-		line = newLine(input);
-		_body.push_back(line);
-		check++;
+		size_t  pos = p.second.find("multipart/form-data");
+		if (!pos)
+		{
+			_boundary = p.second.substr(p.second.find("=", 20) + 1);
+			_flags |= PARSED_ISMULTI;
+		}
 	}
-	check = 0;
-	// sum = _cl + _hl;
-
-	std::cout << "-----HEADERS-----\n";
-	for (strMap::iterator itt = _headers.begin(); itt != _headers.end(); itt++)
-	{
-		std::cout << itt->first << "  :  "  << itt->second << std::endl;
-	}
-	std::cout << "----------\n";
-
-	std::cout << "-----BODY-----\n";
-	for (std::vector<str_t>::iterator itb = _body.begin(); itb != _body.end(); itb++)
-	{
-		std::cout << *itb << std::endl;
-	}
-	std::cout << "----------\n";
-
-	return (EXIT_SUCCESS);
+	return (0);
 }
+
+int Request::add_Body(str_t line)
+{
+	_body.push_back(line);
+	_read_body += line.size() + 2;
+	return (0);
+}
+
+bool	Request::isBoundary(str_t line)
+{
+	std::cout << line.find(_boundary) << std::endl;
+	if (line.find(_boundary) != line.npos)			//this is not great. I would rather have find == 0 but right now it is not it.
+		return (true);
+	return (false);
+}
+
+bool Request::done_Reading()
+{	
+	std::cout << "are we done ? " << _read_body << "  " << _cl << std::endl;
+	return (_read_body == _cl); }
+
+bool Request::over_Read()
+{	return (_read_body > _cl); }
+
+// int	Request::parse(str_t input)
+// {
+// 	str_t				line;
+// 	size_t					check = 0;
+// 	int ret;
+	
+// 	 if (!input.size())
+// 	 	return (1);
+	
+// 	if ((ret = parse_TopLine(input)))
+// 	 	return (ret);
+// 	_nl_headers--;
+// 	while (check <= _nl_headers)
+// 	{
+// 		line = newLine(input);
+// 		if (line  == "")
+// 			break ;
+// 		strPair p;
+// 		size_t	limit = line.find(':');
+// 		p.first = str_toUpper(line.substr(0, limit++));
+// 		while (isspace(line[limit++]));
+// 		limit--;
+// 		p.second = line.substr(limit, line.npos);
+// 		_headers.insert(p);
+// 		check++;
+// 	}
+// 	check = 0;
+// 	line = newLine(input);
+// 	while (check < _nl_body)
+// 	{
+// 		line = newLine(input);
+// 		_body.push_back(line);
+// 		check++;
+// 	}
+// 	check = 0;
+// 	// sum = _cl + _hl;
+
+// 	std::cout << "-----HEADERS-----\n";
+// 	for (strMap::iterator itt = _headers.begin(); itt != _headers.end(); itt++)
+// 	{
+// 		std::cout << itt->first << "  :  "  << itt->second << std::endl;
+// 	}
+// 	std::cout << "----------\n";
+
+// 	std::cout << "-----BODY-----\n";
+// 	for (std::vector<str_t>::iterator itb = _body.begin(); itb != _body.end(); itb++)
+// 	{
+// 		std::cout << *itb << std::endl;
+// 	}
+// 	std::cout << "----------\n";
+
+// 	return (EXIT_SUCCESS);
+// }
 
 strMap	&Request::headers()
 { return (_headers); }

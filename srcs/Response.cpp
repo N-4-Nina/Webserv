@@ -22,6 +22,11 @@ Response::~Response(void)
 
 Response::Response(Request &req, Config *conf) : _conf(conf), _flags(0), _fd(req.fd())
 {
+	if (req.isBad())
+	{
+		_status = req.error();
+		return;
+	}
 	_status = 200;
 	select_location(req);
 	if (_flags & RES_LOCATED)
@@ -249,9 +254,8 @@ void			Response::upload_file(Request &req)
 	str_t			filename;
 	
 
-
 	std::vector<str_t>::iterator it = req.body().begin();
-	for (; *it != ""; it++)
+	for (; it != req.body().end(); it++)
 	{
 		size_t pos_cd ;
 		if ((pos_cd = find_nocase<str_t>(*it, "Content-Disposition")) != it->npos)
@@ -262,6 +266,7 @@ void			Response::upload_file(Request &req)
 			itStr++;
 			for (; itStr != it->end() && *itStr != '\"'; itStr++)
 				filename.append(1, *itStr);
+			break;
 		} 
 	}
 	if (filename == "")

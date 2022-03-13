@@ -6,6 +6,7 @@
 #include "Config.hpp"
 #include "Location.hpp"
 #include "CGI.hpp"
+#include "flags.hpp"
 
 enum 
 {
@@ -35,10 +36,7 @@ enum
 // OR WIKIPEDIA
 };
 
-#define RES_LOCATED 	1
-#define RES_ISCGI		2
-#define RES_ISINDEX 	4
-#define RES_INDEXDEF	8
+
 
 class Response
 {
