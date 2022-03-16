@@ -43,7 +43,7 @@ Response::Response(Request &req, Config *conf) : _conf(conf), _flags(0), _fd(req
 		set_body_ress(req, conf);
 	if (_status < 200 || _status > 299)
 		get_error_page();
-	// else							// -> pour tester a la zbeul
+	// else							// -> pour tester a la zbeul avec cgi.conf
 	//     exceCGI(req);
 }
 
@@ -156,9 +156,9 @@ void	Response::set_headers(str_t path)
 			add_header("content-type", _mimeTypes[ext]);
 	}
 
-	// add_header("content-length", to_string<size_t>(_body.size()));
-	add_header("content-length", "1500");
-	std::cout << "\n\n\n\nCONTENT: " << _body.size() << std::endl;
+	add_header("content-length", to_string<size_t>(_body.size()));
+	// add_header("content-length", "1500");
+	// std::cout << "\n\n\n\nCONTENT: " << _body.size() << std::endl;
 }
 
 unsigned int	Response::status()
@@ -292,11 +292,19 @@ void			Response::send()
 	write(_fd, res.c_str(), res.size());
 }
 
-
 str_t Response::exceCGI(Request req)
 {
 	CGI cgi;
-    cgi.exec_cgi("/home/user42/42cursus/webserv2/www/cgi/hello.py", req);
+	str_t target = getenv("HOME");
+	location_v loc = _conf->location();
+	size_t i = 0;
+
+	for (location_v::iterator it = loc.begin() ; it != loc.end() ; ++it, ++i)
+		if (!loc.at(i).cgi_path().empty())
+			cgi.set_binary(loc.at(i).cgi_path());
+	
+	target.append("/webserv/www/cgi/hello.py");
+    cgi.exec_cgi(target, req);
 
 	_body = cgi.body();
 	return (_body);

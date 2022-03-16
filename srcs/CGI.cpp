@@ -5,56 +5,20 @@
 // https://man7.org/linux/man-pages/man7/pipe.7.html
 #define CGI_BUF_SIZE 65536
 
-// print the env and args for testing
-void display_cgi_env(char **env, char **args)
-{
-    std::cout << "---- CGI ENV VARIABLES ----" << std::endl;
-    for (int i = 0 ; env[i] ; i++)
-        std::cout << env[i] << std::endl;
-    std::cout << "---- CGI ARGS EXECUTE ----" << std::endl;
-    for (int j = 0 ; args[j] ; j++)
-        std::cout << args[j] << std::endl;
-    std::cout << "---------------------------" << std::endl;
-}
 
-CGI::CGI() {}
+CGI::CGI()
+{}
 
-CGI::~CGI() {}
+CGI::~CGI()
+{}
 
 void CGI::set_binary(str_t path)
 {
     _binary = path;
 }
 
-void free_str_tab(char **str_tab)
-{	
-	int i = -1;
-	while (str_tab[++i] != 0)
-		free(str_tab[i]);
-	free(str_tab);
-}
-
-void free_cgi(char **args, char **env)
-{
-    free_str_tab(args);
-    free_str_tab(env);
-    args = NULL;
-    env = NULL;
-}
-
-str_t CGI::get_body(Request req)
-{
-    str_t body;
-
-    std::vector<str_t> bob = req.body();
-    for (std::vector<str_t>::iterator itb = bob.begin(); itb != bob.end(); itb++)
-        body = body + *itb;
-    return (body);
-}
-
 void CGI::exec_cgi(str_t target, Request req)
 {
-set_binary("/usr/bin/python3");
 	char **args = NULL;
     char **env = NULL;
     int ret = 1;
@@ -66,12 +30,8 @@ set_binary("/usr/bin/python3");
     args[0] = strdup(_binary.c_str());
     args[1] = strdup(target.c_str());
     args[2] = 0;
-
-
-// add request to build a complete env
     env = build_cgi_env(req, _body.size());
     // display_cgi_env(env, args);
-
 
     pid_t pid;
     int save_stdin;
@@ -103,8 +63,7 @@ set_binary("/usr/bin/python3");
         dup2(fd_out, STDOUT_FILENO);
 
         if (execve(_binary.c_str(), args, env) < 0)
-            exit(-1);				// bail d\erreur à renvoyer 
-
+            fatal("execve failed\n");
     }
     else
     {
@@ -151,7 +110,6 @@ set_binary("/usr/bin/python3");
 * Ref: https://fr.wikipedia.org/wiki/Variables_d%27environnement_CGI
 * Ref: https://web.developpez.com/cgic.htm
 */
-
 
 void CGI::get_host_port(Request req, strMap &envMap)
 {
@@ -214,14 +172,43 @@ char **CGI::build_cgi_env(Request req, size_t body_size)
 str_t CGI::body()
 { return (_body); }
 
-// int main ()
-// {
-//     CGI cgi;
+str_t CGI::binary()
+{ return (_binary); }
 
-//     // set binary (path) for the cgi
-//     cgi.set_binary("BINARY NAME");
-//     // execute cgi
-//     cgi.exec_cgi("CGI ARG", req);
+void CGI::free_str_tab(char **str_tab)
+{	
+	int i = -1;
+	while (str_tab[++i] != 0)
+		free(str_tab[i]);
+	free(str_tab);
+}
 
-//     return 0;
-// }
+void CGI::free_cgi(char **args, char **env)
+{
+    free_str_tab(args);
+    free_str_tab(env);
+    args = NULL;
+    env = NULL;
+}
+
+str_t CGI::get_body(Request req)
+{
+    str_t body;
+
+    std::vector<str_t> bob = req.body();
+    for (std::vector<str_t>::iterator itb = bob.begin(); itb != bob.end(); itb++)
+        body = body + *itb;
+    return (body);
+}
+
+// print the env and args for testing
+void display_cgi_env(char **env, char **args)
+{
+    std::cout << "---- CGI ENV VARIABLES ----" << std::endl;
+    for (int i = 0 ; env[i] ; i++)
+        std::cout << env[i] << std::endl;
+    std::cout << "---- CGI ARGS EXECUTE, BIN + SCRIPT ----" << std::endl;
+    for (int j = 0 ; args[j] ; j++)
+        std::cout << args[j] << std::endl;
+    std::cout << "---------------------------" << std::endl;
+}

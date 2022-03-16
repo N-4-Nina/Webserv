@@ -19,21 +19,25 @@
 
 class CGI
 {
-    public:
-        CGI();
-        ~CGI();
+	public:
+		CGI();
+		~CGI();
 
-        void set_binary(str_t path);
-        void exec_cgi(str_t target, Request req);
-        str_t get_body(Request req);
-        str_t  body();
+		void	set_binary(str_t path);
+		void	exec_cgi(str_t target, Request req);
+		str_t	get_body(Request req);
+		str_t 	body();
+		str_t	binary();
 
-    private:
-        str_t _binary;
-		str_t _body;
-        
-        char **build_cgi_env(Request req, size_t body_size);
-        void get_host_port(Request req, strMap &envMap);
+	private:
+		str_t	_binary;
+		str_t	_body;
+		char	**build_cgi_env(Request req, size_t body_size);
+		void	get_host_port(Request req, strMap &envMap);
+		void	free_str_tab(char **str_tab);
+		void	free_cgi(char **args, char **env);
 };
+
+void display_cgi_env(char **env, char **args);
 
 #endif

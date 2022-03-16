@@ -16,9 +16,10 @@ print ('<h5>Hello World! This is my first CGI program</h5>')
 print ('<p>Here, check the environement variables of the CGI, pass with execve() (c++):</p>')
 
 for i, j in os.environ.items():
-    print(i, j, '<br>')
+    print(i, j)
+    print ('<br>')
 
-# ↓ method to get/print the params stored in the CGI variables, QUERY_STRING ↓
+# method to get/print the params stored in the CGI variables, QUERY_STRING
 # query = os.environ.get("QUERY_STRING")
 # print ('<br>')
 # print ('We are the arguments of the QUERY_STRING: ')
