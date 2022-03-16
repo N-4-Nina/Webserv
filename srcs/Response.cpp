@@ -43,6 +43,8 @@ Response::Response(Request &req, Config *conf) : _conf(conf), _flags(0), _fd(req
 		set_body_ress(req, conf);
 	if (_status < 200 || _status > 299)
 		get_error_page();
+	// else							// -> pour tester a la zbeul
+	//     exceCGI(req);
 }
 
 void			Response::set_status(unsigned int s)
@@ -154,7 +156,9 @@ void	Response::set_headers(str_t path)
 			add_header("content-type", _mimeTypes[ext]);
 	}
 
-	add_header("content-length", to_string<size_t>(_body.size()));
+	// add_header("content-length", to_string<size_t>(_body.size()));
+	add_header("content-length", "1500");
+	std::cout << "\n\n\n\nCONTENT: " << _body.size() << std::endl;
 }
 
 unsigned int	Response::status()
@@ -286,4 +290,14 @@ void			Response::send()
 	str_t  res = add_head();
 	res += _body;
 	write(_fd, res.c_str(), res.size());
+}
+
+
+str_t Response::exceCGI(Request req)
+{
+	CGI cgi;
+    cgi.exec_cgi("/home/user42/42cursus/webserv2/www/cgi/hello.py", req);
+
+	_body = cgi.body();
+	return (_body);
 }

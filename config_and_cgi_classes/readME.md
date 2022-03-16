@@ -34,3 +34,7 @@ liens stylés :
 - https://www.digitalocean.com/community/tutorials/understanding-the-nginx-configuration-file-structure-and-configuration-contexts
 
 - https://www.keycdn.com/support/nginx-directory-index#:~:text=By%20default%2C%20Nginx%20tries%20to,is%20if%20it%20has%20permissions
+
+
+curl utile :
+curl --verbose localhost:8001

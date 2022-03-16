@@ -26,6 +26,7 @@ class CGI
         void set_binary(str_t path);
         void exec_cgi(str_t target, Request req);
         str_t get_body(Request req);
+        str_t  body();
 
     private:
         str_t _binary;

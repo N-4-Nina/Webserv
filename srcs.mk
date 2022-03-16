@@ -1,17 +1,17 @@
 SRCS = \
-Client.cpp\
-Request.cpp\
-Location.cpp\
-socket_manips.cpp\
-mime_types.cpp\
-Server.cpp\
-str_manips.cpp\
-Config.cpp\
 parse_config.cpp\
 Response.cpp\
+Client.cpp\
+str_manips.cpp\
+Request.cpp\
 EvMa.cpp\
-time_in_ms.cpp\
 main.cpp\
+Location.cpp\
+time_in_ms.cpp\
+socket_manips.cpp\
+Server.cpp\
 resp_codes.cpp\
+mime_types.cpp\
+Config.cpp\
 CGI.cpp\
 \

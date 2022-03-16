@@ -1,7 +1,7 @@
 #include "CGI.hpp"
 #include "Config.hpp"
 
-// the caacity of a pipe
+// the capacity of a pipe
 // https://man7.org/linux/man-pages/man7/pipe.7.html
 #define CGI_BUF_SIZE 65536
 
@@ -54,25 +54,20 @@ str_t CGI::get_body(Request req)
 
 void CGI::exec_cgi(str_t target, Request req)
 {
+set_binary("/usr/bin/python3");
 	char **args = NULL;
     char **env = NULL;
     int ret = 1;
     char tmp[CGI_BUF_SIZE];
 
     _body = get_body(req);
-    // std::cout << "\nBODY:\n" << _body << "\nFIN" << std::endl;
 
     args = (char**)malloc(sizeof(char*) * 3);
     args[0] = strdup(_binary.c_str());
     args[1] = strdup(target.c_str());
     args[2] = 0;
 
-	// std::cout << "\n\nHEADERS\n" << std::endl;
-    // for (strMap::iterator itt = req.headers().begin(); itt != req.headers().end(); itt++)
-	// {
-	// 	std::cout << itt->first << "|"  << itt->second << std::endl;
-	// }
-	// std::cout << "FIN\n" << std::endl;
+
 // add request to build a complete env
     env = build_cgi_env(req, _body.size());
     // display_cgi_env(env, args);
@@ -96,6 +91,9 @@ void CGI::exec_cgi(str_t target, Request req)
     write(fd_in, _body.c_str(), _body.size());
     lseek(fd_in, 0, SEEK_SET);
 
+//    std::cout << "\n\nbinary: " << _binary << std::endl;
+//     std::cout << "_body: " << target << std::endl;
+
     if ((pid = fork()) == -1)
         fatal("error: fork failed on CGI: PID = -1");
     else if (pid == 0)
@@ -117,7 +115,7 @@ void CGI::exec_cgi(str_t target, Request req)
         {
             memset(tmp, 0, CGI_BUF_SIZE);
             ret = read(fd_out, tmp, CGI_BUF_SIZE - 1);
-            _body += tmp;
+           _body += tmp;
         }
 
         close(fd_out);
@@ -125,7 +123,7 @@ void CGI::exec_cgi(str_t target, Request req)
 
         dup2(save_stdin, STDIN_FILENO);
         dup2(save_stdout, STDOUT_FILENO);
-        }
+    }
     free_cgi(args, env);
 }
 
@@ -193,9 +191,9 @@ char **CGI::build_cgi_env(Request req, size_t body_size)
     envMap["PATH_TRANSLATED"] = ""; // need request location and uri
     envMap["SCRIPT_NAME"] = ""; // need from request
     envMap["CONTENT_LENGTH"] = to_string(body_size); // body size
-    envMap["QUERY_STRING"] = ""; // "
-    envMap["CONTENT_TYPE"] = ""; // content type from req
-    //envMap["REDIRECT_STATUS"] = "200"; //
+    envMap["QUERY_STRING"] = "first_name=ZARA&last_name=ALI"; // "
+    // envMap["CONTENT_TYPE"] = ""; // content type from req
+    // envMap["REDIRECT_STATUS"] = "200"; //
     // envMap["REMOTE_ADDR"] = ""; // client ip
 
     /* Request headers pass to CGI */
@@ -212,6 +210,9 @@ char **CGI::build_cgi_env(Request req, size_t body_size)
     envMap.clear();
     return (env);
 }
+
+str_t CGI::body()
+{ return (_body); }
 
 // int main ()
 // {
