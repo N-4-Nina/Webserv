@@ -10,13 +10,13 @@ Location::Location(str_t block)
 	set_root(search_config(block, "root"));
 	set_autoindex(search_config(block, "autoindex"));
 	set_index(search_config(block, "index"));
+	set_methods(search_config(block, "methods"));
 	set_cgi_path(search_config(block, "cgi_path"));
 	set_cgi_extension(search_config(block, "cgi_extension"));
 	set_upload_pass(search_config(block, "upload_pass"));
 	set_upload_path(search_config(block, "upload_path"));
 	if (_cgi_extension != "" && _cgi_path != "")
 		_flags |= LOC_CGI;
-	// set_fastcgi_param(search_config(block, "fastcgi_param"));
 }
 
 Location::Location(const Location &ref)
@@ -89,6 +89,24 @@ void Location::set_index(str_t line)
 	}
 }
 
+void Location::set_methods(str_t line)
+{
+	size_t space;
+
+	if (line == "")
+		return ;
+	space = line.find(" ");
+	while (space != str_t::npos)
+	{
+		if (line.find(" ", space + 1) != str_t::npos)
+			this->_methods.push_back(line.substr(space + 1, line.find(' ', space + 1) - space - 1));
+		else
+			this->_methods.push_back(line.substr(space + 1));
+		space = line.find(' ', space + 1);
+		_flags |= LOC_METHOD;
+	}
+}
+
 void Location::set_cgi_path(str_t line)
 {
    if (line == "")
@@ -130,32 +148,13 @@ void Location::set_upload_path(str_t line)
 	}
 }
 
-// void Location::set_fastcgi_param(str_t line)
-// {
-//     size_t space;
-//     size_t space2;
-//     size_t end;
-
-//     if (line == "")
-//         return ;
-//     space = line.find(" ");
-//     space2 = space + 1;
-	
-//     while (line[space2] != ' ') { space2++; };
-
-//     end = space2 + 1;
-//     while (line[end] != str_t::npos) { end++; }
-
-//     this->_fastcgi_param.insert(std::pair<str_t, str_t>(line.substr(space + 1, line.find(' ', space + 1)), line.substr(space2 + 1, end)));
-// }
-
 /*
 * Getters
 */
 
-// str_t Location::autoindex() const { return (this->_autoindex); }
-
 std::list<str_t> &Location::index() { return (_index); }
+
+std::list<str_t> &Location::methods() { return (_methods); }
 
 str_t Location::cgi_path() const { return (this->_cgi_path); }
 
@@ -168,8 +167,6 @@ str_t Location::route() const { return (this->_route); }
 str_t Location::upload_path() const { return (_upload_path); }
 
 FLAGS	Location::flags() const { return (this->_flags); }
-
-// strMap Location::fastcgi_param() const { return (this->_fastcgi_param); }
 
 /*
 * Member functions
@@ -213,31 +210,14 @@ str_t Location::search_config(str_t config, str_t key)
 * Non-member functions
 */
 
-std::ostream& operator<<(std::ostream& os, Location const& src)
+std::ostream& operator<<(std::ostream& os, Location &src)
 {
-//     os << "{" << std::endl;
-//     os << "\troute: " << src.route() << std::endl;
-//     os << "\troot: " << src.root() << std::endl;
-	
-//     os << "\tautoindex: " << src.autoindex() << std::endl;
-//     os << "\tindex:" << std::endl;
-//     std::list<std::string> index = src.index();
+	os << "{" << std::endl;
+	std::list<std::string> index = src.index();
 
-//     for (std::list<std::string>::iterator it = index.begin() ; it != index.end() ; ++it)
-//         os << "\t\t- " << *it << std::endl;
-	
-//     os << "\tcgi_path: " << src.cgi_path() <<std::endl;
-	
-//    os << "\tcgi_extension: " << src.cgi_extension() <<std::endl;
+	for (std::list<std::string>::iterator it = index.begin() ; it != index.end() ; ++it)
+		os << "\t\t- " << *it << std::endl;
 
-//     // os << "\tfastcgi_param: " << std::endl;
-//     // strMap param = src.fastcgi_param();
-
-//     // for (strMap::iterator it = param.begin() ; it != param.end() ; ++it)
-// 	// 	os << it->first << " => " << it->second << std::endl;
-// 	// os << std::endl;	
-
-//     os << "}" << std::endl;
-(void)src;
+	os << "}" << std::endl;
 	return (os);
 }

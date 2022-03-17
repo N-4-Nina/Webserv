@@ -50,7 +50,7 @@ class Config
 		Config();
 };
 
-std::ostream &operator<<(std::ostream &os, const Config &src);
+std::ostream &operator<<(std::ostream &os, Config &src);
 std::vector<Config>	parsing_config(int argc, char **argv);
 template <class T> str_t to_string(T n);
 

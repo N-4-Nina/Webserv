@@ -338,7 +338,7 @@ std::vector<size_t> Config::search_location(str_t config)
 * Non-member functions
 */
 
-std::ostream& operator<<(std::ostream& os, Config const& src)
+std::ostream& operator<<(std::ostream& os, Config &src)
 {
 	// os << std::endl;
 	// os << "<----- CONFIGURATION ----->" << std::endl << std::endl;
