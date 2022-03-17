@@ -162,9 +162,10 @@ void	Response::set_headers(str_t path)
 }
 
 unsigned int	Response::status()
-{
-	return (_status);
-}
+{ return (_status); }
+
+strMap			Response::headers()
+{ return (_headers); }
 
 void			Response::get_error_page()
 {
@@ -304,7 +305,8 @@ str_t Response::exceCGI(Request req)
 			cgi.set_binary(loc.at(i).cgi_path());
 	
 	target.append("/webserv/www/cgi/hello.py");
-    cgi.exec_cgi(target, req);
+	cgi.set_script_name(target.substr(target.find("/cgi")));
+    cgi.exec_cgi(target, req, this->headers());
 
 	_body = cgi.body();
 	return (_body);

@@ -24,15 +24,18 @@ class CGI
 		~CGI();
 
 		void	set_binary(str_t path);
-		void	exec_cgi(str_t target, Request req);
+		void	set_script_name(str_t script_name);
+		void	exec_cgi(str_t target, Request req, strMap headers_resp);
 		str_t	get_body(Request req);
 		str_t 	body();
 		str_t	binary();
+		str_t	script_name();
 
 	private:
 		str_t	_binary;
 		str_t	_body;
-		char	**build_cgi_env(Request req, size_t body_size);
+		str_t	_script_name;
+		char	**build_cgi_env(Request req, str_t target, strMap headers_resp);
 		void	get_host_port(Request req, strMap &envMap);
 		void	free_str_tab(char **str_tab);
 		void	free_cgi(char **args, char **env);

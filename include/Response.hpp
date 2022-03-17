@@ -62,6 +62,7 @@ class Response
 		//bool	find_ressource();
 		bool	cgi_match(str_t uri);
 		str_t	add_head();
+		strMap	headers();
 		Response(void);
 		Config									*_conf;
 		str_t								_route;

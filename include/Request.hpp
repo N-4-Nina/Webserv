@@ -58,7 +58,6 @@ class Request
 		size_t					_nl_body;
 		std::vector<str_t>		_body;
 		strMap					_queryParam;
-
 };
 
 #endif
