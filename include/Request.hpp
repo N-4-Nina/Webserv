@@ -37,6 +37,8 @@ class Request
 		unsigned	int		&error();
 		strMap				&headers();
 		std::vector<str_t>	&body();
+		str_t		url_decode(str_t &src);
+		str_t		query_string();
 		str_t					_ressource;		//should maybe be called _route...
 		FLAGS					_flags;
 
@@ -58,6 +60,7 @@ class Request
 		size_t					_nl_body;
 		std::vector<str_t>		_body;
 		strMap					_queryParam;
+		str_t					_query_string;
 };
 
 #endif

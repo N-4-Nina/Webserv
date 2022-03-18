@@ -55,24 +55,41 @@ void	Request::reset()
 	_body.clear();
 	_queryParam.clear();
 	_read_body = 0;
+	_query_string.clear();
+}
+
+str_t Request::url_decode(str_t &src)
+{
+	str_t ret;
+	char c;
+	size_t i, j;
+
+	for (i = 0 ; i < src.length() ; i++)
+	{
+		if (int(src[i]) == 37)
+		{
+			sscanf(src.substr(i + 1, 2).c_str(), "%lx", &j);
+			c = static_cast<char>(j);
+			ret += c;
+			i += 2;
+		}
+		else
+			ret += src[i];
+	}
+	return (ret);
 }
 
 int	Request::parse_QueryString(size_t start)
 {
 	str_t line, query = _ressource.substr(start + 1, _ressource.size() - start);
+	_query_string = query;
 	_ressource = _ressource.substr(0, start);
 	int i = 0;
 	while ((line = newLine(query, "&")).size())
 	{
-		/*	PARAMS STILL NEED TO BE DECODED (FIND % AND CONVERT IN ASCII)
-			THAT MAY OR MAY NOT BE THE PLACE TO DO IT 
-			(MY GUESS IS IT IS)
-
-			ALSO, SINCE WE USE A MAP, PARAMS WITH THE SAME NAME ARE OVERWRITTEN.
-			THIS MIGHT OR MIGHT NOT BE A PROBLEM.
-		*/
 		strPair p;
-		p.first = newLine(line, "=");
+		line = url_decode(line);
+		p.first = newLine(line, "=");	
 		p.second = line;
 		_queryParam.insert(p);
 		i++;
@@ -147,6 +164,8 @@ unsigned int Request::type()
 unsigned int &Request::error()
 { return (_error); }
 
+str_t Request::query_string()
+{ return (_query_string); }
 
 int Request::add_Header(str_t line)
 {

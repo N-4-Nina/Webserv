@@ -129,7 +129,7 @@ char **CGI::build_cgi_env(Request req, str_t target, strMap headers_resp)
 	}
 	envMap["PATH_INFO"] = req._ressource;
     envMap["PATH_TRANSLATED"] = target;
-    envMap["QUERY_STRING"] = "";
+    envMap["QUERY_STRING"] = req.query_string();
     envMap["REQUEST_URI"] = req._ressource;
     get_host_port(req, envMap);
     envMap["SERVER_PROTOCOL"] = SERVER_VERSION;
