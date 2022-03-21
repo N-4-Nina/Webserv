@@ -1,5 +1,6 @@
 #include "Client.hpp"
 #include "find_nocase.hpp"
+#include "str_manips.hpp"
 #include <fstream>
 
 Client::Client(void): _fd(-1), _server_id(0), _serv(NULL),  _content_len(0), _ready(false)
@@ -80,32 +81,32 @@ bool	Client::isReady()
 
 int			Client::add_data()
 {
-	str_t			input, line;
+	raw_str_t			input, line;
 	int n;
 	FLAGS &flags = _req._flags;
 
 	memset(_buff, 0, MAXREAD + 1);
 	
 	n  = read(_fd, _buff, MAXREAD);
-	input = std::string(_buff);
+	input = char_to_raw(_buff, n);
 
-	
-	while (input != "")
+	while (input.size())
 	{
-		if (_remain != "")
+		if (_remain.size())
 		{
-			input = _remain + input;
-			_remain = "";
+			input = raw_add(_remain, input);
+			_remain.clear();
 		}
-		if (n == MAXREAD && input.find(CRLF) == input.npos)
+		if ((n == MAXREAD && raw_find(input, UCRLF, 2) == input.end()) || _buff[MAXREAD] == '\n')
 		{
 			_remain = input;
 			return (0);
 		}	
-		line = newLine(input);
+		line = raw_newLine(input);
 		if ( !(flags & PARSED_TOP))
-			_req.parse_TopLine(line);
-		else if (!(flags & PARSED_HEADERS) && line == "")
+			{ if (_req.parse_TopLine(raw_to_str(line)))
+				_ready = true; }
+		else if (!(flags & PARSED_HEADERS) && line.size() == 0)
 		{
 			flags |= PARSED_HEADERS;
 			if (_req.type() == R_POST && !(flags & PARSED_CL))
@@ -118,24 +119,24 @@ int			Client::add_data()
 			{
 				_ready = true;
 				input.clear();
-				_remain = "";
+				_remain.clear();
 				_ready = true;
 				break;
 			}
 		}
 		else if (! (flags & PARSED_HEADERS))
-			_req.add_Header(line);
+			_req.add_Header(raw_to_str(line));
 		//else if ((flags & PARSED_ISMULTI) && _req.isBoundary(line))
 		//	continue;
 		else if ((flags & PARSED_CL))
 		{
 			_req.add_Body(line);
-			std::cout << line << "\n";
+			std::cout << raw_to_str(line) << "\n";
 			if (_req.done_Reading())
 			{
 				_ready = true;
 				input.clear();
-				_remain = "";
+				_remain.clear();
 			}
 			//else if (_req.over_Read())
 			//{
@@ -146,6 +147,8 @@ int			Client::add_data()
 			//}
 		}
 	}
+	if (n < MAXREAD)
+		_ready = true;
 	return (0);
 }
 

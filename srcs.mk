@@ -1,5 +1,6 @@
 SRCS = \
 Location.cpp\
+raw_str.cpp\
 Request.cpp\
 mime_types.cpp\
 Client.cpp\

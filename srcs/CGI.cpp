@@ -22,16 +22,14 @@ void CGI::exec_cgi(str_t target, Request req, strMap headers_resp)
 	char **args = NULL;
     char **env = NULL;
     int ret = 1;
-    char tmp[CGI_BUF_SIZE];
-
-    _body = get_body(req);
+    char tmp[CGI_BUF_SIZE];    
 
     args = (char**)malloc(sizeof(char*) * 3);
     args[0] = strdup(_binary.c_str());
     args[1] = strdup(target.c_str());
     args[2] = 0;
     env = build_cgi_env(req, target, headers_resp);
-    // display_cgi_env(env, args);
+    display_cgi_env(env, args);
 
     pid_t pid;
     int save_stdin;
@@ -58,7 +56,6 @@ void CGI::exec_cgi(str_t target, Request req, strMap headers_resp)
       // STDOUT become a copy of fd_out, and, in case of POST, STDIN become a copy of fd_in
         dup2(fd_in, STDIN_FILENO);
         dup2(fd_out, STDOUT_FILENO);
-
         if (execve(_binary.c_str(), args, env) < 0)
             fatal("execve failed\n");
     }
@@ -71,7 +68,8 @@ void CGI::exec_cgi(str_t target, Request req, strMap headers_resp)
         {
             memset(tmp, 0, CGI_BUF_SIZE);
             ret = read(fd_out, tmp, CGI_BUF_SIZE - 1);
-           _body += tmp;
+            _body += tmp;
+          //  env = update_env(env);
         }
 
         close(fd_out);
@@ -122,8 +120,8 @@ char **CGI::build_cgi_env(Request req, str_t target, strMap headers_resp)
 		fatal("CGI can't work with another method than GET or POST"); // CGI only works with GET and POST
 	for (strMap::iterator it = headers_resp.begin() ; it != headers_resp.end() ; ++it)
 	{
-		if (it->first == "content-length")
-			envMap["CONTENT_LENGTH"] = it->second;
+		// if (it->first == "content-length")
+		// 	envMap["CONTENT_LENGTH"] = it->second;
 		if (it->first == "content-type")
 			envMap["CONTENT_TYPE"] = it->second;
 	}
@@ -169,16 +167,6 @@ void CGI::free_cgi(char **args, char **env)
     free_str_tab(env);
     args = NULL;
     env = NULL;
-}
-
-str_t CGI::get_body(Request req)
-{
-    str_t body;
-
-    std::vector<str_t> bob = req.body();
-    for (std::vector<str_t>::iterator itb = bob.begin(); itb != bob.end(); itb++)
-        body = body + *itb;
-    return (body);
 }
 
 void    CGI::set_script_name(str_t script_name)

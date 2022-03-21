@@ -112,11 +112,12 @@ size_t	Request::parse_Url(str_t const &line)
 	return (end);
 }
 
-int	Request::parse_TopLine(str_t &input)
+int	Request::parse_TopLine(str_t input)
 {
 	size_t			found = R_DELETE + 1;
 	static	str_t	strTypes[3] = {"GET", "POST", "DELETE"};
 
+	_flags |= PARSED_TOP;
 	str_t line = newLine(input);
 	std::cout << "---------top line = " << line << std::endl;
 	for (size_t i = R_GET; i <= R_DELETE; i++)
@@ -140,7 +141,6 @@ int	Request::parse_TopLine(str_t &input)
 		set_Error(505);
 		return (2);
 	}
-	_flags |= PARSED_TOP;
 	return (0);
 }
 
@@ -176,7 +176,6 @@ int Request::add_Header(str_t line)
 	limit--;
 	p.second = line.substr(limit, line.npos);
 	_headers.insert(p);
-	//std::cout << p.first << std::endl;
 	if (p.first == "content-length")
 	{
 		_cl = static_cast<size_t>(atoi(p.second.c_str()));
@@ -187,26 +186,30 @@ int Request::add_Header(str_t line)
 		size_t  pos = p.second.find("multipart/form-data");
 		if (!pos)
 		{
-			_boundary = p.second.substr(p.second.find("=", 20) + 1);
+			_boundary = str_to_raw(p.second.substr(p.second.find("=", 20) + 1));
 			_flags |= PARSED_ISMULTI;
 		}
 	}
 	return (0);
 }
 
-int Request::add_Body(str_t line)
+int Request::add_Body(raw_str_t line)
 {
 	_body.push_back(line);
 	_read_body += line.size() + 2;
 	return (0);
 }
 
-bool	Request::isBoundary(str_t line)
+bool	Request::isBoundary(raw_str_t line)
 {
-	std::cout << line.find(_boundary) << std::endl;
-	if (line.find(_boundary) != line.npos)			//this is not great. I would rather have find == 0 but right now it is not it.
-		return (true);
-	return (false);
+	size_t i = 0;
+
+	while (i < _boundary.size())
+	{
+		if (line[i] != _boundary[i])
+			return (false);
+	}
+	return (true);
 }
 
 bool Request::done_Reading()
@@ -274,5 +277,5 @@ bool Request::over_Read()
 strMap	&Request::headers()
 { return (_headers); }
 
-std::vector<str_t>	&Request::body()
+std::vector<raw_str_t>	&Request::body()
 { return (_body); }
