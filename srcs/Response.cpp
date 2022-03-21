@@ -250,35 +250,44 @@ void			Response::upload_file(Request &req)
 		set_status(500);
 		return;
 	}
-	std::ofstream	stream;
+	
 	str_t			filename;
 	
 
-	std::vector<str_t>::iterator it = req.body().begin();
-	for (; it != req.body().end(); it++)
+	std::vector<raw_str_t>::iterator it = req.body().begin();
+	std::cout << "\n\n upload body\n";  
+	for (; it != req.body().end() && it->size() != 0; it++)
 	{
-		size_t pos_cd ;
-		if ((pos_cd = find_nocase<str_t>(*it, "Content-Disposition")) != it->npos)
+		raw_str_t::iterator pos_cd;
+		if ((pos_cd = raw_find(*it, reinterpret_cast<unsigned const char*>("Content-Disposition"), 20)) != it->end())		// an equivalent to find nocase would be better
 		{	
-			size_t pos_fn = it->find("filename=");
-			str_t::iterator itStr = it->begin() + pos_fn + 1;
-			for (; itStr != it->end() && *itStr != '\"'; itStr++);
-			itStr++;
-			for (; itStr != it->end() && *itStr != '\"'; itStr++)
-				filename.append(1, *itStr);
-			break;
-		} 
+			raw_str_t::iterator pos_fn = raw_find(*it, reinterpret_cast<unsigned const char*>("filename="), 10);
+			//raw_str_t::iterator itStr = it->begin() + pos_fn + 1;
+			pos_fn++;
+			for (; pos_fn != it->end() && *pos_fn != '\"'; pos_fn++);
+			pos_fn++;
+			for (; pos_fn != it->end() && *pos_fn != '\"'; pos_fn++)
+				filename.append(1, *pos_fn);
+			//break;
+		}
 	}
 	if (filename == "")
 		filename = "default_upload_name.raw";
 	str_t			filepath = _loc->upload_path() + filename;
-	std::cout << filepath <<std::endl;
-	stream.open(filepath.c_str());
+	std::ofstream	stream(filepath.c_str(), std::ofstream::binary);
+	//stream.open(filepath.c_str());
 
-
+	it++;			//boundaries are precedeed and followed by empty line
 	for (; it != req.body().end(); it++)
-		stream << *it;																					//
+	{
+		if (req.isBoundary(*it))
+			continue;				// should be changing file OR stopping
+		char *tmp = raw_to_char(*it);
+		stream.write(tmp, it->size());
+		stream.write(CRLF, 2);
+	}
 	stream.close();
+	std::cout << "\n\n";
 }
 
 void			Response::send()
