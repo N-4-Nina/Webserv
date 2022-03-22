@@ -41,7 +41,8 @@ class Request
 		FLAGS					_flags;
 		str_t		url_decode(str_t &src);
 		str_t		query_string();
-
+		unsigned int	read_body();
+		unsigned int	cl();
 	private:
 		//int			parse(str_t input);
 		int			parse_QueryString(size_t start);
@@ -56,8 +57,8 @@ class Request
 		//char					*_body;
 		unsigned	int			_read_body;
 		unsigned	int			_error;
-		size_t					_nl_headers;
-		size_t					_nl_body;
+		
+
 		std::vector<raw_str_t>		_body;
 		strMap					_queryParam;
 		str_t					_query_string;

@@ -50,8 +50,8 @@ void	Request::reset()
 	_headers.clear();
 	_error = 0;
 	_flags = 0;
-	_nl_headers = 0;
-	_nl_body = 0;
+	//_nl_headers = 0;
+	//_nl_body = 0;
 	_body.clear();
 	_queryParam.clear();
 	_read_body = 0;
@@ -119,7 +119,6 @@ int	Request::parse_TopLine(str_t input)
 
 	_flags |= PARSED_TOP;
 	str_t line = newLine(input);
-	std::cout << "---------top line = " << line << std::endl;
 	for (size_t i = R_GET; i <= R_DELETE; i++)
 	{
 		if (line.find(strTypes[i]) != line.npos)
@@ -171,7 +170,7 @@ int Request::add_Header(str_t line)
 {
 	strPair p;
 	size_t	limit = line.find(':');
-	p.first = str_toUpper(line.substr(0, limit++));
+	p.first = str_tolower(line.substr(0, limit++));
 	while (isspace(line[limit++]));
 	limit--;
 	p.second = line.substr(limit, line.npos);
@@ -204,10 +203,11 @@ bool	Request::isBoundary(raw_str_t line)
 {
 	size_t i = 0;
 
-	while (i < _boundary.size())
+	while (i < _boundary.size() && i < line.size())
 	{
 		if (line[i] != _boundary[i])
 			return (false);
+		i++;
 	}
 	return (true);
 }
@@ -220,62 +220,15 @@ bool Request::done_Reading()
 bool Request::over_Read()
 {	return (_read_body > _cl); }
 
-// int	Request::parse(str_t input)
-// {
-// 	str_t				line;
-// 	size_t					check = 0;
-// 	int ret;
-	
-// 	 if (!input.size())
-// 	 	return (1);
-	
-// 	if ((ret = parse_TopLine(input)))
-// 	 	return (ret);
-// 	_nl_headers--;
-// 	while (check <= _nl_headers)
-// 	{
-// 		line = newLine(input);
-// 		if (line  == "")
-// 			break ;
-// 		strPair p;
-// 		size_t	limit = line.find(':');
-// 		p.first = str_toUpper(line.substr(0, limit++));
-// 		while (isspace(line[limit++]));
-// 		limit--;
-// 		p.second = line.substr(limit, line.npos);
-// 		_headers.insert(p);
-// 		check++;
-// 	}
-// 	check = 0;
-// 	line = newLine(input);
-// 	while (check < _nl_body)
-// 	{
-// 		line = newLine(input);
-// 		_body.push_back(line);
-// 		check++;
-// 	}
-// 	check = 0;
-// 	// sum = _cl + _hl;
-
-// 	std::cout << "-----HEADERS-----\n";
-// 	for (strMap::iterator itt = _headers.begin(); itt != _headers.end(); itt++)
-// 	{
-// 		std::cout << itt->first << "  :  "  << itt->second << std::endl;
-// 	}
-// 	std::cout << "----------\n";
-
-// 	std::cout << "-----BODY-----\n";
-// 	for (std::vector<str_t>::iterator itb = _body.begin(); itb != _body.end(); itb++)
-// 	{
-// 		std::cout << *itb << std::endl;
-// 	}
-// 	std::cout << "----------\n";
-
-// 	return (EXIT_SUCCESS);
-// }
 
 strMap	&Request::headers()
 { return (_headers); }
 
 std::vector<raw_str_t>	&Request::body()
 { return (_body); }
+
+unsigned int	Request::read_body()
+{ return (_read_body); }
+
+unsigned int	Request::cl()
+{ return (_cl); }

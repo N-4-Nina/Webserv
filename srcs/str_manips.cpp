@@ -11,7 +11,7 @@ str_t       newLine(str_t &in, str_t toFind = CRLF)
 	return (out);
 }
 
-str_t    str_toUpper(str_t const &s)
+str_t    str_tolower(str_t const &s)
 {
     if (s.size() == 0)
         return (str_t());

@@ -209,7 +209,7 @@ void	EvMa::loop()
 	Server **serv = &ptr;
 	for (;;)
 	{
-		_event_nb = epoll_wait(_epoll_fd, _events, MAXCONN, 50); //-1 for timeout means it will block unedfinitely. check if that's the behaviour we want.
+		_event_nb = epoll_wait(_epoll_fd, _events, MAXCONN, 0); //-1 for timeout means it will block unedfinitely. check if that's the behaviour we want.
 		//std::cout << "event_nb = "<<  _event_nb << "\n";
 		for (int i = 0; i < _event_nb; i++)
 		{

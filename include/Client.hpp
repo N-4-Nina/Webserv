@@ -36,6 +36,7 @@ class Client
 		raw_str_t				_remain;
 		char            		_buff[MAXREAD+1];
 		unsigned int			_parse_flags;
+		size_t					_read_pos;
 		unsigned int			_content_len;
 		time_t					_expire;
 		bool					_ready;

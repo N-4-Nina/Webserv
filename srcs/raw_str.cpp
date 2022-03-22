@@ -1,12 +1,14 @@
 #include "common.hpp"
 #include "str_manips.hpp"
 
-raw_str_t   char_to_raw(char *buf, size_t n)
+raw_str_t   char_to_raw(char *buf, int n)
 {
     raw_str_t ret;
 
-    for (size_t i = 0; i < n; i++)
-        ret.push_back(static_cast<unsigned char>(buf[i]));
+    if (n <= 0)
+        return (ret);
+    for (int i = 0; i < n; i++)
+        ret.push_back(buf[i]);
     return (ret);
 }
 
@@ -15,8 +17,7 @@ str_t       raw_to_str(raw_str_t raw)
     str_t out;
 
     for (raw_str_t::iterator it = raw.begin(); it != raw.end(); it++)
-        out.append(1, static_cast<char>(*it));
-    std::cout << out;
+        out.append(1, *it);
     return (out);
 }
 
@@ -25,7 +26,7 @@ raw_str_t       str_to_raw(str_t str)
     raw_str_t out;
 
     for (str_t::iterator it = str.begin(); it != str.end(); it++)
-        out.push_back(static_cast<unsigned char>(*it));
+        out.push_back(*it);
     return (out);
 }
 
@@ -39,11 +40,11 @@ char				*raw_to_char(raw_str_t raw)
 }
 
 
-raw_str_t::iterator raw_find(raw_str_t &str, unsigned const char *tofind, size_t size)
+raw_str_t::iterator raw_find(raw_str_t &str,  const char *tofind, size_t size, size_t pos)
 {
     raw_str_t::iterator it;
     size_t i;
-    for (it = str.begin(); it != str.end(); it++)
+    for (it = str.begin() + pos; it != str.end(); it++)
     {
         for (i = 0; i < size && *(it + i) == tofind[i]; i++);
         if (i == size)
@@ -62,22 +63,22 @@ raw_str_t   raw_add(raw_str_t one, raw_str_t two)
     return (ret);
 }
 
-// str_t   raw_newLine(raw_str_t raw)
-// {
-//     str_t str = raw_to_str(raw);
-//     return (newLine(str));
-// }
 
-raw_str_t   raw_newLine(raw_str_t &raw)
+raw_str_t   raw_newLine(raw_str_t &raw, raw_str_t::iterator hint)
 {
-    raw_str_t::iterator start, end;
+    raw_str_t::iterator start, pos;
     start = raw.begin();
-    end = raw_find(raw, UCRLF, 2);
-    size_t pos = raw_find(raw, UCRLF, 2) - raw.begin();
-    raw_str_t out(start, end);
-    if (end == raw.end())
-        raw.clear();
+    if (hint != raw.end())
+        pos = hint;
     else
-        raw = raw_str_t(pos+2, raw.size() - pos + 2);
+        pos = raw_find(raw, CRLF, 2);
+    raw_str_t out(start, pos);
+    if (pos == raw.end())
+    {
+        //raw.clear();
+        out.clear();
+    }
+    else if (pos + 2 <= raw.end())
+        raw = raw_str_t(pos+2, raw.end());
     return (out);
 }
