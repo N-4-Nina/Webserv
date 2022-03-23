@@ -2,6 +2,7 @@
 # define REQUEST_HPP
 
 #include "../include/common.hpp"
+#include "Config.hpp"
 
 enum
 {
@@ -15,7 +16,7 @@ enum
 class Request
 {
 	public:
-		Request(int fd = -1);
+		Request(int fd = -1, Config *conf = NULL);
 		//Request(str_t input, int fd, size_t nl_head, size_t nl_body);
 		Request(unsigned int error, int fd);
 		//Request(const Request &ref);
@@ -43,6 +44,7 @@ class Request
 		str_t		query_string();
 		unsigned int	read_body();
 		unsigned int	cl();
+		Config		*_conf;
 	private:
 		//int			parse(str_t input);
 		int			parse_QueryString(size_t start);

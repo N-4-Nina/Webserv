@@ -13,6 +13,7 @@ Client::Client(int fd, Server *serv) : _fd(fd), _serv(serv), _req(_fd), _content
 	_server_id = serv->id();
 	memset(_buff, 0, MAXREAD+1);
 	(void)_server_id;
+	_req._conf = serv->conf();
 }
 
 // Client::Client(const Client &ref)
@@ -30,6 +31,7 @@ Client	&Client::operator=(const Client &ref)
 		strcpy(_buff, ref._buff);
 		_content_len = ref._content_len;
 		_serv = ref._serv;
+		_req._conf = ref._req._conf;
 	}
 	return (*this);
 }
@@ -116,7 +118,14 @@ int			Client::add_data()
 			}
 		}
 		else if (! (flags & PARSED_HEADERS))
-			_req.add_Header(raw_to_str(line));
+		{
+			if	(_req.add_Header(raw_to_str(line)))
+			{
+				_ready = true;
+				fsync(_fd);
+				return(0);
+			}
+		}
 		else if ((flags & PARSED_CL))
 		{
 			_req.add_Body(line);
@@ -135,8 +144,6 @@ int			Client::add_data()
 			}
 		}
 	}
-	if (n == 0)
-		_ready = true;
 	return (0);
 }
 

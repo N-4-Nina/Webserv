@@ -5,7 +5,9 @@
             async function uploadFile()
             {
                 let formData = new FormData();           
-                formData.append("file", input.files[0]);
+                formData.append("file", inputOne.files[0]);
+                formData.append("file", inputTwo.files[0]);
+                formData.append("file", inputThree.files[0]);
                 console.log(formData);
                 await fetch('/upload',
                 {
@@ -19,7 +21,9 @@
 <body>
     <form method="post" enctype="multipart/form-data"></form>
         <label for="input">Add file:</label>
-        <input type="file" action="http://localhost:8000" id="input"></input>
+        <input type="file" id="inputOne"></input>
+        <input type="file" id="inputTwo"></input>
+        <input type="file" id="inputThree"></input>
         <button id="send" onclick="uploadFile()">Send</button>
     </form>
 </body>

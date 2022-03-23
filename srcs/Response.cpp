@@ -256,48 +256,48 @@ void			Response::upload_file(Request &req)
 	
 	str_t			filename;
 	
-
 	std::vector<raw_str_t>::iterator it = req.body().begin();
-	std::cout << "\n\n upload body\n";  
-	for (; it != req.body().end() && it->size() != 0; it++)
+	for (; it < req.body().end(); it++)
 	{
-		raw_str_t::iterator pos_cd;
-		if ((pos_cd = raw_find(*it, "content-disposition", 20)) != it->end())		// an equivalent to find nocase would be better
-		{	
-			raw_str_t::iterator pos_fn = raw_find(*it, "filename=", 10);
-			//raw_str_t::iterator itStr = it->begin() + pos_fn + 1;
-			pos_fn++;
-			for (; pos_fn != it->end() && *pos_fn != '\"'; pos_fn++);
-			pos_fn++;
-			for (; pos_fn != it->end() && *pos_fn != '\"'; pos_fn++)
-				filename.append(1, *pos_fn);
-			//break;
+		filename.clear();
+		for (; it < req.body().end() && it->size() != 0; it++)
+		{
+			raw_str_t::iterator pos_cd;
+			if ((pos_cd = raw_find(*it, "Content-Disposition", 19)) != it->end())		// an equivalent to find nocase would be better
+			{	
+				raw_str_t::iterator pos_fn = raw_find(*it, "filename=", 9);
+				//raw_str_t::iterator itStr = it->begin() + pos_fn + 1;
+				pos_fn++;
+				for (; pos_fn != it->end() && *pos_fn != '\"'; pos_fn++);
+				pos_fn++;
+				for (; pos_fn != it->end() && *pos_fn != '\"'; pos_fn++)
+					filename.append(1, *pos_fn);
+				//break;
+			}
 		}
-	}
-	if (filename == "")
-		filename = "default_upload_name.raw";
-	str_t			filepath = _loc->upload_path() + filename;
-	std::ofstream	stream(filepath.c_str(), std::ofstream::binary);
-	//stream.open(filepath.c_str());
+		if (filename == "")
+			filename = "default_upload_name.raw";
+		str_t			filepath = _loc->upload_path() + filename;
+		std::ofstream	stream(filepath.c_str(), std::ofstream::binary);
+		//stream.open(filepath.c_str());
 
-	it++;			//boundaries are precedeed and followed by empty line
-	for (; it != req.body().end(); it++)
-	{
-		if (req.isBoundary(*it))
-			continue;				// should be changing file OR stopping
-		char *tmp = raw_to_char(*it);
-		stream.write(tmp, it->size());
-		stream.write(CRLF, 2);
+		it++;			//boundaries-"headers" are precedeed and followed by empty line
+		for (; it < req.body().end() && !req.isBoundary(*it); it++)
+		{
+			char *tmp = raw_to_char(*it);
+			stream.write(tmp, it->size());
+			stream.write(CRLF, 2);
+		}
+		stream.close();
 	}
-	stream.close();
-	std::cout << "\n\n";
 }
 
 void			Response::send()
 {
 	str_t  res = add_head();
 	res += _body;
-	write(_fd, res.c_str(), res.size());
+	const char *tmp = res.c_str();
+	write(_fd, tmp, res.size());
 }
 
 str_t Response::exceCGI(Request req)

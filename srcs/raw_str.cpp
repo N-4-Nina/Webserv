@@ -23,11 +23,11 @@ str_t       raw_to_str(raw_str_t raw)
 
 raw_str_t       str_to_raw(str_t str)
 {
-    raw_str_t out;
+    return(raw_str_t (str.begin(), str.end()));
 
-    for (str_t::iterator it = str.begin(); it != str.end(); it++)
-        out.push_back(*it);
-    return (out);
+    //for (str_t::iterator it = str.begin(); it != str.end(); it++)
+    //    out.push_back(*it);
+    //return (out);
 }
 
 char				*raw_to_char(raw_str_t raw)
@@ -44,7 +44,7 @@ raw_str_t::iterator raw_find(raw_str_t &str,  const char *tofind, size_t size, s
 {
     raw_str_t::iterator it;
     size_t i;
-    for (it = str.begin() + pos; it != str.end(); it++)
+    for (it = str.begin() + pos; it < str.end(); it++)
     {
         for (i = 0; i < size && *(it + i) == tofind[i]; i++);
         if (i == size)
