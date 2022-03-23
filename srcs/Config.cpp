@@ -340,8 +340,8 @@ std::vector<size_t> Config::search_location(str_t config)
 
 std::ostream& operator<<(std::ostream& os, Config &src)
 {
-	// os << std::endl;
-	// os << "<----- CONFIGURATION ----->" << std::endl << std::endl;
+	os << std::endl;
+	os << "<----- CONFIGURATION ----->" << std::endl << std::endl;
 
 	// os << "host: " << src.host() << std::endl;
 	
@@ -370,10 +370,10 @@ std::ostream& operator<<(std::ostream& os, Config &src)
 	// for (std::list<std::string>::iterator it = index.begin() ; it != index.end() ; ++it)
 	// 	os << "\t- " << *it << std::endl;
 	
-	// os << "location: " << std::endl;
-	// location_v location = src.location();
-	// for (location_v::iterator it = location.begin() ; it != location.end() ; ++it)
-	// 	os << *it << std::endl;
+	os << "location: " << std::endl;
+	location_v location = src.location();
+	for (location_v::iterator it = location.begin() ; it != location.end() ; ++it)
+		os << *it << std::endl;
 
 	(void)src;
 	

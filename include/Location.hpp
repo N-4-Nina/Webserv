@@ -10,6 +10,7 @@
 #define LOC_CGI		8
 #define	LOC_UPLOAD	16
 #define	LOC_METHOD	32
+#define LOC_REDIR	64
 
 class Location
 {
@@ -28,6 +29,7 @@ class Location
 		str_t				route() const ;
 		str_t				upload_path() const ;
 		FLAGS				flags() const;
+		strPair			redir() const;
 
 		str_t search_config(str_t config, str_t key);
 
@@ -39,6 +41,7 @@ class Location
 		str_t				_cgi_extension;
 		str_t				_upload_path;
 		std::list<str_t>	_methods;
+		strPair				_redir;
 
 		FLAGS				_flags;
 		
@@ -50,6 +53,7 @@ class Location
 		void set_root(str_t line);
 		void set_upload_pass(str_t line);
 		void set_upload_path(str_t line);
+		void set_redir(str_t line);
 
 		// void set_fastcgi_param(str_t line);
 

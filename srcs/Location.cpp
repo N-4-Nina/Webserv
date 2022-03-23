@@ -17,6 +17,7 @@ Location::Location(str_t block)
 	set_upload_path(search_config(block, "upload_path"));
 	if (_cgi_extension != "" && _cgi_path != "")
 		_flags |= LOC_CGI;
+	set_redir(search_config(block, "return"));
 }
 
 Location::Location(const Location &ref)
@@ -148,6 +149,31 @@ void Location::set_upload_path(str_t line)
 	}
 }
 
+void Location::set_redir(std::string line)
+{
+    size_t space_pos;
+    size_t space_pos_bis;
+
+    space_pos = 0;
+    space_pos_bis = 0;
+    if (line == "")
+    {
+        this->_redir.first = "";
+        this->_redir.second = "";
+    }
+    else
+    {
+        space_pos = line.find(" ");
+        space_pos_bis = line.find(" ", space_pos + 1);
+        if (space_pos == std::string::npos || space_pos_bis == std::string::npos ||
+            line.find(" ", space_pos_bis + 1) != std::string::npos)
+            throw std::string("Error: Wrong number argument for return");
+        this->_redir.first = line.substr(space_pos + 1, (space_pos_bis - space_pos - 1));
+        this->_redir.second = line.substr(space_pos_bis + 1);
+    }
+	std::cout << redir().first << "=>" << redir().second << std::endl;	
+}
+
 /*
 * Getters
 */
@@ -167,6 +193,8 @@ str_t Location::route() const { return (this->_route); }
 str_t Location::upload_path() const { return (_upload_path); }
 
 FLAGS	Location::flags() const { return (this->_flags); }
+
+strPair Location::redir() const { return (this->_redir); }
 
 /*
 * Member functions
@@ -213,10 +241,12 @@ str_t Location::search_config(str_t config, str_t key)
 std::ostream& operator<<(std::ostream& os, Location &src)
 {
 	os << "{" << std::endl;
-	std::list<std::string> index = src.index();
+	// std::list<std::string> index = src.index();
 
-	for (std::list<std::string>::iterator it = index.begin() ; it != index.end() ; ++it)
-		os << "\t\t- " << *it << std::endl;
+	// for (std::list<std::string>::iterator it = index.begin() ; it != index.end() ; ++it)
+	// 	os << "\t\t- " << *it << std::endl;
+
+	os << "\t\t- " << src.redir().first << "=>" << src.redir().second << std::endl;	
 
 	os << "}" << std::endl;
 	return (os);
