@@ -26,6 +26,7 @@ int main(int argc, char **argv)
     strMap          req_headers;
 
     std::vector<Config> conf = parsing_config(argc, argv);
+    std::cout << conf[0];
     EvMa	ev(conf);
     initialize_mime_types();
     initialize_error_pages();

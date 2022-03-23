@@ -15,9 +15,9 @@ Location::Location(str_t block)
 	set_cgi_extension(search_config(block, "cgi_extension"));
 	set_upload_pass(search_config(block, "upload_pass"));
 	set_upload_path(search_config(block, "upload_path"));
+	set_redir(search_config(block, "return"));
 	if (_cgi_extension != "" && _cgi_path != "")
 		_flags |= LOC_CGI;
-	set_redir(search_config(block, "return"));
 }
 
 Location::Location(const Location &ref)
@@ -29,6 +29,7 @@ Location::Location(const Location &ref)
 	_cgi_extension = ref._cgi_extension;
 	_flags = ref._flags;
 	_upload_path = ref._upload_path;
+	_redir = ref._redir;
 }
 
 Location &Location::operator=(const Location &ref)
@@ -43,6 +44,7 @@ Location &Location::operator=(const Location &ref)
 		_cgi_extension = ref._cgi_extension;
 		_flags = ref._flags;
 		_upload_path = ref._upload_path;
+		_redir = ref._redir;
 	}
 	return (*this);
 }

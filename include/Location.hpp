@@ -29,7 +29,7 @@ class Location
 		str_t				route() const ;
 		str_t				upload_path() const ;
 		FLAGS				flags() const;
-		strPair			redir() const;
+		strPair				redir() const;
 
 		str_t search_config(str_t config, str_t key);
 
