@@ -34,11 +34,17 @@ Response::Response(Request &req, Config *conf) : _conf(conf), _flags(0), _fd(req
 		//	cgi_match(req._ressource);
 		//if (_flags & RES_ISCGI)
 		//	set_body_cgi()
+		if (_loc->flags() & LOC_REDIR)
+		{
+			_status = strtol(_loc->redir().first.c_str(), NULL, 10);
+			if (_status < 300 || _status > 310)
+				std::cout << "Redirection status should be between 300 and 310" << std::endl;
+		}
 		if (req.type() == R_POST && (_loc->flags() & LOC_UPLOAD))			//please note that in this state we cannot upload on the default route. this is intentional.
 			upload_file(req);
 	}
-	//else if
-	
+	if (_status >= 300 && _status <= 308)
+			set_redir();
 	if (!(_flags & RES_ISCGI))
 		set_body_ress(req, conf);
 	if (_status < 200 || _status > 299)
@@ -64,6 +70,12 @@ void			Response::add_header(str_t key, str_t val)
 	_headers[key] = val;
 }
 
+void			Response::set_redir()
+{
+	add_header("location", _loc->redir().second);
+	set_status(200);
+}
+
 void			Response::set_body_ress(Request &req, Config *conf)
 {
 	str_t path;
@@ -71,6 +83,8 @@ void			Response::set_body_ress(Request &req, Config *conf)
 	if (_flags & RES_LOCATED)
 	{
 		str_t root;
+
+
 		if (_loc->root() != "")
 			root = _loc->root();
 		else
@@ -99,6 +113,7 @@ void			Response::set_body_ress(Request &req, Config *conf)
 	}
 	else if (_flags & RES_ISINDEX)
 	{
+
 		for (std::list<str_t>::iterator lit = conf->index().begin(); lit != conf->index().end(); lit++)
 		{
 			str_t tmp = conf->root() + *lit;
@@ -155,8 +170,6 @@ void	Response::set_headers(str_t path)
 	}
 
 	add_header("content-length", to_string<size_t>(_body.size()));
-	// add_header("content-length", "1500");
-	// std::cout << "\n\n\n\nCONTENT: " << _body.size() << std::endl;
 }
 
 unsigned int	Response::status()

@@ -23,6 +23,7 @@ Location::Location(str_t block)
 Location::Location(const Location &ref)
 {
 	_index = ref._index;
+	_methods = ref._methods;
 	_root = ref._root;
 	_route = ref._route;
 	_cgi_path = ref._cgi_path;
@@ -172,8 +173,8 @@ void Location::set_redir(std::string line)
             throw std::string("Error: Wrong number argument for return");
         this->_redir.first = line.substr(space_pos + 1, (space_pos_bis - space_pos - 1));
         this->_redir.second = line.substr(space_pos_bis + 1);
+		_flags |= LOC_REDIR;
     }
-	std::cout << redir().first << "=>" << redir().second << std::endl;	
 }
 
 /*
@@ -247,6 +248,10 @@ std::ostream& operator<<(std::ostream& os, Location &src)
 
 	// for (std::list<std::string>::iterator it = index.begin() ; it != index.end() ; ++it)
 	// 	os << "\t\t- " << *it << std::endl;
+
+	for (std::list<std::string>::iterator it = src.methods().begin() ; it != src.methods().end() ; ++it)
+		os << "\t\t- " << *it << std::endl;
+
 
 	os << "\t\t- " << src.redir().first << "=>" << src.redir().second << std::endl;	
 

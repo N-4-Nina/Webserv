@@ -31,7 +31,8 @@ enum
 	USE_PROXY = 305,
 	TEMPORARY_REDIRECT = 307,
 	PERMANENT_REDIRECT = 308,
-	TOO_MANY_REDIRECTS = 310
+	TOO_MANY_REDIRECTS = 310,
+	INETERNAL_SERVER_ERROR = 500
 //TO BE CONTINUED, SEE https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
 // OR WIKIPEDIA
 };
@@ -56,6 +57,7 @@ class Response
 		void	upload_file(Request &req);
 		void	select_location(Request &req);
 		void	set_body_ress(Request &req, Config *conf);
+		void	set_redir();
 		void	set_headers(str_t path);
 		void	add_header(str_t key, str_t val);
 		void	get_error_page();

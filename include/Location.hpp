@@ -55,8 +55,6 @@ class Location
 		void set_upload_path(str_t line);
 		void set_redir(str_t line);
 
-		// void set_fastcgi_param(str_t line);
-
 		Location();
 };
 
