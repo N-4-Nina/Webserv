@@ -56,15 +56,6 @@ void			Response::set_status(unsigned int s)
 	_status = s;
 }
 
-// bool			Response::find_ressource()
-// {
-// 	str_t filename;
-// 	if (_flags & RES_ISINDEX)
-// 	{
-// 		filename = 
-// 	}
-// }
-
 void			Response::add_header(str_t key, str_t val)
 {
 	_headers[key] = val;
@@ -117,7 +108,6 @@ void			Response::set_body_ress(Request &req, Config *conf)
 		for (std::list<str_t>::iterator lit = conf->index().begin(); lit != conf->index().end(); lit++)
 		{
 			str_t tmp = conf->root() + *lit;
-			std::cout << tmp  << std::endl;
 			if (!access( tmp.c_str(), F_OK ))
 			{
 				path = tmp;
@@ -147,10 +137,6 @@ void			Response::set_body_ress(Request &req, Config *conf)
 	else
     {
 		buf << page.rdbuf();
-		std::cout << path;
-		std::cout << _body;
-		//_body << page;
-		//std::cout << buf.str();
 		_body = buf.str();
 		set_headers(path);
 	}
@@ -311,6 +297,8 @@ void			Response::send()
 	res += _body;
 	const char *tmp = res.c_str();
 	write(_fd, tmp, res.size());
+	close(_fd);
+	//shutdown(_fd, 0);
 }
 
 str_t Response::exceCGI(Request req)

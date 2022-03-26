@@ -38,15 +38,14 @@ class Request
 		unsigned	int		&error();
 		strMap				&headers();
 		std::vector<raw_str_t>	&body();
-		str_t					_ressource;		//should maybe be called _route...
-		FLAGS					_flags;
 		str_t		url_decode(str_t &src);
 		str_t		query_string();
 		unsigned int	read_body();
 		unsigned int	cl();
 		Config		*_conf;
+		str_t					_ressource;
+		FLAGS					_flags;
 	private:
-		//int			parse(str_t input);
 		int			parse_QueryString(size_t start);
 		size_t		parse_Url(str_t const &line);
 		
@@ -55,8 +54,6 @@ class Request
 		size_t					_cl;
 		unsigned	int			_type;
 		strMap					_headers;
-		//URL
-		//char					*_body;
 		unsigned	int			_read_body;
 		unsigned	int			_error;
 		

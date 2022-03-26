@@ -45,16 +45,18 @@ Request::~Request(void)
 
 void Request::reset()
 {
+	_boundary.clear();
 	_type = 0;
+	_cl = 0;
 	_headers.clear();
 	_error = 0;
 	_flags = 0;
-	//_nl_headers = 0;
-	//_nl_body = 0;
+	
+	_read_body = 0;
 	_body.clear();
 	_queryParam.clear();
-	_read_body = 0;
 	_query_string.clear();
+	_ressource.clear();
 }
 
 str_t Request::url_decode(str_t &src)

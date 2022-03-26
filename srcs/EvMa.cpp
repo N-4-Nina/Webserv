@@ -95,8 +95,10 @@ bool    EvMa::is_connected(int fd)
 	if (!_clients.size())
 		return (false);
 	for (unsigned long i = 0; i < _clients.size(); i++)
+	{
 		if (_clients[i].fd() == fd)
 			return (true);
+	}
 	return (false);
 }
 
@@ -150,12 +152,6 @@ Client	&EvMa::find_by_fd(int fd)
 	return (_clients[0]);
 }
 
-// int	EvMa::read_data(int i)
-// {
-	
-// 	return (0);
-// }
-
 int	EvMa::write_data(int i)
 {
 	Client			&client = _clients[_events[i].data.fd];
@@ -187,7 +183,6 @@ Expire_iterator	EvMa::disconnect_socket(Expire_iterator expired)
 	expired++;
 	_expire.erase(tmp);
 
-	
 	return (expired);
 }
 
@@ -209,8 +204,8 @@ void	EvMa::loop()
 	Server **serv = &ptr;
 	for (;;)
 	{
-		_event_nb = epoll_wait(_epoll_fd, _events, MAXCONN, 0); //-1 for timeout means it will block unedfinitely. check if that's the behaviour we want.
-		//std::cout << "event_nb = "<<  _event_nb << "\n";
+		_event_nb = epoll_wait(_epoll_fd, _events, MAXCONN, timeout()); //-1 for timeout means it will block unedfinitely. check if that's the behaviour we want.
+		std::cout << "event_nb = "<<  _event_nb << "\n";
 		for (int i = 0; i < _event_nb; i++)
 		{
 			int fd = _events[i].data.fd;

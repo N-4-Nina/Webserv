@@ -71,6 +71,11 @@ int			Client::add_data()
 		input.insert( input.begin(), _remain.begin(), _remain.end() );
 		_remain.clear();
 	}
+	else if (n == 0)
+	{
+		_ready = true;
+		return (0);
+	}
 	while (input.size())
 	{
 		pos = raw_find(input, CRLF, 2, _read_pos);
@@ -155,11 +160,11 @@ void	Client::respond()
 	res.send();
 	_ready = false;
 	_req.reset();
-	//_input.clear();
+	_remain.clear();
 	memset(_buff, 0, MAXREAD+1);
 	_parse_flags = 0;
 	_content_len = 0;
-	close (_fd);
+	//close (_fd);
 
 }
 
