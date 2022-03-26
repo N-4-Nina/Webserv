@@ -206,7 +206,11 @@ void	EvMa::loop()
 	for (;;)
 	{
 		_event_nb = epoll_wait(_epoll_fd, _events, MAXCONN, timeout()); //-1 for timeout means it will block unedfinitely. check if that's the behaviour we want.
+<<<<<<< HEAD
 		//std::cout << "event_nb = "<<  _event_nb << "\n";
+=======
+	//	std::cout << "event_nb = "<<  _event_nb << "\n";
+>>>>>>> 6620a60c0c69f7a8c7bc291fa1ca81b3684defb2
 		for (int i = 0; i < _event_nb; i++)
 		{
 			int fd = _events[i].data.fd;

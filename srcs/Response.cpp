@@ -31,9 +31,9 @@ Response::Response(Request &req, Config *conf) : _conf(conf), _flags(0), _fd(req
 	select_location(req);
 	if (_flags & RES_LOCATED)
 	{
-		//cgi_match(req._ressource);
-		//if (_flags & RES_ISCGI)
-		//	set_body_cgi()
+		cgi_match(req._ressource);
+		if (_flags & RES_ISCGI)
+			set_body_cgi(req);
 		if (req.type() == R_POST && (_loc->flags() & LOC_UPLOAD))			//please note that in this state we cannot upload on the default route. this is intentional.
 			upload_file(req);
 		if (_loc->flags() & LOC_REDIR)
@@ -177,7 +177,7 @@ bool			Response::cgi_match(str_t uri)
 {
 	if (uri.size() < _loc->cgi_extension().size())
 		return false;
-	if (uri.find(_loc->cgi_extension(), uri.size() - _loc->cgi_extension().size()))
+	if (uri.substr(uri.find("."), str_t::npos) == _loc->cgi_extension() && _loc->route() == "/cgi")
 	{
 		_flags |= RES_ISCGI;
 		return true;
@@ -305,7 +305,7 @@ void			Response::send()
 	//shutdown(_fd, 0);
 }
 
-str_t Response::exceCGI(Request req)
+str_t Response::set_body_cgi(Request req)
 {
 	CGI cgi;
 	str_t target = getenv("HOME");
