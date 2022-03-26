@@ -44,7 +44,7 @@ typedef std::vector<int>		int_v;
 typedef struct epoll_event      event_t;
 typedef struct addrinfo         adrinfo_t;
 
-typedef std::vector<char>  raw_str_t;
+typedef std::vector<char>       raw_str_t;
 
 time_t	time_in_ms(void);
 
@@ -55,7 +55,6 @@ void	initialize_mime_types();
 
 
 #define CRLF            "\r\n"
-#define UCRLF           reinterpret_cast<unsigned const char *>(CRLF)
 #define SERVER_VERSION  "HTTP/1.1"
 #define MAXREAD			100000
 #define MAXCONN			512

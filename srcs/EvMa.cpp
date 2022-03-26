@@ -17,7 +17,6 @@ EvMa::EvMa(config_v &conf)
 	//_portNb = conf.port()[0];		//warning = should implement multiple listening socket
 	//_max_event = conf.client_max();
 	_event_nb = 0;
-
 	init_epoll();
 }
 
@@ -87,6 +86,7 @@ void	EvMa::add_to_interest(int fd, Server *serv)
 	Client tmp(fd, serv);
 	_clients[fd] = tmp;
 	_clients[fd].touch();
+	//_expire.push_back(&(_clients[fd]));
 	std::cout << "added connection. fd is: " << fd << std::endl;
 }
 
@@ -129,13 +129,12 @@ void	EvMa::incoming_connections(int inc_fd, Server *serv)
 void	EvMa::update_expiry(int fd)
 {
 	_clients[fd].touch();
-	for (unsigned long i = 0; i < _expire.size(); i++)
+	for (Expire_iterator it = _expire.begin(); it != _expire.end(); it++)
 	{
-		if (_expire[i]->fd() == fd)
+		if ((*it)->fd() == fd)
 		{
-			_expire[i]->touch();
-			_expire.push_back(_expire[i]);
-			_expire.erase(_expire.begin() + (i - 1));
+			(*it)->touch();
+			_expire.erase(it);
 			return ;
 		}
 	}
@@ -149,6 +148,7 @@ Client	&EvMa::find_by_fd(int fd)
 			return (_clients[i]);
 	}
 	//throw exception
+	close(fd);
 	return (_clients[0]);
 }
 
@@ -157,6 +157,7 @@ int	EvMa::write_data(int i)
 	Client			&client = _clients[_events[i].data.fd];
 
 	client.respond();
+	client.touch();
 	return (0);
 }
 
@@ -205,7 +206,7 @@ void	EvMa::loop()
 	for (;;)
 	{
 		_event_nb = epoll_wait(_epoll_fd, _events, MAXCONN, timeout()); //-1 for timeout means it will block unedfinitely. check if that's the behaviour we want.
-		std::cout << "event_nb = "<<  _event_nb << "\n";
+		//std::cout << "event_nb = "<<  _event_nb << "\n";
 		for (int i = 0; i < _event_nb; i++)
 		{
 			int fd = _events[i].data.fd;
@@ -224,18 +225,20 @@ void	EvMa::loop()
 			{
 				assert(is_connected(fd), "write/ could not find fd");
 				write_data(i);
+				_expire.push_back(&(_clients[fd]));
 			}
 			else if (ev & EPOLLIN)
 			{
 				assert(is_connected(fd), "read/ could not find fd");
 				Client			&client = find_by_fd(fd);
-				update_expiry(i);
+				update_expiry(fd);
 				client.add_data();
 				//shutdown(fd, 0);
 				//	client.respond();
 			}
 			
 		}
+		_event_nb = 0;
 		if (!_clients.size())
 			continue;
 		//_event_nb = 0;

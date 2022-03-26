@@ -43,7 +43,7 @@ class Client
 };
 
 //typedef std::vector<Client>		client_v;
-typedef	std::vector<Client *>	Expire_List;
+typedef	std::list<Client *>		Expire_List;
 typedef	Expire_List::iterator	Expire_iterator;
 
 #endif
