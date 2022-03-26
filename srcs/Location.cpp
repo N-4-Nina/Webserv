@@ -6,6 +6,7 @@
 
 Location::Location(str_t block)
 {
+	_flags = 0;
 	this->_route = block.substr(0, block.find(" "));
 	set_root(search_config(block, "root"));
 	set_autoindex(search_config(block, "autoindex"));
@@ -37,7 +38,6 @@ Location &Location::operator=(const Location &ref)
 {
 	if (this != &ref)
 	{
-		//_autoindex = ref._autoindex;
 		_index = ref._index;
 		_root = ref._root;
 		_route = ref._route;

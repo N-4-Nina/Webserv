@@ -31,22 +31,27 @@ Response::Response(Request &req, Config *conf) : _conf(conf), _flags(0), _fd(req
 	select_location(req);
 	if (_flags & RES_LOCATED)
 	{
-		//	cgi_match(req._ressource);
+		//cgi_match(req._ressource);
 		//if (_flags & RES_ISCGI)
 		//	set_body_cgi()
+		if (req.type() == R_POST && (_loc->flags() & LOC_UPLOAD))			//please note that in this state we cannot upload on the default route. this is intentional.
+			upload_file(req);
 		if (_loc->flags() & LOC_REDIR)
 		{
 			_status = strtol(_loc->redir().first.c_str(), NULL, 10);
 			if (_status < 300 || _status > 310)
 				std::cout << "Redirection status should be between 300 and 310" << std::endl;
+			else
+			{
+				set_redir();
+				return;
+			}
 		}
-		if (req.type() == R_POST && (_loc->flags() & LOC_UPLOAD))			//please note that in this state we cannot upload on the default route. this is intentional.
-			upload_file(req);
 	}
-	if (_status >= 300 && _status <= 308)
-			set_redir();
 	if (!(_flags & RES_ISCGI))
 		set_body_ress(req, conf);
+	//else
+	//	set_body_cgi();
 	if (_status < 200 || _status > 299)
 		get_error_page();
 }
@@ -64,7 +69,6 @@ void			Response::add_header(str_t key, str_t val)
 void			Response::set_redir()
 {
 	add_header("location", _loc->redir().second);
-	set_status(200);
 }
 
 void			Response::set_body_ress(Request &req, Config *conf)
