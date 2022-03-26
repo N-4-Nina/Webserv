@@ -41,6 +41,6 @@ class CGI
 		void	free_cgi(char **args, char **env);
 };
 
-void display_cgi_env(char **env, char **args);
+void DEBUG_display_cgi_env(char **env, char **args);
 
 #endif
