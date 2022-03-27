@@ -142,14 +142,15 @@ void	EvMa::update_expiry(int fd)
 
 Client	&EvMa::find_by_fd(int fd)
 {
-	for (unsigned long i = 0; i < _clients.size(); i++)
+	for (size_t i = 0; i < _clients.size(); i++)
 	{
 		if (_clients[i].fd() == fd)
 			return (_clients[i]);
 	}
 	//throw exception
-	close(fd);
-	return (_clients[0]);
+	throw std::invalid_argument("couldn't find fd.");
+	//close(fd);
+	//return (_clients[0]);
 }
 
 int	EvMa::write_data(int i)
@@ -177,7 +178,7 @@ Expire_iterator	EvMa::disconnect_socket(Expire_iterator expired)
 		return (expired);
 	std::cout << "closed connection to socket nb " << (*expired)->fd() << std::endl;
 	close((*expired)->fd());
-	//epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, expired->first, NULL);
+	epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, (*expired)->fd(), NULL);
 	
 	_clients.erase((*expired)->fd());
 	Expire_List::iterator tmp = expired;
@@ -214,13 +215,6 @@ void	EvMa::loop()
 			//HANDLE ERROR WITH & BITWISE OP (why tho). if error, continue
 			if (is_listen(fd, serv))
 				incoming_connections(fd, *serv);
-			else if (ev & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))
-			{
-				assert(is_connected(fd), "disconnect/ could not find fd");
-				for (Expire_iterator ex = _expire.begin(); ex != _expire.end(); ex++)
-					if ((*ex)->fd() == fd)
-						disconnect_socket(ex);
-			}
 			else if (find_by_fd(fd).isReady() && ev & EPOLLOUT)
 			{
 				assert(is_connected(fd), "write/ could not find fd");
@@ -232,18 +226,33 @@ void	EvMa::loop()
 				assert(is_connected(fd), "read/ could not find fd");
 				Client			&client = find_by_fd(fd);
 				update_expiry(fd);
-				client.add_data();
-			//	shutdown(fd, 0);
-				//	client.respond();
+				if (client.add_data())
+				{
+					for (Expire_iterator ex = _expire.begin(); ex != _expire.end(); ex++)
+					{
+						if ((*ex)->fd() == fd)
+							disconnect_socket(ex);
+					}
+				}
+			}
+			else if (ev & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))
+			{
+				assert(is_connected(fd), "disconnect/ could not find fd");
+				for (Expire_iterator ex = _expire.begin(); ex != _expire.end(); ex++)
+				{
+					if ((*ex)->fd() == fd)
+						disconnect_socket(ex);
+				}
 			}
 			
 		}
 		_event_nb = 0;
 		if (!_clients.size())
 			continue;
-		//_event_nb = 0;
 		for (Expire_iterator ex = _expire.begin(); ex != _expire.end() && (*ex)->expire() < time_in_ms(); ex++)
     		ex = disconnect_socket(ex);
+		//_event_nb = 0;
+		
 		
 	}
 }

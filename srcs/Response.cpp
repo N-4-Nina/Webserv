@@ -158,8 +158,8 @@ void	Response::set_headers(str_t path)
 		if (_mimeTypes.count(ext))
 			add_header("content-type", _mimeTypes[ext]);
 	}
-
-	add_header("content-length", to_string<size_t>(_body.size()));
+	if (_body.size())
+		add_header("content-length", to_string<size_t>(_body.size()));
 }
 
 unsigned int	Response::status()
@@ -175,9 +175,10 @@ void			Response::get_error_page()
 
 bool			Response::cgi_match(str_t uri)
 {
-	if (uri.size() < _loc->cgi_extension().size())
+	size_t dotPos;
+	if (uri.size() < _loc->cgi_extension().size() || (dotPos = uri.find(".")) == uri.npos)
 		return false;
-	if (uri.substr(uri.find("."), str_t::npos) == _loc->cgi_extension() && _loc->route() == "/cgi")
+	if (uri.substr(dotPos, str_t::npos) == _loc->cgi_extension() && _loc->route() == "/cgi")
 	{
 		_flags |= RES_ISCGI;
 		return true;
@@ -298,11 +299,10 @@ void			Response::upload_file(Request &req)
 void			Response::send()
 {
 	str_t  res = add_head();
-	res += _body;
+	res += _body + "\4";
 	const char *tmp = res.c_str();
 	write(_fd, tmp, res.size());
-	close(_fd);
-	//shutdown(_fd, 0);
+	fsync(_fd);
 }
 
 str_t Response::set_body_cgi(Request req)

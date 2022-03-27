@@ -63,6 +63,8 @@ int			Client::add_data()
 	memset(_buff, 0, MAXREAD + 1);
 	
 	n  = read(_fd, _buff, MAXREAD);
+	if (n == 0)
+		return (1);
 	input = char_to_raw(_buff, n);
 
 	if (_remain.size())
