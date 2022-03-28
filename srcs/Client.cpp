@@ -14,6 +14,7 @@ Client::Client(int fd, Server *serv) : _fd(fd), _serv(serv), _req(_fd), _content
 	_server_id = serv->id();
 	memset(_buff, 0, MAXREAD+1);
 	_req._conf = serv->conf();
+	_read_pos = 0;
 }
 
 // Client::Client(const Client &ref)
@@ -68,9 +69,9 @@ int			Client::add_data()
 	
 	n  = read(_fd, _buff, MAXREAD);
 	std:: cout << "fd = " << _fd << "  n = " << n << std::endl;
-	if (n == -1)
-		return (-1);
-	if (n == 0)
+	//if (n == -1)
+	//	return (-1);
+	if (n <= 0)
 		return (1);
 	input = char_to_raw(_buff, n);
 	if (_remain.size())
@@ -79,29 +80,33 @@ int			Client::add_data()
 		input.insert( input.begin(), _remain.begin(), _remain.end() );
 		_remain.clear();
 	}
+
+	pos = raw_find(input, CRLF, 2, _read_pos);
+	/* this next block up to line 105 is very sus... do we even need it ?..*/
+	if (pos == input.end())
+	{
+		if ((flags & PARSED_CL) && _req.cl() == _req.read_body() + input.size())
+		{
+			_req.add_Body(line);
+			if (_req.done_Reading())
+			{
+				_ready = true;
+				input.clear();
+				_remain.clear();
+			}
+		}
+		else if (!(flags & PARSED_HEADERS))
+		{
+			_remain = input;
+			input.clear();
+			_read_pos = _remain.size();
+			return (0);
+		}
+	}
+
 	while (input.size())
 	{
 		pos = raw_find(input, CRLF, 2, _read_pos);
-		if (pos == input.end())
-		{
-			if ((flags & PARSED_CL) && _req.cl() == _req.read_body() + input.size())
-			{
-				_req.add_Body(line);
-				if (_req.done_Reading())
-				{
-					_ready = true;
-					input.clear();
-					_remain.clear();
-				}
-			}
-			else
-			{
-				_remain = input;
-				input.clear();
-				_read_pos = _remain.size();
-				return (0);
-			}
-		}
 		_read_pos = 0;
 		line = raw_newLine(input, pos);
 		if ( !(flags & PARSED_TOP))
@@ -123,20 +128,19 @@ int			Client::add_data()
 			}
 			else if (_req.type() != R_POST)
 			{
-				_ready = true;
 				input.clear();
 				_remain.clear();
 				_ready = true;
 				break;
 			}
 		}
-		else if (! (flags & PARSED_HEADERS))
+		else if (!(flags & PARSED_HEADERS))
 		{
 			if	(_req.add_Header(raw_to_str(line)))
 			{
 				_ready = true;
-				fsync(_fd);
-				return(0);
+				//fsync(_fd);
+				return (0);
 			}
 		}
 		else if ((flags & PARSED_CL))

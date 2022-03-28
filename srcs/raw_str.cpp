@@ -44,7 +44,7 @@ raw_str_t::iterator raw_find(raw_str_t &str,  const char *tofind, size_t size, s
 {
     raw_str_t::iterator it;
     size_t i;
-    for (it = str.begin() + pos; it < str.end(); it++)
+    for (it = str.begin() + pos; it < str.end() - size; it++)
     {
         for (i = 0; i < size && *(it + i) == tofind[i]; i++);
         if (i == size)

@@ -34,35 +34,11 @@ EvMa::~EvMa(void)
 {
 }
 
-
-// void	Server::init_socket()
-// {
-// 	sockaddr_in servaddr;
-// 	servaddr.sin_family = AF_INET;
-//     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-//     servaddr.sin_port = htons(_portNb);
-
-// 	if ((_socket_fd = socket(servaddr.sin_family, SOCK_STREAM, 0)) < 0)
-// 	{
-// 		std::cout << errno;
-//         fatal("could not create socket");
-// 	}
-
-// 	if ((bind(_socket_fd , (sockaddr*) &servaddr, sizeof(servaddr))) < 0)
-//         fatal("could not bind");
-    
-//     if (listen(_socket_fd , 10) < 0)
-// 		fatal("can not listen (i am a cisgender man)");
-
-
-// 	unlock_socket(_socket_fd);
-// }
-
 void	EvMa::init_epoll()
 {
 	_epoll_fd = epoll_create1(0);
 	if (_epoll_fd == -1)
-		{ fatal("epoll creation failed"); }
+		fatal("epoll creation failed");
 
 	_events = static_cast<event_t*>(calloc(MAXCONN, sizeof(event_t))); //should maybe multiply maxconn by number of serv
 
@@ -79,7 +55,7 @@ void	EvMa::add_to_interest(int fd, Server *serv)
 	_event.data.fd = fd;
 	_event.events = EPOLLIN | EPOLLOUT ;
 	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &_event) == -1)
-		{ fatal("failed to add incoming connection to interest list."); }
+		fatal("failed to add incoming connection to interest list.");
 	//expiry ex = std::make_pair(fd, time_in_ms() + 5000);
 	//_clients.push_back(ex);
 	Client tmp(fd, serv);
@@ -96,7 +72,7 @@ bool    EvMa::is_connected(int fd)
 	for (unsigned long i = 0; i < _clients.size(); i++)
 	{
 		if (_clients[i].fd() == fd)
-			{ return (true); }
+			return (true);
 	}
 	return (false);
 }
@@ -113,7 +89,7 @@ void	EvMa::incoming_connections(int inc_fd, Server *serv)
 		if (fd == -1)
 		{
 			if (errno ==  EAGAIN || errno == EWOULDBLOCK)		//no more requests to accept ! we are done.
-				{ break; }
+				break;
 			else
 			{
 				std::cout << "failed to acccept connection. (should it be fatal ?)"; // idk, should it ??
@@ -144,7 +120,7 @@ Client	&EvMa::find_by_fd(int fd)
 	for (size_t i = 0; i < _clients.size(); i++)
 	{
 		if (_clients[i].fd() == fd)
-			{ return (_clients[i]); }
+			return (_clients[i]);
 	}
 	//throw exception
 	throw std::invalid_argument("couldn't find fd.");
@@ -167,8 +143,7 @@ int	EvMa::timeout()
 		{ return (-1); }
 	int to = (*_expire.begin())->expire() - time_in_ms();
 	if (to > 0)
-	{
-		return (to); }
+		return (to);
 	return (-1);
 }
 
@@ -179,7 +154,7 @@ void	EvMa::disconnect_socket(int fd)
 	for (Expire_iterator ex = _expire.begin(); ex != _expire.end(); ex++)
 	{
 		if ((*ex)->fd() == fd)
-			{ _expire.erase(ex); }
+			_expire.erase(ex);
 	}
 	_clients.erase(fd);
 	shutdown(fd, SHUT_RDWR);
@@ -225,8 +200,8 @@ void	EvMa::loop()
 			int fd = _events[i].data.fd;
 			uint32_t ev = _events->events;
 			if (is_listen(fd, serv))
-				{ incoming_connections(fd, *serv); }
-			else if (find_by_fd(fd).isReady() && ev & EPOLLOUT)
+				incoming_connections(fd, *serv);
+			else if (_clients[fd].isReady() && ev & EPOLLOUT)
 			{
 				assert(is_connected(fd), "write/ could not find fd");
 				write_data(i);
@@ -235,10 +210,9 @@ void	EvMa::loop()
 			else if (ev & EPOLLIN)
 			{
 				assert(is_connected(fd), "read/ could not find fd");
-				Client			&client = find_by_fd(fd);
 				update_expiry(fd);
-				if (client.add_data())
-					{ disconnect_socket(fd); }
+				if (_clients[fd].add_data())
+					disconnect_socket(fd);
 			}
 			else if (ev & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))
 			{
@@ -246,9 +220,9 @@ void	EvMa::loop()
 				disconnect_socket(fd);
 			}	
 		}
-		_event_nb = 0;
+		//_event_nb = 0;
 		if (!_expire.size())
-			{ continue; }
+			continue;
 		for (Expire_iterator ex = _expire.begin(); ex != _expire.end() && (*ex)->expire() < time_in_ms(); ex = _expire.begin())
     		{ disconnect_socket_ex(ex); }
 		//_event_nb = 0;

@@ -183,8 +183,7 @@ int Request::add_Header(str_t line)
 	strPair p;
 	size_t limit = line.find(':');
 	p.first = str_tolower(line.substr(0, limit++));
-	while (isspace(line[limit++]))
-		;
+	while (isspace(line[limit++]));
 	limit--;
 	p.second = line.substr(limit, line.npos);
 	_headers.insert(p);
