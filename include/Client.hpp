@@ -25,7 +25,7 @@ class Client
 		char	*buff();
 		void	touch();
 		bool	isReady();
-
+		raw_str_t				_remain;
 	private:
 		int						_fd;
 		int						_server_id;
@@ -33,7 +33,7 @@ class Client
 		Request					_req;
 		//std::vector<Request>	_req;
 		//str_t					_input;
-		raw_str_t				_remain;
+		
 		char            		_buff[MAXREAD+1];
 		unsigned int			_parse_flags;
 		size_t					_read_pos;

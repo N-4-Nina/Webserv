@@ -37,9 +37,9 @@ class EvMa
 		int		timeout();
 		Client	&find_by_fd(int fd);
 		bool	is_listen(int fd, Server **serv);
-		
-		
-		Expire_iterator	disconnect_socket(Expire_iterator expired);
+		void	disconnect_socket(int fd);
+		void	disconnect_socket_ex(Expire_iterator ex);
+
 };
 
 #endif

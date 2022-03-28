@@ -2,6 +2,7 @@
 #include "find_nocase.hpp"
 #include "str_manips.hpp"
 #include <fstream>
+#include "common.hpp"
 
 Client::Client(void): _fd(-1), _server_id(0), _serv(NULL),  _content_len(0), _ready(false)
 {
@@ -12,7 +13,6 @@ Client::Client(int fd, Server *serv) : _fd(fd), _serv(serv), _req(_fd), _content
 	_parse_flags = 0;
 	_server_id = serv->id();
 	memset(_buff, 0, MAXREAD+1);
-	(void)_server_id;
 	_req._conf = serv->conf();
 }
 
@@ -25,12 +25,16 @@ Client	&Client::operator=(const Client &ref)
 	if (&ref != this)
 	{
 		_fd = ref._fd;
-		//_req.clear();
-		_req = ref._req;
-		//_input = ref._input;
-		strcpy(_buff, ref._buff);
-		_content_len = ref._content_len;
+		_server_id = ref._server_id;
 		_serv = ref._serv;
+		_req = ref._req;
+		_remain = ref._remain;
+		strcpy(_buff, ref._buff);
+		_parse_flags = ref._parse_flags;
+		_read_pos = ref._read_pos;
+		_content_len = ref._content_len;
+		_expire = ref._expire;
+		_ready = ref._ready;
 		_req._conf = ref._req._conf;
 	}
 	return (*this);
@@ -63,20 +67,17 @@ int			Client::add_data()
 	memset(_buff, 0, MAXREAD + 1);
 	
 	n  = read(_fd, _buff, MAXREAD);
+	std:: cout << "fd = " << _fd << "  n = " << n << std::endl;
+	if (n == -1)
+		return (-1);
 	if (n == 0)
 		return (1);
 	input = char_to_raw(_buff, n);
-
 	if (_remain.size())
 	{
 		_read_pos = _remain.size();
 		input.insert( input.begin(), _remain.begin(), _remain.end() );
 		_remain.clear();
-	}
-	else if (n == 0)
-	{
-		_ready = true;
-		return (0);
 	}
 	while (input.size())
 	{
@@ -104,8 +105,13 @@ int			Client::add_data()
 		_read_pos = 0;
 		line = raw_newLine(input, pos);
 		if ( !(flags & PARSED_TOP))
-			{ if (_req.parse_TopLine(raw_to_str(line)))
-				_ready = true; }
+		{
+			if (_req.parse_TopLine(raw_to_str(line)))
+			{
+				_ready = true;
+				break;
+			}
+		}
 		else if (!(flags & PARSED_HEADERS) && line.size() == 0)
 		{
 			flags |= PARSED_HEADERS;
