@@ -60,7 +60,7 @@ class Response
 		void	set_redir();
 		void	set_headers(str_t path);
 		void	add_header(str_t key, str_t val);
-		void	get_error_page(Request &req);
+		void	get_error_page();
 		//bool	find_ressource();
 		bool	cgi_match(str_t uri);
 		str_t	add_head();

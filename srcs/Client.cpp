@@ -71,7 +71,7 @@ int			Client::add_data()
 	std:: cout << "fd = " << _fd << "  n = " << n << std::endl;
 	//if (n == -1)
 	//	return (-1);
-	if (n <= 0)
+	if (n <= 0)					//also this....
 		return (1);
 	input = char_to_raw(_buff, n);
 	if (_remain.size())
@@ -176,8 +176,6 @@ void	Client::respond()
 	memset(_buff, 0, MAXREAD+1);
 	_parse_flags = 0;
 	_content_len = 0;
-	//close (_fd);
-
 }
 
 void	Client::touch()

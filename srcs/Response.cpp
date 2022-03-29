@@ -25,7 +25,7 @@ Response::Response(Request &req, Config *conf) : _conf(conf), _flags(0), _fd(req
 	if (req.isBad())
 	{
 		_status = req.error();
-		return;
+		return;						//suspect
 	}
 	_status = 200;
 	select_location(req);
@@ -53,7 +53,7 @@ Response::Response(Request &req, Config *conf) : _conf(conf), _flags(0), _fd(req
 	//else
 	//	set_body_cgi();
 	if (_status < 200 || _status > 299)
-		get_error_page(req);
+		get_error_page();
 }
 
 void			Response::set_status(unsigned int s)
@@ -78,7 +78,6 @@ void			Response::set_body_ress(Request &req, Config *conf)
 	if (_flags & RES_LOCATED)
 	{
 		str_t root;
-
 
 		if (_loc->root() != "")
 			root = _loc->root();
@@ -168,30 +167,25 @@ unsigned int	Response::status()
 strMap			Response::headers()
 { return (_headers); }
 
-void			Response::get_error_page(Request &req)
+void			Response::get_error_page()
 {
 	if (_conf->error_page().count(to_string<unsigned int>(_status)))
 	{
 		str_t			filepath = _conf->root() + _conf->error_page()[to_string<unsigned int>(_status)];
-		std::cout << filepath << "\n";
-		std::ofstream	stream(filepath.c_str(), std::ofstream::binary);
+		std::ifstream	stream(filepath.c_str());
+		std::stringstream buffer;
 		std::vector<raw_str_t>::iterator	it;
 
-		if (!stream.is_open())
+		if (stream.is_open())
 		{
-			_body = _error_page[0] + to_string(_status) + " : " + _codes[_status];
-			return;
+			buffer << stream.rdbuf();
+			_body = buffer.str();
+			stream.close();
+			if (_body.size())
+				return;
 		}
-		for (; it < req.body().end() && !req.isBoundary(*it); it++)
-		{
-			char *tmp = raw_to_char(*it);
-			stream.write(tmp, it->size());
-			stream.write(CRLF, 2);
-		}
-		stream.close();
 	}
-	else
-		_body = _error_page[0] + to_string(_status) + " : " + _codes[_status];
+	_body = _error_page[0] + to_string(_status) + " : " + _codes[_status];
 }
 
 bool			Response::cgi_match(str_t uri)
@@ -322,7 +316,7 @@ void			Response::send()
 	res += _body + "\4";
 	const char *tmp = res.c_str();
 	write(_fd, tmp, res.size());
-	fsync(_fd);
+	//fsync(_fd);
 }
 
 str_t Response::set_body_cgi(Request req)
