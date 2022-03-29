@@ -83,26 +83,26 @@ int			Client::add_data()
 
 	pos = raw_find(input, CRLF, 2, _read_pos);
 	/* this next block up to line 105 is very sus... do we even need it ?..*/
-	if (pos == input.end())
-	{
-		if ((flags & PARSED_CL) && _req.cl() == _req.read_body() + input.size())
-		{
-			_req.add_Body(line);
-			if (_req.done_Reading())
-			{
-				_ready = true;
-				input.clear();
-				_remain.clear();
-			}
-		}
-		else if (!(flags & PARSED_HEADERS))
-		{
-			_remain = input;
-			input.clear();
-			_read_pos = _remain.size();
-			return (0);
-		}
-	}
+	// if (pos == input.end())
+	// {
+	// 	if ((flags & PARSED_CL) && _req.cl() == _req.read_body() + input.size())
+	// 	{
+	// 		_req.add_Body(line);
+	// 		if (_req.done_Reading())
+	// 		{
+	// 			_ready = true;
+	// 			input.clear();
+	// 			_remain.clear();
+	// 		}
+	// 	}
+	// 	else if (!(flags & PARSED_HEADERS))
+	// 	{
+	// 		_remain = input;
+	// 		input.clear();
+	// 		_read_pos = _remain.size();
+	// 		return (0);
+	// 	}
+	// }
 
 	while (input.size())
 	{

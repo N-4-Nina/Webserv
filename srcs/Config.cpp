@@ -145,7 +145,7 @@ void Config::set_error_page(str_t config)
 		while ((end_code = line.find(" ", end_code + 1)) != str_t::npos)
 		{
 			code = line.substr(begin_code, end_code - begin_code);
-			this->_error_page[code] = value;
+			_error_page[code] = (value[0] == '/') ? value.substr(1, str_t::npos) : value;
 			begin_code = end_code + 1;
 		}
 		begin = end;

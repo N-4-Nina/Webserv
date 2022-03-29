@@ -53,7 +53,7 @@ Response::Response(Request &req, Config *conf) : _conf(conf), _flags(0), _fd(req
 	//else
 	//	set_body_cgi();
 	if (_status < 200 || _status > 299)
-		get_error_page();
+		get_error_page(req);
 }
 
 void			Response::set_status(unsigned int s)
@@ -168,9 +168,30 @@ unsigned int	Response::status()
 strMap			Response::headers()
 { return (_headers); }
 
-void			Response::get_error_page()
+void			Response::get_error_page(Request &req)
 {
-	_body = _error_page[0] + to_string(_status) + " : " + _codes[_status];
+	if (_conf->error_page().count(to_string<unsigned int>(_status)))
+	{
+		str_t			filepath = _conf->root() + _conf->error_page()[to_string<unsigned int>(_status)];
+		std::cout << filepath << "\n";
+		std::ofstream	stream(filepath.c_str(), std::ofstream::binary);
+		std::vector<raw_str_t>::iterator	it;
+
+		if (!stream.is_open())
+		{
+			_body = _error_page[0] + to_string(_status) + " : " + _codes[_status];
+			return;
+		}
+		for (; it < req.body().end() && !req.isBoundary(*it); it++)
+		{
+			char *tmp = raw_to_char(*it);
+			stream.write(tmp, it->size());
+			stream.write(CRLF, 2);
+		}
+		stream.close();
+	}
+	else
+		_body = _error_page[0] + to_string(_status) + " : " + _codes[_status];
 }
 
 bool			Response::cgi_match(str_t uri)
@@ -283,7 +304,6 @@ void			Response::upload_file(Request &req)
 			filename = "default_upload_name.raw";
 		str_t			filepath = _loc->upload_path() + filename;
 		std::ofstream	stream(filepath.c_str(), std::ofstream::binary);
-		//stream.open(filepath.c_str());
 
 		it++;			//boundaries-"headers" are precedeed and followed by empty line
 		for (; it < req.body().end() && !req.isBoundary(*it); it++)
