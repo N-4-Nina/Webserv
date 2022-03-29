@@ -328,7 +328,7 @@ void			Response::send()
 str_t Response::set_body_cgi(Request req)
 {
 	CGI cgi;
-	str_t target = getenv("HOME");
+	char tmp[256];
 	location_v loc = _conf->location();
 	size_t i = 0;
 
@@ -336,7 +336,9 @@ str_t Response::set_body_cgi(Request req)
 		if (!loc.at(i).cgi_path().empty())
 			cgi.set_binary(loc.at(i).cgi_path());
 	
-	target.append("/webserv/www/cgi/hello.py");
+	getcwd(tmp, 256);
+	str_t target = tmp;
+	target.append("/www/cgi/hello.py");
 	cgi.set_script_name(target.substr(target.find("/cgi")));
     cgi.exec_cgi(target, req, this->headers());
 

@@ -162,8 +162,8 @@ config_v parse_config(const char* config)
     // check what the block contains
     // std::cout << "Block:" << std::endl;
     // printVec(block);
-
     config_v new_config;
+	while (block.empty() == false)
     {
         // fill it with a buffer 
         Config tmp_config(config_final.substr(block[0], (block[1] - block[0])));
@@ -190,11 +190,11 @@ config_v	parsing_config(int argc, char **argv)
 	catch (str_t error)
         {fatal(error);}
 
-    // print Config
-    for (config_v::iterator it = config.begin() ; it < config.end() ; it++)
-    {
-        std::cout << *it << std::endl;
-    }
+    // print Config debug
+    // for (config_v::iterator it = config.begin() ; it < config.end() ; it++)
+    // {
+    //     std::cout << *it << std::endl;
+    // }
 
 	return (config);
 }
