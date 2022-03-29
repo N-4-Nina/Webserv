@@ -149,7 +149,7 @@ int	EvMa::timeout()
 
 void	EvMa::disconnect_socket(int fd)
 {
-	std::cout << "closed connection to socket nb " << fd << std::endl;
+	log(_clients[fd]._serv, &_clients[fd], "Closed connection.");
 	
 	for (Expire_iterator ex = _expire.begin(); ex != _expire.end(); ex++)
 	{
@@ -165,8 +165,8 @@ void	EvMa::disconnect_socket(int fd)
 void	EvMa::disconnect_socket_ex(Expire_iterator ex)
 {
 	int fd = (*ex)->fd();
-	std::cout << "closed connection to socket nb " << fd << std::endl;
 	
+	log(_clients[fd]._serv, &_clients[fd], "closed connection.");
 	_expire.erase(ex);
 	_clients.erase(fd);
 	shutdown(fd, SHUT_RDWR);
