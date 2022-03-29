@@ -52,7 +52,7 @@ void    fatal(str_t str);
 void    assert(bool scal, str_t log);
 int		unlock_socket(int fd);
 void	initialize_mime_types();
-
+void    log(Server *serv, Client *client, str_t err);
 
 #define CRLF            "\r\n"
 #define SERVER_VERSION  "HTTP/1.1"

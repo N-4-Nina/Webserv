@@ -21,6 +21,8 @@ Server	&Server::operator=(const Server &ref)
 		_ls = ref._ls;
 		_portNb = ref._portNb;
 		_conf = ref._conf;
+		_id = ref._id;
+		_serv = ref._serv;
 	}
 	return (*this);
 }
@@ -49,7 +51,7 @@ bool	Server::is_listen(int fd)
 void	Server::add_to_epoll(int epoll_fd)
 {
 	event_t	tmp;
-	tmp.events = EPOLLIN | EPOLLIN | EPOLLET;
+	tmp.events = EPOLLIN | EPOLLOUT | EPOLLET;
 	for (listen_sockets::iterator it = _ls.begin(); it != _ls.end(); it++)
 	{
 		tmp.data.fd = it->first;

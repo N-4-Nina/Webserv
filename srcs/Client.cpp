@@ -4,11 +4,11 @@
 #include <fstream>
 #include "common.hpp"
 
-Client::Client(void): _fd(-1), _server_id(0), _serv(NULL),  _content_len(0), _ready(false)
+Client::Client(void): _serv(NULL), _fd(-1), _server_id(0),  _content_len(0), _ready(false)
 {
 }
 
-Client::Client(int fd, Server *serv) : _fd(fd), _serv(serv), _req(_fd), _content_len(0),  _ready(false)
+Client::Client(int fd, Server *serv) :  _serv(serv), _fd(fd), _req(_fd), _content_len(0),  _ready(false)
 {
 	_parse_flags = 0;
 	_server_id = serv->id();
@@ -139,7 +139,7 @@ int			Client::add_data()
 			if	(_req.add_Header(raw_to_str(line)))
 			{
 				_ready = true;
-				//fsync(_fd);
+				fsync(_fd);
 				return (0);
 			}
 		}
@@ -168,13 +168,16 @@ int			Client::add_data()
 void	Client::respond()
 {
 	std::cout << "responding\n";
-	Response res(_req, _serv->conf());
+	Response res(_req, _serv->conf(), this);
 	res.send();
 	_ready = false;
 	_req.reset();
 	_remain.clear();
 	memset(_buff, 0, MAXREAD+1);
 	_parse_flags = 0;
+	_content_len = 0;
+	_parse_flags = 0;
+	_read_pos = 0;
 	_content_len = 0;
 }
 

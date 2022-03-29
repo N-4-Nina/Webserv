@@ -26,14 +26,11 @@ class Client
 		void	touch();
 		bool	isReady();
 		raw_str_t				_remain;
+		Server					*_serv;
 	private:
 		int						_fd;
 		int						_server_id;
-		Server					*_serv;
-		Request					_req;
-		//std::vector<Request>	_req;
-		//str_t					_input;
-		
+		Request					_req;	
 		char            		_buff[MAXREAD+1];
 		unsigned int			_parse_flags;
 		size_t					_read_pos;

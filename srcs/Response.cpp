@@ -20,14 +20,15 @@ Response::~Response(void)
 {
 }
 
-Response::Response(Request &req, Config *conf) : _conf(conf), _flags(0), _fd(req.fd())
+Response::Response(Request &req, Config *conf, Client *client) : _conf(conf), _flags(0), _fd(req.fd())
 {
+	_client = client;
+	
 	if (req.isBad())
-	{
-		_status = req.error();
-		return;						//suspect
-	}
-	_status = 200;
+		{ _status = req.error(); }
+	else
+		{ _status = 200; }
+
 	select_location(req);
 	if (_flags & RES_LOCATED)
 	{
@@ -121,21 +122,18 @@ void			Response::set_body_ress(Request &req, Config *conf)
 		}	
 	}
 	else
-	{
 		path = conf->root() + req._ressource;
-		if (access(path.c_str(), F_OK))
-		{
-			set_status(404);
-			return;
-		}
-	}
+	if (_status == 404)
+		return ;
 	std::ifstream       page;
     std::stringstream   buf;
 	page.open (path.c_str(), std::ifstream::in);
 	if (!page.is_open())
 	{
 		set_status(404);
-		std::cout << "Could not open ressource file.\n";
+		log(_client->_serv, _client, "Could not open ressource file.");
+		//std::cout << "Could not open ressource file.\n";
+
 	}
 	else
     {
@@ -182,10 +180,14 @@ void			Response::get_error_page()
 			_body = buffer.str();
 			stream.close();
 			if (_body.size())
+			{
+				add_header("content-length", to_string(_body.size()));
 				return;
+			}
 		}
 	}
-	_body = _error_page[0] + to_string(_status) + " : " + _codes[_status];
+	_body = _error_page[0] + to_string(_status) + " : " + _codes[_status] + _error_page[1];
+	add_header("content-length", to_string(_body.size()));
 }
 
 bool			Response::cgi_match(str_t uri)
@@ -252,13 +254,13 @@ str_t			Response::add_head()
 
 	buffer = "HTTP/1.1 ";
 	buffer += to_string<size_t>(_status);
-	buffer += "\n";
+	buffer += CRLF;
 	for (strMap::iterator it = _headers.begin(); it != _headers.end(); it++)
 	{
 		buffer += it->first;
 		buffer += ":";
 		buffer += it->second;
-		buffer += "\n";
+		buffer += CRLF;
 	}
 	buffer += CRLF;
 	return (buffer);
@@ -290,7 +292,7 @@ void			Response::upload_file(Request &req)
 				for (; pos_fn != it->end() && *pos_fn != '\"'; pos_fn++);
 				pos_fn++;
 				for (; pos_fn != it->end() && *pos_fn != '\"'; pos_fn++)
-					filename.append(1, *pos_fn);
+					{ filename.append(1, *pos_fn); }
 				//break;
 			}
 		}
@@ -316,7 +318,7 @@ void			Response::send()
 	res += _body + "\4";
 	const char *tmp = res.c_str();
 	write(_fd, tmp, res.size());
-	//fsync(_fd);
+	fsync(_fd);
 }
 
 str_t Response::set_body_cgi(Request req)

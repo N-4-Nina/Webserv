@@ -10,6 +10,7 @@ main.cpp\
 str_manips.cpp\
 Location.cpp\
 Client.cpp\
+log.cpp\
 raw_str.cpp\
 resp_codes.cpp\
 EvMa.cpp\
