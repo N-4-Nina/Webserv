@@ -28,7 +28,7 @@ OBJ = $(addprefix $(OBJDIR),$(SRCS:.cpp=.o))
 all:
 	@printf "[ "$(B_GREEN)"building"$(_END) 
 	@printf " ] \t|" $(B_WHITE)"\t\t"$(NAME)$(_END) 
-	$(MAKE) $(NAME)
+	@$(MAKE) -s $(NAME)
 	@printf $(_END)$(B_WHITE)"| \n[ "$(B_GREEN)$(NAME)$(_END)$(B_WHITE)" created with success ]\n"$(_END)
 
 

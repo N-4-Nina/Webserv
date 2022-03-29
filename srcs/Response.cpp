@@ -340,6 +340,7 @@ str_t Response::set_body_cgi(Request req)
 
 	_body = cgi.body();
 	add_header("content-length", to_string<size_t>(_body.size()));
+	add_header("content-type", "text/html");
 
 	return (_body);
 }

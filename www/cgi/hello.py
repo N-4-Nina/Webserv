@@ -14,8 +14,8 @@ print ('<h1>Hello World! This is a python script</h1>')
 current_date = date.today()
 
 # Print the formatted date
-print ("Today is: %d/%d/%d" % (current_date.day,current_date.month,current_date.year))
-print ("- have a good day")
+print ("<h3>Today is: %d/%d/%d" % (current_date.day,current_date.month,current_date.year))
+print ("- have a good day</h3>")
 print ("<hr>")
 
 # print ('<p>I am just a little python script uwu</p>')

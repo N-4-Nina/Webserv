@@ -120,8 +120,6 @@ char **CGI::build_cgi_env(Request req, str_t target, strMap headers_resp)
 		fatal("CGI can't work with another method than GET or POST"); // CGI only works with GET and POST
 	for (strMap::iterator it = headers_resp.begin() ; it != headers_resp.end() ; ++it)
 	{
-		// if (it->first == "content-length")
-		// 	envMap["CONTENT_LENGTH"] = it->second;
 		if (it->first == "content-type")
 			envMap["CONTENT_TYPE"] = it->second;
 	}
