@@ -22,7 +22,7 @@ class Response
 		static	strMap							_mimeTypes;
 		static	std::map<unsigned int, str_t>	_codes;
 		static	str_t							_error_page[2];
-		str_t									set_body_cgi(Request req);
+		void									set_body_cgi(Request req);
 	private:
 		void	upload_file(Request &req);
 		void	select_location(Request &req);

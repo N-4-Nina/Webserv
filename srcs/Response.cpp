@@ -51,8 +51,6 @@ Response::Response(Request &req, Config *conf, Client *client) : _conf(conf), _f
 	}
 	if (!(_flags & RES_ISCGI))
 		set_body_ress(req, conf);
-	//else
-	//	set_body_cgi();
 	if (_status < 200 || _status > 299)
 		get_error_page();
 }
@@ -321,7 +319,7 @@ void			Response::send()
 	fsync(_fd);
 }
 
-str_t Response::set_body_cgi(Request req)
+void Response::set_body_cgi(Request req)
 {
 	CGI cgi;
 	char tmp[256];
@@ -341,6 +339,4 @@ str_t Response::set_body_cgi(Request req)
 	_body = cgi.body();
 	add_header("content-length", to_string<size_t>(_body.size()));
 	add_header("content-type", "text/html");
-
-	return (_body);
 }
