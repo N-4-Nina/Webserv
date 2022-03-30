@@ -190,14 +190,22 @@ void			Response::get_error_page()
 
 bool			Response::cgi_match(str_t uri)
 {
-	size_t dotPos;
-	if (uri.size() < _loc->cgi_extension().size() || (dotPos = uri.find(".")) == uri.npos)
-		return false;
-	if (uri.substr(dotPos, str_t::npos) == _loc->cgi_extension() && _loc->route() == "/cgi")
+	if ( _loc->route() == "/cgi")
 	{
+		if (uri == "/cgi/" || uri == "/cgi")
+			_flags |= RES_DEFCGI;
 		_flags |= RES_ISCGI;
 		return true;
 	}
+	return false;
+	// size_t dotPos;
+	// if (uri.size() < _loc->cgi_extension().size() || (dotPos = uri.find(".")) == uri.npos)
+	// 	return false;
+	// if (uri.substr(dotPos, str_t::npos) == _loc->cgi_extension() && _loc->route() == "/cgi")
+	// {
+	// 	_flags |= RES_ISCGI;
+	// 	return true;
+	// }
 	return false;
 }
 
@@ -327,12 +335,34 @@ void Response::set_body_cgi(Request req)
 	size_t i = 0;
 
 	for (location_v::iterator it = loc.begin() ; it != loc.end() ; ++it, ++i)
+	{
 		if (!loc.at(i).cgi_path().empty())
+		{
 			cgi.set_binary(loc.at(i).cgi_path());
+		}
+	}
 	
 	getcwd(tmp, 256);
 	str_t target = tmp;
-	target.append("/www/cgi/hello.py");
+	if (_flags & RES_DEFCGI)
+	{
+		// target.append("/www/cgi/");
+		_status = 404;
+		get_error_page();
+		return;
+	}
+	else
+	{
+		target.append("/www/cgi/");
+		size_t found = req._ressource.find_last_of("/");
+		target.append(req._ressource.substr(found + 1));
+		if (access( target.c_str(), F_OK ))
+		{
+			_status = 404;
+			get_error_page();		
+			return;
+		}
+	}
 	cgi.set_script_name(target.substr(target.find("/cgi")));
     cgi.exec_cgi(target, req, this->headers());
 

@@ -16,3 +16,4 @@
 #define RES_ISCGI		2
 #define RES_ISINDEX 	4
 #define RES_INDEXDEF	8
+#define RES_DEFCGI		16

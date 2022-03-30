@@ -17,7 +17,7 @@ Location::Location(str_t block)
 	set_upload_pass(search_config(block, "upload_pass"));
 	set_upload_path(search_config(block, "upload_path"));
 	set_redir(search_config(block, "return"));
-	if (_cgi_extension != "" && _cgi_path != "")
+	if (_cgi_extension != "" /*&& _cgi_path != ""*/)
 		_flags |= LOC_CGI;
 }
 
