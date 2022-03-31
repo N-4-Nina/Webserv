@@ -210,10 +210,10 @@ int Request::add_Header(str_t line)
 	return (0);
 }
 
-int Request::add_Body(raw_str_t line)
+int Request::add_Body(raw_str_t line, size_t plus)
 {
 	_body.push_back(line);
-	_read_body += line.size() + 2;
+	_read_body += line.size() + plus;
 	return (0);
 }
 

@@ -25,7 +25,11 @@ Response::Response(Request &req, Config *conf, Client *client) : _conf(conf), _f
 	_client = client;
 	
 	if (req.isBad())
-		{ _status = req.error(); }
+	{
+		_status = req.error();
+		get_error_page();
+		return ;
+	}
 	else
 		{ _status = 200; }
 
@@ -331,6 +335,7 @@ void Response::set_body_cgi(Request req)
 {
 	CGI cgi;
 	char tmp[256];
+	
 	location_v loc = _conf->location();
 	size_t i = 0;
 

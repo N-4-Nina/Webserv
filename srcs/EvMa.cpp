@@ -69,7 +69,7 @@ bool    EvMa::is_connected(int fd)
 {
 	if (!_clients.size())
 		return (false);
-	for (unsigned long i = 0; i < _clients.size(); i++)
+	for (size_t i = 0; i < _clients.size(); i++)
 	{
 		if (_clients[i].fd() == fd)
 			return (true);

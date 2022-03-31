@@ -81,8 +81,8 @@ int			Client::add_data()
 		_remain.clear();
 	}
 
-	pos = raw_find(input, CRLF, 2, _read_pos);
 	/* this next block up to line 105 is very sus... do we even need it ?..*/
+	//pos = raw_find(input, CRLF, 2, _read_pos);
 	// if (pos == input.end())
 	// {
 	// 	if ((flags & PARSED_CL) && _req.cl() == _req.read_body() + input.size())
@@ -109,6 +109,7 @@ int			Client::add_data()
 		pos = raw_find(input, CRLF, 2, _read_pos);
 		_read_pos = 0;
 		line = raw_newLine(input, pos);
+		
 		if ( !(flags & PARSED_TOP))
 		{
 			if (_req.parse_TopLine(raw_to_str(line)))
@@ -145,7 +146,10 @@ int			Client::add_data()
 		}
 		else if ((flags & PARSED_CL))
 		{
-			_req.add_Body(line);
+			if (!line.size() && raw_find(input, CRLF, 2) == input.end())
+				_req.add_Body(input, 0);
+			else
+				_req.add_Body(line, 2);
 			if (_req.done_Reading())
 			{
 				_ready = true;
@@ -167,6 +171,13 @@ int			Client::add_data()
 
 void	Client::respond()
 {
+	/*needs to change:
+	- write this->reset(); 
+	- response must be in Client.
+	- CGI must be in client.
+	- reset response and cgi.
+	*/
+
 	std::cout << "responding\n";
 	Response res(_req, _serv->conf(), this);
 	res.send();
