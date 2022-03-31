@@ -1,6 +1,4 @@
-#!usr/bin/python
-import os
-from datetime import date
+#!/usr/bin/python
 
 print ('<html>')
 print ('<head>')

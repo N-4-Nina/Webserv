@@ -335,7 +335,6 @@ void Response::set_body_cgi(Request req)
 {
 	CGI cgi;
 	char tmp[256];
-	
 	location_v loc = _conf->location();
 	size_t i = 0;
 
@@ -349,16 +348,29 @@ void Response::set_body_cgi(Request req)
 	
 	getcwd(tmp, 256);
 	str_t target = tmp;
+	target.append("/www/cgi/");
 	if (_flags & RES_DEFCGI)
 	{
-		// target.append("/www/cgi/");
-		_status = 404;
-		get_error_page();
-		return;
+		for (location_v::iterator it = _conf->location().begin(); it != _conf->location().end(); it++)
+		{
+			_loc = &(*it);
+			if (req._ressource.find(it->route()) != 0)
+				continue;
+			else
+			{
+				target.append(*it->index().begin());
+				if (access( target.c_str(), F_OK ))
+				{
+					_status = 404;
+					get_error_page();		
+					return;
+				}
+				break;
+			}
+		}
 	}
 	else
 	{
-		target.append("/www/cgi/");
 		size_t found = req._ressource.find_last_of("/");
 		target.append(req._ressource.substr(found + 1));
 		if (access( target.c_str(), F_OK ))
