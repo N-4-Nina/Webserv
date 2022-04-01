@@ -66,12 +66,7 @@ bool    EvMa::is_connected(int fd)
 {
 	if (!_clients.size())
 		return (false);
-	for (size_t i = 0; i < _clients.size(); i++)
-	{
-		if (_clients[i].fd() == fd)
-			return (true);
-	}
-	return (false);
+	return (_clients.count(fd));
 }
 
 void	EvMa::incoming_connections(int inc_fd, Server *serv)
@@ -125,12 +120,12 @@ Client	&EvMa::find_by_fd(int fd)
 	//return (_clients[0]);
 }
 
-int	EvMa::write_data(int i)
-{
-	_clients[_events[i].data.fd].respond();
-	_clients[_events[i].data.fd].touch();
-	return (0);
-}
+// int	EvMa::write_data(int i)
+// {
+// 	_clients[_events[i].data.fd].respond();
+// 	_clients[_events[i].data.fd].touch();
+// 	return (0);
+// }
 
 int	EvMa::timeout()
 {
@@ -152,7 +147,7 @@ void	EvMa::disconnect_socket(int fd)
 			_expire.erase(ex);
 	}
 	_clients.erase(fd);
-	shutdown(fd, SHUT_RDWR);
+	//shutdown(fd, SHUT_RDWR);
 	close(fd);
 	epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, NULL);
 }
@@ -199,8 +194,11 @@ void	EvMa::loop()
 			else if (_clients[fd].isReady() && ev & EPOLLOUT)
 			{
 				assert(is_connected(fd), "write/ could not find fd");
-				write_data(i);
-				_expire.push_back(&_clients[fd]);
+				//write_data(i);
+				
+				_clients[_events[i].data.fd].touch();
+				if (!_clients[_events[i].data.fd].respond())
+					_expire.push_back(&_clients[fd]);
 			}
 			else if (ev & EPOLLIN)
 			{
@@ -213,7 +211,7 @@ void	EvMa::loop()
 			{
 				assert(is_connected(fd), "disconnect/ could not find fd");
 				disconnect_socket(fd);
-			}	
+			}
 		}
 		//_event_nb = 0;
 		if (!_expire.size())

@@ -1,4 +1,5 @@
 #include "Response.hpp"
+#include "Client.hpp"
 #include "str_manips.hpp"
 #include "find_nocase.hpp"
 
@@ -11,10 +12,25 @@ Response::Response(void)
 // {
 // }
 
-// Response	&Response::operator=(const Response &ref)
-// {
-// 	return (*this);
-// }
+Response	&Response::operator=(const Response &ref)
+{
+	if (&ref != this)
+	{
+		_cgi = ref._cgi;
+		_client = ref._client;
+		_conf = ref._conf;
+		_route = ref._route;
+		_flags = ref._flags;
+		_loc = ref._loc;
+		_status = ref._status;
+		_fd = ref._fd;
+		_headers = ref._headers;
+		_index = ref._index;
+		_head = ref._head;
+		_body = ref._body;
+	}
+	return (*this);
+}
 
 Response::~Response(void)
 {
@@ -23,7 +39,8 @@ Response::~Response(void)
 Response::Response(Request &req, Config *conf, Client *client) : _conf(conf), _flags(0), _fd(req.fd())
 {
 	_client = client;
-	
+	_flags |= RES_READY;
+
 	if (req.isBad())
 	{
 		_status = req.error();
@@ -38,7 +55,10 @@ Response::Response(Request &req, Config *conf, Client *client) : _conf(conf), _f
 	{
 		cgi_match(req._ressource);
 		if (_flags & RES_ISCGI)
+		{
+			_flags &= ~RES_READY;
 			set_body_cgi(req);
+		}
 		if (req.type() == R_POST && (_loc->flags() & LOC_UPLOAD))			//please note that in this state we cannot upload on the default route. this is intentional.
 			upload_file(req);
 		if (_loc->flags() & LOC_REDIR)
@@ -166,6 +186,9 @@ unsigned int	Response::status()
 
 strMap			Response::headers()
 { return (_headers); }
+
+FLAGS			Response::flags()
+{ return (_flags); }
 
 void			Response::get_error_page()
 {
@@ -331,18 +354,44 @@ void			Response::send()
 	fsync(_fd);
 }
 
-void Response::set_body_cgi(Request req)
+void			Response::reset()
 {
-	CGI cgi;
+	_route.clear();
+	_flags = 0;
+	_loc = NULL;
+	_status = 0;
+	_headers.clear();
+	_index.clear();
+	_head.clear();
+	_body.clear();
+	_cgi.reset();
+}
+
+void	Response::check_cgi()
+{
+	_cgi.check(&_flags, &_status);
+	if ((_flags & RES_READY) && (_status < 200 || _status > 299))
+		get_error_page();
+	else if ((_flags & RES_READY))
+	{
+		_body = _cgi.body();
+		add_header("content-length", to_string<size_t>(_body.size()));
+		add_header("content-type", "text/html");
+	}
+}
+
+void	Response::set_body_cgi(Request req)
+{
 	char tmp[256];
 	location_v loc = _conf->location();
 	size_t i = 0;
+	//_cgi = CGI()
 
 	for (location_v::iterator it = loc.begin() ; it != loc.end() ; ++it, ++i)
 	{
 		if (!loc.at(i).cgi_path().empty())
 		{
-			cgi.set_binary(loc.at(i).cgi_path());
+			_cgi.set_binary(loc.at(i).cgi_path());
 		}
 	}
 	
@@ -380,10 +429,11 @@ void Response::set_body_cgi(Request req)
 			return;
 		}
 	}
-	cgi.set_script_name(target.substr(target.find("/cgi")));
-    cgi.exec_cgi(target, req, this->headers());
+	_flags |= RES_STARTED;
+	_cgi.set_script_name(target.substr(target.find("/cgi")));
+	_cgi.exec_cgi(target, req, this->headers(), &_flags, &_status);
 
-	_body = cgi.body();
-	add_header("content-length", to_string<size_t>(_body.size()));
+	_body = _cgi.body();
+	add_header("content-length", to_string<size_t>(_body.size()));		//move maybe ? at least cl
 	add_header("content-type", "text/html");
 }

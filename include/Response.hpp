@@ -7,14 +7,16 @@
 #include "Location.hpp"
 #include "CGI.hpp"
 #include "flags.hpp"
-#include "Client.hpp"
+//#include "Client.hpp"
 
+class Client;
 class Response
 {
 	public:
+		Response(void);
 		Response(Request &req, Config *conf, Client *client);
 		//Response(const Response &ref);
-		//Response	&operator=(const Response &ref);
+		Response	&operator=(const Response &ref);
 		~Response(void);
 		void 			set_status(unsigned int s);
 		unsigned int	status();
@@ -23,6 +25,11 @@ class Response
 		static	std::map<unsigned int, str_t>	_codes;
 		static	str_t							_error_page[2];
 		void									set_body_cgi(Request req);
+		void									check_cgi();
+		strMap	headers();
+		FLAGS	flags();
+
+		void	reset();
 	private:
 		void	upload_file(Request &req);
 		void	select_location(Request &req);
@@ -33,9 +40,8 @@ class Response
 		void	get_error_page();
 		bool	cgi_match(str_t uri);
 		str_t	add_head();
-		strMap	headers();
-		Response(void);
 
+		CGI										_cgi;
 		Client									*_client;
 		Config									*_conf;
 		str_t									_route;

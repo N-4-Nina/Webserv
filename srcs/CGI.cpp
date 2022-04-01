@@ -1,5 +1,6 @@
 #include "CGI.hpp"
 #include "Config.hpp"
+#include "flags.hpp"
 
 // the capacity of a pipe
 // https://man7.org/linux/man-pages/man7/pipe.7.html
@@ -7,7 +8,14 @@
 
 
 CGI::CGI()
-{}
+{
+	_pid = 0;
+	_status = 0;
+	_fd_io[0] = 0;
+	_fd_io[1] = 0;
+	_save_io[0] = 0;
+	_save_io[1] = 0;
+}
 
 CGI::~CGI()
 {}
@@ -17,12 +25,10 @@ void CGI::set_binary(str_t path)
 	_binary = path;
 }
 
-void CGI::exec_cgi(str_t target, Request req, strMap headers_resp)
+void CGI::exec_cgi(str_t target, Request req, strMap headers_resp, FLAGS *flags, unsigned int *code)
 {
 	char **args = NULL;
 	char **env = NULL;
-	int ret = 1;
-	char tmp[CGI_BUF_SIZE];	
 
 	args = (char**)malloc(sizeof(char*) * 3);
 	args[0] = strdup(_binary.c_str());
@@ -32,54 +38,78 @@ void CGI::exec_cgi(str_t target, Request req, strMap headers_resp)
 	// DEBUG_display_cgi_env(env, args);
 
 	pid_t pid;
-	int save_stdin;
-	int save_stdout;
 
 	// save stdin and out to turn them back to normal after
-	save_stdin = dup(STDIN_FILENO);
-	save_stdout = dup(STDOUT_FILENO);
+	_save_io[0] = dup(STDIN_FILENO);
+	_save_io[1] = dup(STDOUT_FILENO);
 
 	// tmpfile - creates a temporary binary file, open for update with a filename guaranteed to be different from any other existing file
 	FILE	*file_in = tmpfile();
 	FILE	*file_out = tmpfile();
 	// fileno - map a stream pointer to a file descriptor
-	long	fd_in = fileno(file_in);
-	long	fd_out = fileno(file_out);
+	_fd_io[0] = fileno(file_in);
+	_fd_io[1] = fileno(file_out);
 
-	write(fd_in, _body.c_str(), _body.size());
-	lseek(fd_in, 0, SEEK_SET);
+	write(_fd_io[0], _body.c_str(), _body.size());
+	lseek(_fd_io[0], 0, SEEK_SET);
 
 	if ((pid = fork()) == -1)
 		fatal("error: fork failed on CGI: PID = -1");
 	else if (pid == 0)
 	{
-	  // STDOUT become a copy of fd_out, and, in case of POST, STDIN become a copy of fd_in
-		dup2(fd_in, STDIN_FILENO);
-		dup2(fd_out, STDOUT_FILENO);
+	  // STDOUT become a copy of _fd_io[1], and, in case of POST, STDIN become a copy of _fd_io[0]
+		dup2(_fd_io[0], STDIN_FILENO);
+		dup2(_fd_io[1], STDOUT_FILENO);
 		if (execve(_binary.c_str(), args, env) < 0)
 			fatal("execve failed\n");
 	}
 	else
 	{
-		waitpid(-1, NULL, 0);
-		lseek(fd_out, 0, SEEK_SET);
-
-		while (ret > 0)
-		{
-			memset(tmp, 0, CGI_BUF_SIZE);
-			ret = read(fd_out, tmp, CGI_BUF_SIZE - 1);
-			_body += tmp;
-		  //  env = update_env(env);
-		}
-
-		close(fd_out);
-		close(fd_in);
-
-		dup2(save_stdin, STDIN_FILENO);
-		dup2(save_stdout, STDOUT_FILENO);
+		_pid = pid;
+		check(flags, code);	
 	}
 	free_cgi(args, env);
 }
+
+void	CGI::check(FLAGS *flags, unsigned int *code)
+{
+	//_status = 0;
+	//;
+	if (waitpid(_pid, &_status, WNOHANG | WUNTRACED) == 0)
+	{
+		//*flags &= ~RES_READY;
+		return ;
+	}
+	else 
+	{
+		lseek(_fd_io[1], 0, SEEK_SET);
+
+		if (!WIFSIGNALED(_status) && !WCOREDUMP(_status) && !WIFSTOPPED(_status))
+		{
+			char	tmp[CGI_BUF_SIZE];
+			int		ret = 1;
+
+			memset(tmp, 0, CGI_BUF_SIZE);
+			while ((ret = read(_fd_io[1], tmp, CGI_BUF_SIZE - 1)) > 0)
+			{
+				
+				//ret = read(_fd_io[1], tmp, CGI_BUF_SIZE - 1);
+				_body += tmp;
+				memset(tmp, 0, CGI_BUF_SIZE);
+			}
+		}
+		else
+			*code = 502;
+
+		close(_fd_io[1]);
+		close(_fd_io[0]);
+		dup2(_save_io[0], STDIN_FILENO);
+		dup2(_save_io[1], STDOUT_FILENO);
+		*flags |= RES_READY;
+	}
+
+}
+
 
 /*
 * Ref: https://web.maths.unsw.edu.au/~lafaye/CCM/cgi/cgienv.htm
@@ -142,14 +172,30 @@ char **CGI::build_cgi_env(Request req, str_t target, strMap headers_resp)
 	return (env);
 }
 
-str_t CGI::body()
+str_t	CGI::body()
 { return (_body); }
 
-str_t CGI::binary()
+str_t	CGI::binary()
 { return (_binary); }
 
-str_t CGI::script_name()
+str_t	CGI::script_name()
 { return (_script_name); }
+
+int		CGI::pid()
+{ return (_pid); }
+
+void	CGI::reset()
+{
+	_binary.clear();
+	_body.clear();
+	_script_name.clear();
+	_pid = 0;
+	_status = 0;
+	_fd_io[0] = 0;
+	_fd_io[1] = 0;
+	_save_io[0] = 0;
+	_save_io[1] = 0;
+}
 
 void CGI::free_str_tab(char **str_tab)
 {	

@@ -33,7 +33,7 @@ class EvMa
 		void	update_expiry(int fd);
 		void	incoming_connections(int inc_fd, Server *serv);
 		bool    is_connected(int fd);
-		int		write_data(int i);
+		//int		write_data(int i);
 		int		timeout();
 		Client	&find_by_fd(int fd);
 		bool	is_listen(int fd, Server **serv);

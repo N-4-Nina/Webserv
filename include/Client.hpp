@@ -2,8 +2,9 @@
 # define CLIENT_HPP
 
 #include "common.hpp"
-#include "Request.hpp"
 #include "Response.hpp"
+#include "Request.hpp"
+
 #include "Server.hpp"
 #include "flags.hpp"
 
@@ -19,18 +20,20 @@ class Client
 		void	add_request(); 
 		void	add_request(unsigned int error);
 		int		add_data();
-		void	respond();
+		int		respond();
 		int		fd();
 		time_t	expire();
 		char	*buff();
 		void	touch();
 		bool	isReady();
+		void	reset();
 		raw_str_t				_remain;
 		Server					*_serv;
 	private:
 		int						_fd;
 		int						_server_id;
-		Request					_req;	
+		Request					_req;
+		Response				_res;
 		char            		_buff[MAXREAD+1];
 		unsigned int			_parse_flags;
 		size_t					_read_pos;

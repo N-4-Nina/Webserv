@@ -37,6 +37,7 @@ Client	&Client::operator=(const Client &ref)
 		_expire = ref._expire;
 		_ready = ref._ready;
 		_req._conf = ref._req._conf;
+		_res = ref._res;
 	}
 	return (*this);
 }
@@ -68,11 +69,12 @@ int			Client::add_data()
 	memset(_buff, 0, MAXREAD + 1);
 	
 	n  = read(_fd, _buff, MAXREAD);
-	log(_serv, this, "Read " + to_string(n) + " octets.");
+	
 	//if (n == -1)
 	//	return (-1);
 	if (n <= 0)					//also this....
 		return (1);
+	log(_serv, this, "Read " + to_string(n) + " octets.");
 	input = char_to_raw(_buff, n);
 	if (_remain.size())
 	{
@@ -170,20 +172,30 @@ int			Client::add_data()
 }
 
 
-void	Client::respond()
+int	Client::respond()
 {
-	/*needs to change:
-	- write this->reset(); 
-	- response must be in Client.
-	- CGI must be in client.
-	- reset response and cgi.
-	*/
+	if (!(_res.flags() & RES_STARTED))
+	{
+		log(_serv, this, "Responding");
+		_res = Response(_req, _serv->conf(), this);
+	}
+	else
+		_res.check_cgi();
+	
+	if ((_res.flags() & RES_READY))
+	{
+		_res.send();
+		this->reset();
+		return (0);
+	}
+	return (1);
+}
 
-	log(_serv, this, "Responding");
-	Response res(_req, _serv->conf(), this);
-	res.send();
+void	Client::reset()
+{
 	_ready = false;
 	_req.reset();
+	_res.reset();
 	_remain.clear();
 	memset(_buff, 0, MAXREAD+1);
 	_parse_flags = 0;
@@ -195,5 +207,5 @@ void	Client::respond()
 
 void	Client::touch()
 {
-	_expire = time_in_ms() + 5000;
+	_expire = time_in_ms() + TIMEOUT;
 }

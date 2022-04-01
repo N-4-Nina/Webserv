@@ -17,3 +17,5 @@
 #define RES_ISINDEX 	4
 #define RES_INDEXDEF	8
 #define RES_DEFCGI		16
+#define RES_STARTED		32
+#define RES_READY		64
