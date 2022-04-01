@@ -68,7 +68,7 @@ int			Client::add_data()
 	memset(_buff, 0, MAXREAD + 1);
 	
 	n  = read(_fd, _buff, MAXREAD);
-	std:: cout << "fd = " << _fd << "  n = " << n << std::endl;
+	log(_serv, this, "Read " + to_string(n) + " octets.");
 	//if (n == -1)
 	//	return (-1);
 	if (n <= 0)					//also this....
@@ -150,6 +150,7 @@ int			Client::add_data()
 				_req.add_Body(input, 0);
 			else
 				_req.add_Body(line, 2);
+			log(_serv, this, "Read " + to_string(_req.read_body()) + " oct / " + to_string(_req.cl()) + " oct");
 			if (_req.done_Reading())
 			{
 				_ready = true;
@@ -178,7 +179,7 @@ void	Client::respond()
 	- reset response and cgi.
 	*/
 
-	std::cout << "responding\n";
+	log(_serv, this, "Responding");
 	Response res(_req, _serv->conf(), this);
 	res.send();
 	_ready = false;

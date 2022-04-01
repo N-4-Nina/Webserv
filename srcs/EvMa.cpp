@@ -56,13 +56,10 @@ void	EvMa::add_to_interest(int fd, Server *serv)
 	_event.events = EPOLLIN | EPOLLOUT ;
 	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &_event) == -1)
 		fatal("failed to add incoming connection to interest list.");
-	//expiry ex = std::make_pair(fd, time_in_ms() + 5000);
-	//_clients.push_back(ex);
 	Client tmp(fd, serv);
 	_clients[fd] = tmp;
 	_clients[fd].touch();
-	//_expire.push_back(&(_clients[fd]));
-	std::cout << "added connection. fd is: " << fd << std::endl;
+	log(serv, &_clients[fd],  "New client connected.");
 }
 
 bool    EvMa::is_connected(int fd)
@@ -130,10 +127,8 @@ Client	&EvMa::find_by_fd(int fd)
 
 int	EvMa::write_data(int i)
 {
-	Client			&client = _clients[_events[i].data.fd];
-
-	client.respond();
-	client.touch();
+	_clients[_events[i].data.fd].respond();
+	_clients[_events[i].data.fd].touch();
 	return (0);
 }
 
@@ -149,7 +144,7 @@ int	EvMa::timeout()
 
 void	EvMa::disconnect_socket(int fd)
 {
-	log(_clients[fd]._serv, &_clients[fd], "Closed connection.");
+	log(_clients[fd]._serv, &_clients[fd], "Closed connection: client.");
 	
 	for (Expire_iterator ex = _expire.begin(); ex != _expire.end(); ex++)
 	{
@@ -166,7 +161,7 @@ void	EvMa::disconnect_socket_ex(Expire_iterator ex)
 {
 	int fd = (*ex)->fd();
 	
-	log(_clients[fd]._serv, &_clients[fd], "closed connection.");
+	log(_clients[fd]._serv, &_clients[fd], "Closed connection: timeout.");
 	_expire.erase(ex);
 	_clients.erase(fd);
 	shutdown(fd, SHUT_RDWR);

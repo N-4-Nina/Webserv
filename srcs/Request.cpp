@@ -233,7 +233,6 @@ bool Request::isBoundary(raw_str_t line)
 
 bool Request::done_Reading()
 {
-	std::cout << "are we done ? " << _read_body << "  " << _cl << std::endl;
 	return (_read_body == _cl);
 }
 

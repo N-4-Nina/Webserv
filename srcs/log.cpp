@@ -8,16 +8,23 @@
 #define MAGENTA	"\e[35m"
 #define CYAN	"\e[36m"
 #define RESET	"\e[0m"
-#define LINE	"\n_____________________________________________________\n"
-#define ENDLINE	"\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n"
+#define LINE	"\n______________________________________________________________________\n"
+#define ENDLINE	"\n‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\n"
 
 void    log(Server *serv, Client *client, str_t err)
 {
-	int len = 53 - err.length();
+	char	date[100];
+	time_t	now;
+	tm		*brk;
+	int 	len = 69 - err.length();
+
+	time(&now);
+	brk = localtime(&now);
+	strftime(date, 99, "%B %d %Y %T", brk);
 	if (len < 0)
 		len = 0;
-	std::cout << LINE << "|[ " << YELLOW << to_string(time_in_ms()) << " ms  " << RESET << "|"\
-<< "\t" << BLUE << "Server Id:" << serv->id() << "  |\t" << CYAN << "Client fd: " << client->fd() << " ]|\n|"\
+	std::cout << LINE << "|[ " << YELLOW << date << RESET << " |\t"\
+<< "\t" << BLUE << "Server Id: " << serv->id() << "  |\t" << CYAN << "Client fd: " << client->fd() << " ]|\n|"\
 << MAGENTA << err <<  RESET << str_t(len, ' ') << '|' << ENDLINE;
 	
 }
