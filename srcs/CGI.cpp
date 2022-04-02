@@ -18,7 +18,12 @@ CGI::CGI()
 }
 
 CGI::~CGI()
-{}
+{
+	//close(_fd_io[0]);
+	//close(_fd_io[1]);
+	//close(_save_io[0]);
+	//close(_save_io[1]);
+}
 
 void CGI::set_binary(str_t path)
 {
@@ -60,6 +65,11 @@ void CGI::exec_cgi(str_t target, Request req, strMap headers_resp, FLAGS *flags,
 	  // STDOUT become a copy of _fd_io[1], and, in case of POST, STDIN become a copy of _fd_io[0]
 		dup2(_fd_io[0], STDIN_FILENO);
 		dup2(_fd_io[1], STDOUT_FILENO);
+			/* closes rajoutés par Nina le 2 Avril a revérifier ensemble */
+		close(_fd_io[1]);
+		close(_fd_io[0]);
+		close(_save_io[1]);
+		close(_save_io[0]);
 		if (execve(_binary.c_str(), args, env) < 0)
 			fatal("execve failed\n");
 	}
@@ -87,13 +97,12 @@ void	CGI::check(FLAGS *flags, unsigned int *code)
 		if (!WIFSIGNALED(_status) && !WCOREDUMP(_status) && !WIFSTOPPED(_status))
 		{
 			char	tmp[CGI_BUF_SIZE];
-			int		ret = 1;
+			size_t	ret = 1;
 
 			memset(tmp, 0, CGI_BUF_SIZE);
 			while ((ret = read(_fd_io[1], tmp, CGI_BUF_SIZE - 1)) > 0)
 			{
 				
-				//ret = read(_fd_io[1], tmp, CGI_BUF_SIZE - 1);
 				_body += tmp;
 				memset(tmp, 0, CGI_BUF_SIZE);
 			}

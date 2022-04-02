@@ -26,7 +26,7 @@ void    log(Server *serv, Client *client, str_t err)
 		len = 0;
 	str_t id = (serv == NULL) ? "?" : to_string(serv->id());
 	std::cout << LINE << "|[ " << YELLOW << date << RESET << " |\t"\
-<< "\t" << BLUE << "Server Id: " << id << "  |\t" << CYAN << "Client fd: " << client->fd() << " ]|\n|"\
+<< "\t" << BLUE << "Server Id: " << serv->id() << "  |\t" << CYAN << "Client fd: " << client->fd() << " ]|\n|"\
 << MAGENTA << err <<  RESET << str_t(len, ' ') << '|' << ENDLINE;
 	
 }

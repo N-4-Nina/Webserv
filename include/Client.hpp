@@ -14,7 +14,7 @@ class Client
 		Client(void);
 		Client(int fd, Server *serv);
 		
-		//Client(const Client &ref);
+		Client(const Client &ref);
 		Client	&operator=(const Client &ref);
 		~Client(void);
 		void	add_request(); 

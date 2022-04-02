@@ -17,9 +17,22 @@ Client::Client(int fd, Server *serv) :  _serv(serv), _fd(fd), _req(_fd), _conten
 	_read_pos = 0;
 }
 
-// Client::Client(const Client &ref)
-// {
-// }
+Client::Client(const Client &ref)
+{
+	_fd = ref._fd;
+	_server_id = ref._server_id;
+	_serv = ref._serv;
+	_req = ref._req;
+	_remain = ref._remain;
+	strcpy(_buff, ref._buff);
+	_parse_flags = ref._parse_flags;
+	_read_pos = ref._read_pos;
+	_content_len = ref._content_len;
+	_expire = ref._expire;
+	_ready = ref._ready;
+	_req._conf = ref._req._conf;
+	_res = ref._res;
+}
 
 Client	&Client::operator=(const Client &ref)
 {

@@ -27,17 +27,14 @@ class EvMa
 		event_t				_event;	//rename it _tmp_event
 		event_t				*_events;
 		
-		//void	init_socket( );
 		void	init_epoll();
 		void	add_to_interest(int fd, Server *serv);
 		void	update_expiry(int fd);
 		void	incoming_connections(int inc_fd, Server *serv);
 		bool    is_connected(int fd);
-		//int		write_data(int i);
 		int		timeout();
-		Client	&find_by_fd(int fd);
 		bool	is_listen(int fd, Server **serv);
-		void	disconnect_socket(int fd);
+		void	disconnect_socket(int fd, Server *serv);
 		void	disconnect_socket_ex(Expire_iterator ex);
 
 };

@@ -11,7 +11,11 @@ Server::Server(Config &conf)
 
 Server::Server(const Server &ref)
 {
-	(void)ref;
+	_ls = ref._ls;
+	_portNb = ref._portNb;
+	_conf = ref._conf;
+	_id = ref._id;
+	_serv = ref._serv;
 }
 
 Server	&Server::operator=(const Server &ref)

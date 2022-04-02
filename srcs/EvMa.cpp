@@ -56,8 +56,9 @@ void	EvMa::add_to_interest(int fd, Server *serv)
 	_event.events = EPOLLIN | EPOLLOUT ;
 	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &_event) == -1)
 		fatal("failed to add incoming connection to interest list.");
-	Client tmp(fd, serv);
-	_clients[fd] = tmp;
+	//Client tmp(fd, serv);
+	_clients.insert(std::pair<int, Client>(fd, Client(fd, serv)));
+	//_clients[fd] = Client(fd, serv);
 	_clients[fd].touch();
 	log(serv, &_clients[fd],  "New client connected.");
 }
@@ -72,7 +73,7 @@ bool    EvMa::is_connected(int fd)
 void	EvMa::incoming_connections(int inc_fd, Server *serv)
 {
 	int fd;
-	struct sockaddr     incoming;		//should probably be before loop start for opti but for now it's fine
+	struct sockaddr     incoming;
     socklen_t			incSize;
 
 	for (;;)
@@ -100,32 +101,11 @@ void	EvMa::update_expiry(int fd)
 	{
 		if ((*it)->fd() == fd)
 		{
-			(*it)->touch();
 			_expire.erase(it);
 			return ;
 		}
 	}
 }
-
-Client	&EvMa::find_by_fd(int fd)
-{
-	for (size_t i = 0; i < _clients.size(); i++)
-	{
-		if (_clients[i].fd() == fd)
-			return (_clients[i]);
-	}
-	//throw exception
-	throw std::invalid_argument("couldn't find fd.");
-	//close(fd);
-	//return (_clients[0]);
-}
-
-// int	EvMa::write_data(int i)
-// {
-// 	_clients[_events[i].data.fd].respond();
-// 	_clients[_events[i].data.fd].touch();
-// 	return (0);
-// }
 
 int	EvMa::timeout()
 {
@@ -137,17 +117,17 @@ int	EvMa::timeout()
 	return (-1);
 }
 
-void	EvMa::disconnect_socket(int fd)
+void	EvMa::disconnect_socket(int fd, Server *serv)
 {
-	log(_clients[fd]._serv, &_clients[fd], "Closed connection: client.");
+	log(serv, &_clients[fd], "Closed connection: client.");
 	
 	for (Expire_iterator ex = _expire.begin(); ex != _expire.end(); ex++)
 	{
-		if ((*ex)->fd() == fd)
+		if ((*ex) && (*ex)->fd() == fd)
 			_expire.erase(ex);
 	}
 	_clients.erase(fd);
-	//shutdown(fd, SHUT_RDWR);
+	shutdown(fd, SHUT_RDWR);
 	close(fd);
 	epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, NULL);
 }
@@ -190,14 +170,20 @@ void	EvMa::loop()
 			int fd = _events[i].data.fd;
 			uint32_t ev = _events->events;
 			if (is_listen(fd, serv))
+			{
 				incoming_connections(fd, *serv);
+				continue;
+			}
+			if (!_clients.count(fd))
+			{
+				std::cout << "fd" << fd << "does not exist.\n";
+			}
 			else if (_clients[fd].isReady() && ev & EPOLLOUT)
 			{
 				assert(is_connected(fd), "write/ could not find fd");
-				//write_data(i);
 				
-				_clients[_events[i].data.fd].touch();
-				if (!_clients[_events[i].data.fd].respond())
+				_clients[fd].touch();
+				if (!_clients[fd].respond())
 					_expire.push_back(&_clients[fd]);
 			}
 			else if (ev & EPOLLIN)
@@ -205,12 +191,12 @@ void	EvMa::loop()
 				assert(is_connected(fd), "read/ could not find fd");
 				update_expiry(fd);
 				if (_clients[fd].add_data())
-					disconnect_socket(fd);
+					disconnect_socket(fd, ptr);
 			}
 			else if (ev & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))
 			{
 				assert(is_connected(fd), "disconnect/ could not find fd");
-				disconnect_socket(fd);
+				disconnect_socket(fd, ptr);
 			}
 		}
 		//_event_nb = 0;
