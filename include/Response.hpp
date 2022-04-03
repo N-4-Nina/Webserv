@@ -10,11 +10,12 @@
 //#include "Client.hpp"
 
 class Client;
+class EvMa;
 class Response
 {
 	public:
 		Response(void);
-		Response(Request &req, Config *conf, Client *client);
+		Response(Request &req, Config *conf, Client *client, EvMa *evma);
 		//Response(const Response &ref);
 		Response	&operator=(const Response &ref);
 		~Response(void);
@@ -28,6 +29,7 @@ class Response
 		void									check_cgi();
 		strMap	headers();
 		FLAGS	flags();
+		CGI		&cgi();
 
 		void	reset();
 	private:

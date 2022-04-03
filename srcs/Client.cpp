@@ -4,12 +4,15 @@
 #include <fstream>
 #include "common.hpp"
 
+//std::set<int>	CGI::toClose;
+
 Client::Client(void): _serv(NULL), _fd(-1), _server_id(0),  _content_len(0), _ready(false)
 {
 }
 
-Client::Client(int fd, Server *serv) :  _serv(serv), _fd(fd), _req(_fd), _content_len(0),  _ready(false)
+Client::Client(int fd, Server *serv, EvMa *evma) : _serv(serv), _fd(fd), _req(_fd), _content_len(0),  _ready(false)
 {
+	_evma = evma;
 	_parse_flags = 0;
 	_server_id = serv->id();
 	memset(_buff, 0, MAXREAD+1);
@@ -32,6 +35,7 @@ Client::Client(const Client &ref)
 	_ready = ref._ready;
 	_req._conf = ref._req._conf;
 	_res = ref._res;
+	_evma = ref._evma;
 }
 
 Client	&Client::operator=(const Client &ref)
@@ -51,6 +55,7 @@ Client	&Client::operator=(const Client &ref)
 		_ready = ref._ready;
 		_req._conf = ref._req._conf;
 		_res = ref._res;
+		_evma = ref._evma;
 	}
 	return (*this);
 }
@@ -71,6 +76,10 @@ time_t	Client::expire()
 bool	Client::isReady()
 { return (_ready); }
 
+CGI		&Client::cgi()
+{
+	return (_res.cgi());
+}
 
 int			Client::add_data()
 {
@@ -190,7 +199,7 @@ int	Client::respond()
 	if (!(_res.flags() & RES_STARTED))
 	{
 		log(_serv, this, "Responding");
-		_res = Response(_req, _serv->conf(), this);
+		_res = Response(_req, _serv->conf(), this, _evma);
 	}
 	else
 		_res.check_cgi();

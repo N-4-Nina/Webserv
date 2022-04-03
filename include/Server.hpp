@@ -21,15 +21,13 @@ class Server
 		bool	is_listen(int fd);
 		void	add_to_epoll(int epoll_fd);
 		void	init_listen(int_v ports);
+		void	close_fd();
 		Config	*conf();
 	private:
 		Config				*_conf;
 		listen_sockets		_ls;
 		int					_id;
-		int					_portNb;
-		Server				*_serv;
-		int		read_data(Client cl);
-		
+		int					_portNb;		//deprec i think
 };
 
 #endif

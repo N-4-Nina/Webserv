@@ -1,5 +1,7 @@
 #include "Server.hpp"
 
+//std::set<int>	CGI::toClose;
+
 Server::Server(){}
 
 Server::Server(Config &conf)
@@ -15,7 +17,6 @@ Server::Server(const Server &ref)
 	_portNb = ref._portNb;
 	_conf = ref._conf;
 	_id = ref._id;
-	_serv = ref._serv;
 }
 
 Server	&Server::operator=(const Server &ref)
@@ -26,13 +27,20 @@ Server	&Server::operator=(const Server &ref)
 		_portNb = ref._portNb;
 		_conf = ref._conf;
 		_id = ref._id;
-		_serv = ref._serv;
 	}
 	return (*this);
 }
 
 Server::~Server(void)
 {
+}
+
+void	Server::close_fd()
+{
+	for (listen_sockets::iterator it = _ls.begin(); it != _ls.end(); it++)
+	{
+		close(it->first);
+	}
 }
 
 int		Server::id()

@@ -32,16 +32,39 @@ EvMa::EvMa(config_v &conf)
 
 EvMa::~EvMa(void)
 {
+	close(_epoll_fd);
+	for (Cluster::iterator it = _cluster.begin(); it != _cluster.end(); it++)
+	{
+		it->second.close_fd();
+	}
+	for (Clients_pool::iterator it = _clients.begin(); it != _clients.end(); it++)
+	{
+		close(it->second.fd());
+		it->second.cgi().close_fd();
+	}
+}
+
+void	EvMa::close_all(void)
+{
+	close(_epoll_fd);
+	for (Cluster::iterator it = _cluster.begin(); it != _cluster.end(); it++)
+	{
+		it->second.close_fd();
+	}
+	for (Clients_pool::iterator it = _clients.begin(); it != _clients.end(); it++)
+	{
+		close(it->second.fd());
+		it->second.cgi().close_fd();
+	}
 }
 
 void	EvMa::init_epoll()
 {
-	_epoll_fd = epoll_create1(0);
+	_epoll_fd = epoll_create1(EPOLL_CLOEXEC);
 	if (_epoll_fd == -1)
 		fatal("epoll creation failed");
 
 	_events = static_cast<event_t*>(calloc(MAXCONN, sizeof(event_t))); //should maybe multiply maxconn by number of serv
-
 	for (Cluster::iterator it = _cluster.begin(); it != _cluster.end(); it++)
 	{
 		it->second.add_to_epoll(_epoll_fd);
@@ -57,7 +80,7 @@ void	EvMa::add_to_interest(int fd, Server *serv)
 	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &_event) == -1)
 		fatal("failed to add incoming connection to interest list.");
 	//Client tmp(fd, serv);
-	_clients.insert(std::pair<int, Client>(fd, Client(fd, serv)));
+	_clients.insert(std::pair<int, Client>(fd, Client(fd, serv, this)));
 	//_clients[fd] = Client(fd, serv);
 	_clients[fd].touch();
 	log(serv, &_clients[fd],  "New client connected.");
@@ -120,7 +143,6 @@ int	EvMa::timeout()
 void	EvMa::disconnect_socket(int fd, Server *serv)
 {
 	log(serv, &_clients[fd], "Closed connection: client.");
-	
 	for (Expire_iterator ex = _expire.begin(); ex != _expire.end(); ex++)
 	{
 		if ((*ex) && (*ex)->fd() == fd)
@@ -176,7 +198,7 @@ void	EvMa::loop()
 			}
 			if (!_clients.count(fd))
 			{
-				std::cout << "fd" << fd << "does not exist.\n";
+				std::cout << "fd " << fd << " does not exist.\n";
 			}
 			else if (_clients[fd].isReady() && ev & EPOLLOUT)
 			{
@@ -186,18 +208,19 @@ void	EvMa::loop()
 				if (!_clients[fd].respond())
 					_expire.push_back(&_clients[fd]);
 			}
+			else if (ev & (EPOLLERR | EPOLLHUP | EPOLLRDHUP))
+			{
+				assert(is_connected(fd), "disconnect/ could not find fd");
+				for (Expire_iterator ex = _expire.begin(); ex != _expire.end() && (*ex)->expire() < time_in_ms(); ex = _expire.begin())
+    			{ if ((*ex)->fd() == fd) {disconnect_socket_ex(ex);} }
+			}
 			else if (ev & EPOLLIN)
 			{
 				assert(is_connected(fd), "read/ could not find fd");
 				update_expiry(fd);
 				if (_clients[fd].add_data())
 					disconnect_socket(fd, ptr);
-			}
-			else if (ev & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))
-			{
-				assert(is_connected(fd), "disconnect/ could not find fd");
-				disconnect_socket(fd, ptr);
-			}
+			}	
 		}
 		//_event_nb = 0;
 		if (!_expire.size())

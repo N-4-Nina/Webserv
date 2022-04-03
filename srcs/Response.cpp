@@ -36,7 +36,7 @@ Response::~Response(void)
 {
 }
 
-Response::Response(Request &req, Config *conf, Client *client) : _conf(conf), _flags(0), _fd(req.fd())
+Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cgi(evma), _conf(conf), _flags(0), _fd(req.fd())
 {
 	_client = client;
 	_flags |= RES_READY;
@@ -189,6 +189,9 @@ strMap			Response::headers()
 
 FLAGS			Response::flags()
 { return (_flags); }
+
+CGI				&Response::cgi()
+{ return (_cgi); }
 
 void			Response::get_error_page()
 {

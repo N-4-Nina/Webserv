@@ -13,6 +13,7 @@ class EvMa
 		//EvMa(const EvMa &ref);				a implementer
 		//EvMa	&operator=(const EvMa &ref);
 		~EvMa(void);
+		void	close_all(void);
 
 		void	loop();
 	private:
@@ -23,7 +24,6 @@ class EvMa
 		int		_event_nb;
 		size_t	_cluster_size;
 		
-		//expiryList			_timeouts;
 		event_t				_event;	//rename it _tmp_event
 		event_t				*_events;
 		

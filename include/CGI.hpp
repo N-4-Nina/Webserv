@@ -16,11 +16,14 @@
 # include "str_manips.hpp"
 # include <sys/types.h>
 # include <sys/wait.h>
+# include <set>
+
+class EvMa;
 
 class CGI
 {
 	public:
-		CGI();
+		CGI(EvMa *evma = NULL);
 		~CGI();
 
 		void	set_binary(str_t path);
@@ -32,14 +35,16 @@ class CGI
 		str_t	script_name();
 		int		pid();
 		void	reset();
+		void	close_fd();
 
 	private:
+		EvMa	*_evma;
 		str_t	_binary;
 		str_t	_body;
 		str_t	_script_name;
 		int		_pid;
 		int		_status;
-		long	_fd_io[2];
+		int		_fd_io[2];
 		int		_save_io[2];
 		char	**build_cgi_env(Request req, str_t target, strMap headers_resp);
 		void	get_host_port(Request req, strMap &envMap);

@@ -8,11 +8,12 @@
 #include "Server.hpp"
 #include "flags.hpp"
 
+class EvMa;
 class Client
 {
 	public:
 		Client(void);
-		Client(int fd, Server *serv);
+		Client(int fd, Server *serv, EvMa *evma);
 		
 		Client(const Client &ref);
 		Client	&operator=(const Client &ref);
@@ -22,6 +23,7 @@ class Client
 		int		add_data();
 		int		respond();
 		int		fd();
+		CGI		&cgi();
 		time_t	expire();
 		char	*buff();
 		void	touch();
@@ -29,6 +31,7 @@ class Client
 		void	reset();
 		raw_str_t				_remain;
 		Server					*_serv;
+		EvMa					*_evma;
 	private:
 		int						_fd;
 		int						_server_id;

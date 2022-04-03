@@ -1,20 +1,21 @@
 #include "CGI.hpp"
 #include "Config.hpp"
 #include "flags.hpp"
+#include "EvMa.hpp"
 
 // the capacity of a pipe
 // https://man7.org/linux/man-pages/man7/pipe.7.html
 #define CGI_BUF_SIZE 65536
 
-
-CGI::CGI()
+CGI::CGI(EvMa *evma)
 {
+	_evma = evma;
 	_pid = 0;
 	_status = 0;
-	_fd_io[0] = 0;
-	_fd_io[1] = 0;
-	_save_io[0] = 0;
-	_save_io[1] = 0;
+	_fd_io[0] = -1;
+	_fd_io[1] = -1;
+	_save_io[0] = -1;
+	_save_io[1] = -1;
 }
 
 CGI::~CGI()
@@ -23,6 +24,14 @@ CGI::~CGI()
 	//close(_fd_io[1]);
 	//close(_save_io[0]);
 	//close(_save_io[1]);
+}
+
+void CGI::close_fd()
+{
+	close(_fd_io[0]);
+	close(_fd_io[1]);
+	close(_save_io[0]);
+	close(_save_io[1]);
 }
 
 void CGI::set_binary(str_t path)
@@ -55,21 +64,21 @@ void CGI::exec_cgi(str_t target, Request req, strMap headers_resp, FLAGS *flags,
 	_fd_io[0] = fileno(file_in);
 	_fd_io[1] = fileno(file_out);
 
-	write(_fd_io[0], _body.c_str(), _body.size());
-	lseek(_fd_io[0], 0, SEEK_SET);
+	//write(_fd_io[0], _body.c_str(), _body.size());
+	//lseek(_fd_io[0], 0, SEEK_SET);
 
 	if ((pid = fork()) == -1)
 		fatal("error: fork failed on CGI: PID = -1");
 	else if (pid == 0)
 	{
 	  // STDOUT become a copy of _fd_io[1], and, in case of POST, STDIN become a copy of _fd_io[0]
-		dup2(_fd_io[0], STDIN_FILENO);
+		//dup2(_fd_io[0], STDIN_FILENO);
 		dup2(_fd_io[1], STDOUT_FILENO);
-			/* closes rajoutés par Nina le 2 Avril a revérifier ensemble */
-		close(_fd_io[1]);
 		close(_fd_io[0]);
-		close(_save_io[1]);
+		close(_fd_io[1]);
 		close(_save_io[0]);
+		close(_save_io[1]);
+		_evma->close_all();
 		if (execve(_binary.c_str(), args, env) < 0)
 			fatal("execve failed\n");
 	}
@@ -83,8 +92,6 @@ void CGI::exec_cgi(str_t target, Request req, strMap headers_resp, FLAGS *flags,
 
 void	CGI::check(FLAGS *flags, unsigned int *code)
 {
-	//_status = 0;
-	//;
 	if (waitpid(_pid, &_status, WNOHANG | WUNTRACED) == 0)
 	{
 		//*flags &= ~RES_READY;
@@ -93,7 +100,6 @@ void	CGI::check(FLAGS *flags, unsigned int *code)
 	else 
 	{
 		lseek(_fd_io[1], 0, SEEK_SET);
-
 		if (!WIFSIGNALED(_status) && !WCOREDUMP(_status) && !WIFSTOPPED(_status))
 		{
 			char	tmp[CGI_BUF_SIZE];
@@ -102,18 +108,19 @@ void	CGI::check(FLAGS *flags, unsigned int *code)
 			memset(tmp, 0, CGI_BUF_SIZE);
 			while ((ret = read(_fd_io[1], tmp, CGI_BUF_SIZE - 1)) > 0)
 			{
-				
 				_body += tmp;
 				memset(tmp, 0, CGI_BUF_SIZE);
 			}
+			close(_fd_io[1]);
+			close(_fd_io[0]);
+			//dup2(_save_io[0], STDIN_FILENO);			we did not dup anything to STDIO in this process, did we ?
+			//dup2(_save_io[1], STDOUT_FILENO);
+			close(_save_io[1]);
+			close(_save_io[0]);
 		}
 		else
 			*code = 502;
 
-		close(_fd_io[1]);
-		close(_fd_io[0]);
-		dup2(_save_io[0], STDIN_FILENO);
-		dup2(_save_io[1], STDOUT_FILENO);
 		*flags |= RES_READY;
 	}
 
@@ -200,10 +207,11 @@ void	CGI::reset()
 	_script_name.clear();
 	_pid = 0;
 	_status = 0;
-	_fd_io[0] = 0;
-	_fd_io[1] = 0;
-	_save_io[0] = 0;
-	_save_io[1] = 0;
+	_fd_io[0] = -1;
+	_fd_io[1] = -1;
+	_save_io[0] = -1;
+	_save_io[1] = -1;
+	
 }
 
 void CGI::free_str_tab(char **str_tab)
