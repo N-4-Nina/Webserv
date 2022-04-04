@@ -58,4 +58,4 @@ void    log(Server *serv, Client *client, str_t err);
 #define SERVER_VERSION  "HTTP/1.1"
 #define MAXREAD			100000
 #define MAXCONN			512
-#define TIMEOUT         20000
+#define TIMEOUT         5000

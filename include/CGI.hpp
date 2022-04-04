@@ -26,6 +26,7 @@ class CGI
 		CGI(EvMa *evma = NULL);
 		~CGI();
 
+		EvMa	*_evma;
 		void	set_binary(str_t path);
 		void	set_script_name(str_t script_name);
 		void	exec_cgi(str_t target, Request req, strMap headers_resp, FLAGS *flags, unsigned int *code);
@@ -38,7 +39,7 @@ class CGI
 		void	close_fd();
 
 	private:
-		EvMa	*_evma;
+		
 		str_t	_binary;
 		str_t	_body;
 		str_t	_script_name;

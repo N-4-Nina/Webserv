@@ -83,6 +83,7 @@ void	EvMa::add_to_interest(int fd, Server *serv)
 	_clients.insert(std::pair<int, Client>(fd, Client(fd, serv, this)));
 	//_clients[fd] = Client(fd, serv);
 	_clients[fd].touch();
+	_expire.push_back(&_clients[fd]);
 	log(serv, &_clients[fd],  "New client connected.");
 }
 
@@ -133,20 +134,23 @@ void	EvMa::update_expiry(int fd)
 int	EvMa::timeout()
 {
 	if (!_expire.size())				//we do not have any open connections and don't need any timeout
-		{ return (-1); }
+		{ return (TIMEOUT); }
 	int to = (*_expire.begin())->expire() - time_in_ms();
 	if (to > 0)
 		return (to);
-	return (-1);
+	return (TIMEOUT);
 }
 
-void	EvMa::disconnect_socket(int fd, Server *serv)
+void	EvMa::disconnect_socket(int fd, Server *serv, str_t reason)
 {
-	log(serv, &_clients[fd], "Closed connection: client.");
+	log(serv, &_clients[fd], "Closed connection: " + reason);
 	for (Expire_iterator ex = _expire.begin(); ex != _expire.end(); ex++)
 	{
-		if ((*ex) && (*ex)->fd() == fd)
+		if ((*ex)  == &_clients[fd])
+		{
 			_expire.erase(ex);
+			break;
+		}
 	}
 	_clients.erase(fd);
 	shutdown(fd, SHUT_RDWR);
@@ -203,28 +207,27 @@ void	EvMa::loop()
 			else if (_clients[fd].isReady() && ev & EPOLLOUT)
 			{
 				assert(is_connected(fd), "write/ could not find fd");
-				
-				_clients[fd].touch();
 				if (!_clients[fd].respond())
-					_expire.push_back(&_clients[fd]);
+					disconnect_socket(fd, ptr, "request or gateway timeout.");
 			}
 			else if (ev & (EPOLLERR | EPOLLHUP | EPOLLRDHUP))
 			{
 				assert(is_connected(fd), "disconnect/ could not find fd");
-				for (Expire_iterator ex = _expire.begin(); ex != _expire.end() && (*ex)->expire() < time_in_ms(); ex = _expire.begin())
-    			{ if ((*ex)->fd() == fd) {disconnect_socket_ex(ex);} }
+				disconnect_socket(fd, ptr, "EPOLLERR or socket shutdown");
 			}
 			else if (ev & EPOLLIN)
 			{
 				assert(is_connected(fd), "read/ could not find fd");
-				update_expiry(fd);
+				//update_expiry(fd);
 				if (_clients[fd].add_data())
-					disconnect_socket(fd, ptr);
+					disconnect_socket(fd, ptr, "read returned 0 or -1");
 			}	
 		}
-		//_event_nb = 0;
-		if (!_expire.size())
-			continue;
+		if (_clients.size() == 26)
+		{
+			std::cout << "clients over 25\n";
+			sleep(2);
+		}
 		for (Expire_iterator ex = _expire.begin(); ex != _expire.end() && (*ex)->expire() < time_in_ms(); ex = _expire.begin())
     		{ disconnect_socket_ex(ex); }
 		//_event_nb = 0;

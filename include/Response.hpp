@@ -16,7 +16,7 @@ class Response
 	public:
 		Response(void);
 		Response(Request &req, Config *conf, Client *client, EvMa *evma);
-		//Response(const Response &ref);
+		Response(const Response &ref);
 		Response	&operator=(const Response &ref);
 		~Response(void);
 		void 			set_status(unsigned int s);
@@ -27,6 +27,8 @@ class Response
 		static	str_t							_error_page[2];
 		void									set_body_cgi(Request req);
 		void									check_cgi();
+		void									kill_cgi();
+		void									get_error_page();
 		strMap	headers();
 		FLAGS	flags();
 		CGI		&cgi();
@@ -39,7 +41,6 @@ class Response
 		void	set_redir();
 		void	set_headers(str_t path);
 		void	add_header(str_t key, str_t val);
-		void	get_error_page();
 		bool	cgi_match(str_t uri);
 		str_t	add_head();
 

@@ -3,6 +3,7 @@
 #include "str_manips.hpp"
 #include <fstream>
 #include "common.hpp"
+#include "EvMa.hpp"
 
 //std::set<int>	CGI::toClose;
 
@@ -87,7 +88,6 @@ int			Client::add_data()
 	raw_str_t::iterator pos;
 	int n;
 	FLAGS &flags = _req._flags;
-
 	memset(_buff, 0, MAXREAD + 1);
 	
 	n  = read(_fd, _buff, MAXREAD);
@@ -96,6 +96,7 @@ int			Client::add_data()
 	//	return (-1);
 	if (n <= 0)					//also this....
 		return (1);
+	this->touch();
 	log(_serv, this, "Read " + to_string(n) + " octets.");
 	input = char_to_raw(_buff, n);
 	if (_remain.size())
@@ -200,12 +201,28 @@ int	Client::respond()
 	{
 		log(_serv, this, "Responding");
 		_res = Response(_req, _serv->conf(), this, _evma);
+		this->touch();
 	}
 	else
 		_res.check_cgi();
 	
 	if ((_res.flags() & RES_READY))
 	{
+		this->touch();
+		_res.send();
+		this->reset();
+		return (1);
+	}
+	else if (_expire < time_in_ms())
+	{
+		if (( _res.flags() & RES_ISCGI))
+		{
+			_res.set_status(504);		//gateway timeout
+			_res.kill_cgi();
+		}
+		else
+			_res.set_status(408);		//request timeout
+		_res.get_error_page();
 		_res.send();
 		this->reset();
 		return (0);

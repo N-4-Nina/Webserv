@@ -14,7 +14,7 @@ class EvMa
 		//EvMa	&operator=(const EvMa &ref);
 		~EvMa(void);
 		void	close_all(void);
-
+		
 		void	loop();
 	private:
 		Cluster			_cluster;
@@ -34,7 +34,7 @@ class EvMa
 		bool    is_connected(int fd);
 		int		timeout();
 		bool	is_listen(int fd, Server **serv);
-		void	disconnect_socket(int fd, Server *serv);
+		void	disconnect_socket(int fd, Server *serv, str_t reason = "unspecified reason.");
 		void	disconnect_socket_ex(Expire_iterator ex);
 
 };

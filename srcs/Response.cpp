@@ -2,15 +2,28 @@
 #include "Client.hpp"
 #include "str_manips.hpp"
 #include "find_nocase.hpp"
-
+#include "EvMa.hpp"
 #include <fstream>
+
 Response::Response(void)
 {
 }
 
-// Response::Response(const Response &ref)
-// {
-// }
+Response::Response(const Response &ref)
+{
+	_cgi = ref._cgi;
+	_client = ref._client;
+	_conf = ref._conf;
+	_route = ref._route;
+	_flags = ref._flags;
+	_loc = ref._loc;
+	_status = ref._status;
+	_fd = ref._fd;
+	_headers = ref._headers;
+	_index = ref._index;
+	_head = ref._head;
+	_body = ref._body;
+}
 
 Response	&Response::operator=(const Response &ref)
 {
@@ -40,6 +53,7 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 {
 	_client = client;
 	_flags |= RES_READY;
+	_flags |= RES_STARTED;
 
 	if (req.isBad())
 	{
@@ -383,13 +397,17 @@ void	Response::check_cgi()
 	}
 }
 
+void	Response::kill_cgi()
+{
+	kill(_cgi.pid(), SIGABRT);
+	_cgi.reset();
+}
+
 void	Response::set_body_cgi(Request req)
 {
 	char tmp[256];
 	location_v loc = _conf->location();
 	size_t i = 0;
-	//_cgi = CGI()
-
 	for (location_v::iterator it = loc.begin() ; it != loc.end() ; ++it, ++i)
 	{
 		if (!loc.at(i).cgi_path().empty())
@@ -432,7 +450,6 @@ void	Response::set_body_cgi(Request req)
 			return;
 		}
 	}
-	_flags |= RES_STARTED;
 	_cgi.set_script_name(target.substr(target.find("/cgi")));
 	_cgi.exec_cgi(target, req, this->headers(), &_flags, &_status);
 

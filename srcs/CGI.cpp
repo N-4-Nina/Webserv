@@ -72,7 +72,7 @@ void CGI::exec_cgi(str_t target, Request req, strMap headers_resp, FLAGS *flags,
 	else if (pid == 0)
 	{
 	  // STDOUT become a copy of _fd_io[1], and, in case of POST, STDIN become a copy of _fd_io[0]
-		//dup2(_fd_io[0], STDIN_FILENO);
+		dup2(_fd_io[0], STDIN_FILENO);
 		dup2(_fd_io[1], STDOUT_FILENO);
 		close(_fd_io[0]);
 		close(_fd_io[1]);
@@ -99,11 +99,11 @@ void	CGI::check(FLAGS *flags, unsigned int *code)
 	}
 	else 
 	{
-		lseek(_fd_io[1], 0, SEEK_SET);
 		if (!WIFSIGNALED(_status) && !WCOREDUMP(_status) && !WIFSTOPPED(_status))
 		{
+			lseek(_fd_io[1], 0, SEEK_SET);
 			char	tmp[CGI_BUF_SIZE];
-			size_t	ret = 1;
+			int	ret = 1;
 
 			memset(tmp, 0, CGI_BUF_SIZE);
 			while ((ret = read(_fd_io[1], tmp, CGI_BUF_SIZE - 1)) > 0)
@@ -207,6 +207,14 @@ void	CGI::reset()
 	_script_name.clear();
 	_pid = 0;
 	_status = 0;
+	if (_fd_io[0] > 1)
+		close(_fd_io[0]);
+	if (_fd_io[1] > 1)
+		close(_fd_io[1]);
+	if (_save_io[0] > 1)
+		close(_save_io[0]);
+	if (_save_io[0] > 1)
+		close(_save_io[0]);
 	_fd_io[0] = -1;
 	_fd_io[1] = -1;
 	_save_io[0] = -1;
