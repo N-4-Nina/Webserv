@@ -94,9 +94,12 @@ int			Client::add_data()
 	
 	//if (n == -1)
 	//	return (-1);
-	if (n <= 0)					//also this....
+	if (n == 0)
+		return (0);
+	else if (n < 0)					//also this....
 		return (1);
-	this->touch();
+	if (n > 0)
+		this->touch();
 	log(_serv, this, "Read " + to_string(n) + " octets.");
 	input = char_to_raw(_buff, n);
 	if (_remain.size())

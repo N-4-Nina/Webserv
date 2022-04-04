@@ -53,7 +53,7 @@ void	EvMa::close_all(void)
 	}
 	for (Clients_pool::iterator it = _clients.begin(); it != _clients.end(); it++)
 	{
-		close(it->second.fd());
+		close(it->first);
 		it->second.cgi().close_fd();
 	}
 }
@@ -76,7 +76,7 @@ void	EvMa::add_to_interest(int fd, Server *serv)
 {
 	unlock_socket(fd);
 	_event.data.fd = fd;
-	_event.events = EPOLLIN | EPOLLOUT ;
+	_event.events = EPOLLIN | EPOLLOUT;
 	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &_event) == -1)
 		fatal("failed to add incoming connection to interest list.");
 	//Client tmp(fd, serv);
@@ -204,29 +204,25 @@ void	EvMa::loop()
 			{
 				std::cout << "fd " << fd << " does not exist.\n";
 			}
+			else if (ev & (EPOLLERR | EPOLLHUP))
+			{
+				assert(is_connected(fd), "disconnect/ could not find fd");
+				disconnect_socket(fd, ptr, "EPOLLERR or socket shutdown");
+			}
 			else if (_clients[fd].isReady() && ev & EPOLLOUT)
 			{
 				assert(is_connected(fd), "write/ could not find fd");
 				if (!_clients[fd].respond())
 					disconnect_socket(fd, ptr, "request or gateway timeout.");
 			}
-			else if (ev & (EPOLLERR | EPOLLHUP | EPOLLRDHUP))
-			{
-				assert(is_connected(fd), "disconnect/ could not find fd");
-				disconnect_socket(fd, ptr, "EPOLLERR or socket shutdown");
-			}
 			else if (ev & EPOLLIN)
 			{
 				assert(is_connected(fd), "read/ could not find fd");
 				//update_expiry(fd);
 				if (_clients[fd].add_data())
-					disconnect_socket(fd, ptr, "read returned 0 or -1");
+					disconnect_socket(fd, ptr, "read returned 0.");
 			}	
-		}
-		if (_clients.size() == 26)
-		{
-			std::cout << "clients over 25\n";
-			sleep(2);
+			
 		}
 		for (Expire_iterator ex = _expire.begin(); ex != _expire.end() && (*ex)->expire() < time_in_ms(); ex = _expire.begin())
     		{ disconnect_socket_ex(ex); }

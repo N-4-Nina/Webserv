@@ -193,6 +193,9 @@ void	Response::set_headers(str_t path)
 	}
 	if (_body.size())
 		add_header("content-length", to_string<size_t>(_body.size()));
+
+	//check if request got connection:close specified, else:
+	add_header("Connection", "keep-alive");
 }
 
 unsigned int	Response::status()
@@ -456,4 +459,5 @@ void	Response::set_body_cgi(Request req)
 	_body = _cgi.body();
 	add_header("content-length", to_string<size_t>(_body.size()));		//move maybe ? at least cl
 	add_header("content-type", "text/html");
+	add_header("Connection", "keep-alive");
 }

@@ -46,7 +46,7 @@ class CGI
 		int		_pid;
 		int		_status;
 		int		_fd_io[2];
-		int		_save_io[2];
+		//int		_save_io[2];
 		char	**build_cgi_env(Request req, str_t target, strMap headers_resp);
 		void	get_host_port(Request req, strMap &envMap);
 		void	free_str_tab(char **str_tab);
