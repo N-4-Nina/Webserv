@@ -370,7 +370,7 @@ void			Response::send()
 	str_t  res = add_head();
 	res += _body + "\4";
 	const char *tmp = res.c_str();
-	write(_fd, tmp, res.size());
+	write(_fd, tmp, res.size() + 1);
 	fsync(_fd);
 }
 
