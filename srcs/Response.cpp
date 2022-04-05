@@ -192,7 +192,7 @@ void	Response::set_headers(str_t path)
 			add_header("content-type", _mimeTypes[ext]);
 	}
 	if (_body.size())
-		add_header("content-length", to_string<size_t>(_body.size()));
+		add_header("content-length", to_string<size_t>(_body.size() + 1));
 
 	//check if request got connection:close specified, else:
 	add_header("Connection", "keep-alive");
@@ -226,13 +226,13 @@ void			Response::get_error_page()
 			stream.close();
 			if (_body.size())
 			{
-				add_header("content-length", to_string(_body.size()));
+				add_header("content-length", to_string(_body.size() + 1));
 				return;
 			}
 		}
 	}
 	_body = _error_page[0] + to_string(_status) + " : " + _codes[_status] + _error_page[1];
-	add_header("content-length", to_string(_body.size()));
+	add_header("content-length", to_string(_body.size() + 1));
 }
 
 bool			Response::cgi_match(str_t uri)
@@ -370,7 +370,7 @@ void			Response::send()
 	str_t  res = add_head();
 	res += _body + "\4";
 	const char *tmp = res.c_str();
-	write(_fd, tmp, res.size() + 1);
+	write(_fd, tmp, res.size());
 	fsync(_fd);
 }
 
@@ -395,7 +395,7 @@ void	Response::check_cgi()
 	else if ((_flags & RES_READY))
 	{
 		_body = _cgi.body();
-		add_header("content-length", to_string<size_t>(_body.size()));
+		add_header("content-length", to_string<size_t>(_body.size() + 1));
 		add_header("content-type", "text/html");
 	}
 }
@@ -457,7 +457,7 @@ void	Response::set_body_cgi(Request req)
 	_cgi.exec_cgi(target, req, this->headers(), &_flags, &_status);
 
 	_body = _cgi.body();
-	add_header("content-length", to_string<size_t>(_body.size()));		//move maybe ? at least cl
+	add_header("content-length", to_string<size_t>(_body.size() + 1));		//move maybe ? at least cl
 	add_header("content-type", "text/html");
 	add_header("Connection", "keep-alive");
 }
