@@ -92,14 +92,11 @@ int			Client::add_data()
 	
 	n  = read(_fd, _buff, MAXREAD);
 	
-	//if (n == -1)
-	//	return (-1);
 	if (n == 0)
 		return (0);
 	else if (n < 0)					//also this....
 		return (1);
-	if (n > 0)
-		this->touch();
+	this->touch();
 	log(_serv, this, "Read " + to_string(n) + " octets.");
 	input = char_to_raw(_buff, n);
 	if (_remain.size())
@@ -109,28 +106,6 @@ int			Client::add_data()
 		_remain.clear();
 	}
 
-	/* this next block up to line 105 is very sus... do we even need it ?..*/
-	//pos = raw_find(input, CRLF, 2, _read_pos);
-	// if (pos == input.end())
-	// {
-	// 	if ((flags & PARSED_CL) && _req.cl() == _req.read_body() + input.size())
-	// 	{
-	// 		_req.add_Body(line);
-	// 		if (_req.done_Reading())
-	// 		{
-	// 			_ready = true;
-	// 			input.clear();
-	// 			_remain.clear();
-	// 		}
-	// 	}
-	// 	else if (!(flags & PARSED_HEADERS))
-	// 	{
-	// 		_remain = input;
-	// 		input.clear();
-	// 		_read_pos = _remain.size();
-	// 		return (0);
-	// 	}
-	// }
 
 	while (input.size())
 	{

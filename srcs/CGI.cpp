@@ -54,10 +54,13 @@ void CGI::exec_cgi(str_t target, Request req, strMap headers_resp, FLAGS *flags,
 
 	// tmpfile - creates a temporary binary file, open for update with a filename guaranteed to be different from any other existing file
 	//FILE	*file_in = tmpfile();
-	FILE	*file_out = tmpfile();
+	//FILE	*file_out = tmpfile();//
+
 	// fileno - map a stream pointer to a file descriptor
 	//_fd_io[0] = fileno(file_in);
-	_fd_io[1] = fileno(file_out);
+	if (pipe(_fd_io))
+		fatal("error: pipe failed");
+	//_fd_io[1] = fileno(file_out);
 
 	if ((pid = fork()) == -1)
 		fatal("error: fork failed on CGI: PID = -1");
@@ -65,16 +68,17 @@ void CGI::exec_cgi(str_t target, Request req, strMap headers_resp, FLAGS *flags,
 	{
 	  // STDOUT become a copy of _fd_io[1], and, in case of POST, STDIN become a copy of _fd_io[0]
 		//dup2(_fd_io[0], STDIN_FILENO);
-		dup2(_fd_io[1], STDOUT_FILENO);
-		_evma->close_all();
 		close(_fd_io[0]);
+		dup2(_fd_io[1], STDOUT_FILENO);
 		close(_fd_io[1]);
+		_evma->close_all();
 		if (execve(_binary.c_str(), args, env) < 0)
 			fatal("execve failed\n");
 	}
 	else
 	{
 		_pid = pid;
+		close(_fd_io[1]);
 		check(flags, code);	
 	}
 	free_cgi(args, env);
@@ -96,14 +100,14 @@ void	CGI::check(FLAGS *flags, unsigned int *code)
 			int	ret = 1;
 
 			memset(tmp, 0, CGI_BUF_SIZE);
-			while ((ret = read(_fd_io[1], tmp, CGI_BUF_SIZE - 1)) > 0)
+			while ((ret = read(_fd_io[0], tmp, CGI_BUF_SIZE - 1)) > 0)
 			{
 				_body += tmp;
 				memset(tmp, 0, CGI_BUF_SIZE);
 			}
-			close(_fd_io[1]);
+			
 			close(_fd_io[0]);
-			//kill(_pid, SIGKILL);
+			kill(_pid, SIGKILL);
 		}
 		else
 			*code = 502;
@@ -194,10 +198,6 @@ void	CGI::reset()
 	_script_name.clear();
 	_pid = 0;
 	_status = 0;
-	if (_fd_io[0] > 1)
-		close(_fd_io[0]);
-	if (_fd_io[1] > 1)
-		close(_fd_io[1]);
 	_fd_io[0] = -1;
 	_fd_io[1] = -1;
 
