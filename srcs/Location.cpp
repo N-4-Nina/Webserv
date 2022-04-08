@@ -152,7 +152,7 @@ void Location::set_upload_path(str_t line)
 	}
 }
 
-void Location::set_redir(std::string line)
+void Location::set_redir(str_t line)
 {
     size_t space_pos;
     size_t space_pos_bis;
@@ -168,9 +168,9 @@ void Location::set_redir(std::string line)
     {
         space_pos = line.find(" ");
         space_pos_bis = line.find(" ", space_pos + 1);
-        if (space_pos == std::string::npos || space_pos_bis == std::string::npos ||
-            line.find(" ", space_pos_bis + 1) != std::string::npos)
-            throw std::string("Error: Wrong number argument for return");
+        if (space_pos == str_t::npos || space_pos_bis == str_t::npos ||
+            line.find(" ", space_pos_bis + 1) != str_t::npos)
+            throw str_t("Error: Wrong number argument for return");
         this->_redir.first = line.substr(space_pos + 1, (space_pos_bis - space_pos - 1));
         this->_redir.second = line.substr(space_pos_bis + 1);
 		_flags |= LOC_REDIR;
@@ -244,12 +244,12 @@ str_t Location::search_config(str_t config, str_t key)
 std::ostream& operator<<(std::ostream& os, Location &src)
 {
 	os << "{" << std::endl;
-	// std::list<std::string> index = src.index();
+	// std::list<str_t> index = src.index();
 
-	// for (std::list<std::string>::iterator it = index.begin() ; it != index.end() ; ++it)
+	// for (std::list<str_t>::iterator it = index.begin() ; it != index.end() ; ++it)
 	// 	os << "\t\t- " << *it << std::endl;
 
-	for (std::list<std::string>::iterator it = src.methods().begin() ; it != src.methods().end() ; ++it)
+	for (std::list<str_t>::iterator it = src.methods().begin() ; it != src.methods().end() ; ++it)
 		os << "\t\t- " << *it << std::endl;
 
 

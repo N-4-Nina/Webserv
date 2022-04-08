@@ -7,6 +7,7 @@
 #include "Location.hpp"
 #include "CGI.hpp"
 #include "flags.hpp"
+// #include "Autoindex.hpp"
 //#include "Client.hpp"
 
 class Client;
@@ -32,6 +33,8 @@ class Response
 		strMap	headers();
 		FLAGS	flags();
 		CGI		&cgi();
+
+		void	get_autoindex(Request req);
 
 		void	reset();
 	private:
