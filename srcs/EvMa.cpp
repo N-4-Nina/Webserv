@@ -76,7 +76,7 @@ void	EvMa::add_to_interest(int fd, Server *serv)
 {
 	unlock_socket(fd);
 	_event.data.fd = fd;
-	_event.events = EPOLLIN | EPOLLOUT;
+	_event.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP;
 	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &_event) == -1)
 		fatal("failed to add incoming connection to interest list.");
 	//Client tmp(fd, serv);
@@ -204,7 +204,7 @@ void	EvMa::loop()
 			{
 				std::cout << "fd " << fd << " does not exist.\n";
 			}
-			else if (ev & (EPOLLERR | EPOLLHUP))
+			else if (ev & (EPOLLERR | EPOLLRDHUP))
 			{
 				assert(is_connected(fd), "disconnect/ could not find fd");
 				disconnect_socket(fd, ptr, "EPOLLERR or socket shutdown");
@@ -212,7 +212,7 @@ void	EvMa::loop()
 			else if (_clients[fd].isReady() && ev & EPOLLOUT)
 			{
 				assert(is_connected(fd), "write/ could not find fd");
-				if (!_clients[fd].respond())
+				if (_clients[fd].respond())
 					disconnect_socket(fd, ptr, "request or gateway timeout.");
 			}
 			else if (ev & EPOLLIN)

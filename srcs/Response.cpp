@@ -55,6 +55,8 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 	_flags |= RES_READY;
 	_flags |= RES_STARTED;
 
+	if (req.headers()["connection"] == "close")
+		_flags |= RES_CLOSE;
 	if (req.isBad())
 	{
 		_status = req.error();

@@ -19,3 +19,4 @@
 #define RES_DEFCGI		16
 #define RES_STARTED		32
 #define RES_READY		64
+#define RES_CLOSE		128

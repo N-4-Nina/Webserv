@@ -27,7 +27,7 @@ class Config;
 class Client;
 class Location;
 
-typedef	unsigned int			FLAGS;
+typedef	unsigned long			FLAGS;
 
 typedef std::string             str_t;
 typedef std::pair<str_t, str_t> strPair;

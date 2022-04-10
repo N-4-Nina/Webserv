@@ -189,7 +189,7 @@ int	Client::respond()
 		this->touch();
 		_res.send();
 		this->reset();
-		return (1);
+		return (_res.flags() & RES_CLOSE);
 	}
 	else if (_expire < time_in_ms())
 	{
@@ -203,9 +203,10 @@ int	Client::respond()
 		_res.get_error_page();
 		_res.send();
 		this->reset();
-		return (0);
+		return (_res.flags() & RES_CLOSE);
+
 	}
-	return (1);
+	return (0);
 }
 
 void	Client::reset()

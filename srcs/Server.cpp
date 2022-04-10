@@ -63,7 +63,7 @@ bool	Server::is_listen(int fd)
 void	Server::add_to_epoll(int epoll_fd)
 {
 	event_t	tmp;
-	tmp.events = EPOLLIN | EPOLLOUT | EPOLLET;
+	tmp.events = EPOLLIN;
 	for (listen_sockets::iterator it = _ls.begin(); it != _ls.end(); it++)
 	{
 		tmp.data.fd = it->first;
