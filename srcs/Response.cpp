@@ -69,6 +69,10 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 	select_location(req);
 	if (_flags & RES_LOCATED)
 	{
+		// if (_flags & LOC_AUTO)
+		// {
+		// 	get_autoindex(req);
+		// }
 		cgi_match(req._ressource);
 		if (_flags & RES_ISCGI)
 		{
@@ -463,3 +467,14 @@ void	Response::set_body_cgi(Request req)
 	add_header("content-type", "text/html");
 	add_header("Connection", "keep-alive");
 }
+
+// void	Response::get_autoindex(Request req)
+// {
+// 	std::stringstream	buffer;
+
+// 	buffer << Autoindex::getPage(req._ressource.c_str(), "localhost", 8000);
+// 	_body = buffer.str();
+// 	add_header("content-length", to_string<size_t>(_body.size() + 1));		//move maybe ? at least cl
+// 	add_header("content-type", "text/html");
+// 	add_header("Connection", "keep-alive");
+// }
