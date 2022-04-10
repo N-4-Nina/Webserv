@@ -10,7 +10,7 @@ include srcs.mk
 # SRCS = main.cpp
 
 # for define
-WORK_DIR	= -D DIR=\"$(shell pwd)\"
+# WORK_DIR	= -D DIR=\"$(shell pwd)\"
 
 # compilation parameters
 CC			= clang++

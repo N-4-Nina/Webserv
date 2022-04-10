@@ -69,10 +69,13 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 	select_location(req);
 	if (_flags & RES_LOCATED)
 	{
-		// if (_flags & LOC_AUTO)
-		// {
-		// 	get_autoindex(req);
-		// }
+		if ((_loc->flags() & LOC_AUTO))
+		{
+			get_autoindex(req);
+			if (_status < 200 || _status > 299)
+				get_error_page();
+			return;
+		}
 		cgi_match(req._ressource);
 		if (_flags & RES_ISCGI)
 		{
@@ -468,13 +471,32 @@ void	Response::set_body_cgi(Request req)
 	add_header("Connection", "keep-alive");
 }
 
-// void	Response::get_autoindex(Request req)
-// {
-// 	std::stringstream	buffer;
+void	Response::get_autoindex(Request req)
+{
+	std::stringstream	buffer;
+	str_t path = _loc->root();
 
-// 	buffer << Autoindex::getPage(req._ressource.c_str(), "localhost", 8000);
-// 	_body = buffer.str();
-// 	add_header("content-length", to_string<size_t>(_body.size() + 1));		//move maybe ? at least cl
-// 	add_header("content-type", "text/html");
-// 	add_header("Connection", "keep-alive");
-// }
+
+	int dot = 0; 
+	
+	if ((dot = req._ressource.find(".")) != -1)
+	{	str_t ext = req._ressource.substr(dot, str_t::npos);
+		if (_mimeTypes.count(ext))
+		{
+			size_t found = req._ressource.find_last_of("/");
+			
+		//		int pos = *req._ressource.rbegin();
+		//		std::cout << std::endl << pos << std::endl;
+		//		req._ressource = req._ressource.substr(0, pos);
+			
+			path.append(req._ressource.substr(found + 1));
+		}
+	}
+	std::cout << "ressource " << req._ressource.c_str() << " path " << path << std::endl;
+
+	buffer << Autoindex::getPage(req._ressource.c_str(), path.c_str(), "localhost", 8000); // !!!!!!!!! get les trucs la wsh
+	_body = buffer.str();
+	add_header("content-length", to_string<size_t>(_body.size() + 1));		//move maybe ? at least cl
+	add_header("content-type", "text/html");
+	add_header("Connection", "keep-alive");
+}

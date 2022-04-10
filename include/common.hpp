@@ -1,3 +1,4 @@
+// #include <dirent.h>
 #pragma once
 
 #include <algorithm>
@@ -21,7 +22,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <vector>
-//#include <dirent.h>
 
 class Server;
 class Config;

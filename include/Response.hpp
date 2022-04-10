@@ -7,7 +7,7 @@
 #include "Location.hpp"
 #include "CGI.hpp"
 #include "flags.hpp"
-// #include "Autoindex.hpp"
+#include "Autoindex.hpp"
 //#include "Client.hpp"
 
 class Client;
