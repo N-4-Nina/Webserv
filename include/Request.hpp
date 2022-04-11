@@ -4,13 +4,6 @@
 #include "../include/common.hpp"
 #include "Config.hpp"
 
-enum
-{
-	R_GET,
-	R_POST,
-	R_DELETE
-};
-
 #define REQ_ISBAD 1
 
 class Request

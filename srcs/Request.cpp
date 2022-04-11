@@ -117,22 +117,22 @@ size_t Request::parse_Url(str_t const &line)
 
 int Request::parse_TopLine(str_t input)
 {
-	size_t found = R_DELETE + 1;
+	size_t found = 3;
 	static str_t strTypes[3] = {"GET", "POST", "DELETE"};
 
 	_flags |= PARSED_TOP;
 	str_t line = newLine(input);
-	for (size_t i = R_GET; i <= R_DELETE; i++)
+	for (size_t i = 0; i <= 2; i++)
 	{
 		if (line.find(strTypes[i]) != line.npos)
 			found = i;
 	}
-	if (found == R_DELETE + 1)
+	if (found == 3)
 	{
 		set_Error(400);
 		return (1);
 	}
-	_type = found;
+	_type = int_pow(2, found);
 
 	size_t pos = parse_Url(line);
 

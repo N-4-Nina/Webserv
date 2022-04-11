@@ -38,6 +38,8 @@ typedef std::map<int, Server>	Cluster;
 typedef	std::map<int, Client>	Clients_pool;
 typedef	std::map<int, int>		listen_sockets;
 
+typedef std::pair<long, str_t>  Redir;
+
 typedef	std::vector<Location>	location_v;
 typedef std::vector<Config>		config_v;
 typedef std::vector<int>		int_v;
@@ -54,6 +56,8 @@ void    assert(bool scal, str_t log);
 int		unlock_socket(int fd);
 void	initialize_mime_types();
 void    log(Server *serv, Client *client, str_t err);
+int     int_pow(int base, int exp);
+
 
 #define CRLF            "\r\n"
 #define SERVER_VERSION  "HTTP/1.1"

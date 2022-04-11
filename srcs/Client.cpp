@@ -124,13 +124,13 @@ int			Client::add_data()
 		else if (!(flags & PARSED_HEADERS) && line.size() == 0)
 		{
 			flags |= PARSED_HEADERS;
-			if (_req.type() == R_POST && !(flags & PARSED_CL))
+			if (_req.type() == POST && !(flags & PARSED_CL))
 			{
 				_req.set_Error(411);
 				_ready = true;
 				break;
 			}
-			else if (_req.type() != R_POST)
+			else if (_req.type() != POST)
 			{
 				input.clear();
 				_remain.clear();

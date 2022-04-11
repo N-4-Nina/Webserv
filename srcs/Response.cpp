@@ -59,8 +59,7 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 		_flags |= RES_CLOSE;
 	if (req.isBad())
 	{
-		_status = req.error();
-		get_error_page();
+		set_status(req.error());
 		return ;
 	}
 	else
@@ -69,6 +68,14 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 	select_location(req);
 	if (_flags & RES_LOCATED)
 	{
+		if ((_loc->flags() & LOC_METHOD))
+		{
+			if (!(req.type() & _loc->methods()))
+			{
+				set_status(403);
+				return;
+			}
+		}
 		if ((_loc->flags() & LOC_AUTO))
 		{
 			get_autoindex(req);
@@ -82,29 +89,26 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 			_flags &= ~RES_READY;
 			set_body_cgi(req);
 		}
-		if (req.type() == R_POST && (_loc->flags() & LOC_UPLOAD))			//please note that in this state we cannot upload on the default route. this is intentional.
+		if (req.type() == POST && (_loc->flags() & LOC_UPLOAD))			//please note that in this state we cannot upload on the default route. this is intentional.
 			upload_file(req);
 		if (_loc->flags() & LOC_REDIR)
 		{
-			_status = strtol(_loc->redir().first.c_str(), NULL, 10);
-			if (_status < 300 || _status > 310)
-				std::cout << "Redirection status should be between 300 and 310" << std::endl;
-			else
-			{
-				set_redir();
-				return;
-			}
+			set_status(_loc->redir().first);
+			set_redir();
+			return;
 		}
 	}
 	if (!(_flags & RES_ISCGI))
 		set_body_ress(req, conf);
-	if (_status < 200 || _status > 299)
-		get_error_page();
+	//if (_status < 200 || _status > 299)
+	//	get_error_page();
 }
 
 void			Response::set_status(unsigned int s)
 {
 	_status = s;
+	if (_status < 200 || _status > 299)
+		get_error_page();
 }
 
 void			Response::add_header(str_t key, str_t val)

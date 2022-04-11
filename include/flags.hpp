@@ -1,5 +1,10 @@
 #pragma once
 
+	/* METHODS */
+#define GET				1
+#define	POST			2
+#define DELETE			4
+
 
 	/* REQUEST */
 #define PARSED_TOP		1

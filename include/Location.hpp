@@ -22,14 +22,14 @@ class Location
 
 		str_t 				autoindex() const;
 		std::list<str_t>	&index();
-		std::list<str_t>	&methods();
+		FLAGS				&methods();
 		str_t				root() const;
 		str_t				cgi_path() const;
 		str_t				cgi_extension() const ;
 		str_t				route() const ;
 		str_t				upload_path() const ;
 		FLAGS				flags() const;
-		strPair				redir() const;
+		Redir				redir() const;
 
 		str_t search_config(str_t config, str_t key);
 
@@ -40,14 +40,14 @@ class Location
 		str_t				_cgi_path;
 		str_t				_cgi_extension;
 		str_t				_upload_path;
-		std::list<str_t>	_methods;
-		strPair				_redir;
-
+		FLAGS				_methods;
+		Redir				_redir;
 		FLAGS				_flags;
 		
 		void set_autoindex(str_t line);
 		void set_index(str_t line);
 		void set_methods(str_t line);
+		void add_method(str_t str);
 		void set_cgi_path(str_t line);
 		void set_cgi_extension(str_t line);
 		void set_root(str_t line);

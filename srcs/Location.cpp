@@ -1,4 +1,5 @@
 #include "Location.hpp"
+#include "str_manips.hpp"
 
 /*
 *
@@ -103,11 +104,31 @@ void Location::set_methods(str_t line)
 	while (space != str_t::npos)
 	{
 		if (line.find(" ", space + 1) != str_t::npos)
-			this->_methods.push_back(line.substr(space + 1, line.find(' ', space + 1) - space - 1));
+			this->add_method(line.substr(space + 1, line.find(' ', space + 1) - space - 1));
 		else
-			this->_methods.push_back(line.substr(space + 1));
+			this->add_method(line.substr(space + 1));
 		space = line.find(' ', space + 1);
 		_flags |= LOC_METHOD;
+	}
+}
+
+void Location::add_method(str_t str)
+{
+	size_t found = 3;
+	static str_t strTypes[3] = {"get", "post", "delete"};
+
+	for (size_t i = 0; i <= 2; i++)
+	{
+		std::cout << str << " = " << strTypes[i] << "\n";
+		if (str == strTypes[i])
+			found = i;
+	}
+	if (found == 3)
+		throw str_t("error: bad method in conf");
+	else
+	{
+		_methods |= int_pow(2, found);
+		std::cout << strTypes[found] << " = " << to_string(int_pow(2, found)) << "\n";
 	}
 }
 
@@ -161,7 +182,7 @@ void Location::set_redir(str_t line)
     space_pos_bis = 0;
     if (line == "")
     {
-        this->_redir.first = "";
+        this->_redir.first = 0;
         this->_redir.second = "";
     }
     else
@@ -171,8 +192,10 @@ void Location::set_redir(str_t line)
         if (space_pos == str_t::npos || space_pos_bis == str_t::npos ||
             line.find(" ", space_pos_bis + 1) != str_t::npos)
             throw str_t("Error: Wrong number argument for return");
-        this->_redir.first = line.substr(space_pos + 1, (space_pos_bis - space_pos - 1));
-        this->_redir.second = line.substr(space_pos_bis + 1);
+        this->_redir.first = strtol(line.substr(space_pos + 1, (space_pos_bis - space_pos - 1)).c_str(), NULL, 10);
+        if ( this->_redir.first < 300 ||  this->_redir.first > 310)
+				throw str_t("Redirection status should be between 300 and 310");
+		this->_redir.second = line.substr(space_pos_bis + 1);
 		_flags |= LOC_REDIR;
     }
 }
@@ -181,9 +204,9 @@ void Location::set_redir(str_t line)
 * Getters
 */
 
-std::list<str_t> &Location::index() { return (_index); }
+std::list<str_t>	&Location::index() { return (_index); }
 
-std::list<str_t> &Location::methods() { return (_methods); }
+FLAGS				&Location::methods() { return (_methods); }
 
 str_t Location::cgi_path() const { return (this->_cgi_path); }
 
@@ -197,7 +220,7 @@ str_t Location::upload_path() const { return (_upload_path); }
 
 FLAGS	Location::flags() const { return (this->_flags); }
 
-strPair Location::redir() const { return (this->_redir); }
+Redir Location::redir() const { return (this->_redir); }
 
 /*
 * Member functions
@@ -249,8 +272,8 @@ std::ostream& operator<<(std::ostream& os, Location &src)
 	// for (std::list<str_t>::iterator it = index.begin() ; it != index.end() ; ++it)
 	// 	os << "\t\t- " << *it << std::endl;
 
-	for (std::list<str_t>::iterator it = src.methods().begin() ; it != src.methods().end() ; ++it)
-		os << "\t\t- " << *it << std::endl;
+	// for (std::list<str_t>::iterator it = src.methods().begin() ; it != src.methods().end() ; ++it)
+	// 	os << "\t\t- " << *it << std::endl;
 
 
 	os << "\t\t- " << src.redir().first << "=>" << src.redir().second << std::endl;	
