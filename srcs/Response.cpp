@@ -78,10 +78,12 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 		}
 		if ((_loc->flags() & LOC_AUTO))
 		{
-			get_autoindex(req);
-			if (_status < 200 || _status > 299)
-				get_error_page();
-			return;
+			if (get_autoindex(req) == 1)
+			{
+				if (_status < 200 || _status > 299)
+					get_error_page();
+				return;
+			}
 		}
 		cgi_match(req._ressource);
 		if (_flags & RES_ISCGI)
@@ -475,7 +477,7 @@ void	Response::set_body_cgi(Request req)
 	add_header("Connection", "keep-alive");
 }
 
-void	Response::get_autoindex(Request req)
+int		Response::get_autoindex(Request req)
 {
 	std::stringstream	buffer;
 	str_t path = _loc->root();
@@ -489,6 +491,7 @@ void	Response::get_autoindex(Request req)
 		{
 			size_t found = req._ressource.find_last_of("/");
 			path.append(req._ressource.substr(found + 1));
+			return 0;
 		}
 	}
 
@@ -497,4 +500,5 @@ void	Response::get_autoindex(Request req)
 	add_header("content-length", to_string<size_t>(_body.size() + 1));		//move maybe ? at least cl
 	add_header("content-type", "text/html");
 	add_header("Connection", "keep-alive");
+	return 1;
 }

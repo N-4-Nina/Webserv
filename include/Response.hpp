@@ -34,7 +34,7 @@ class Response
 		FLAGS	flags();
 		CGI		&cgi();
 
-		void	get_autoindex(Request req);
+		int		get_autoindex(Request req);
 
 		void	reset();
 	private:
