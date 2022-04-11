@@ -488,15 +488,9 @@ void	Response::get_autoindex(Request req)
 		if (_mimeTypes.count(ext))
 		{
 			size_t found = req._ressource.find_last_of("/");
-			
-		//		int pos = *req._ressource.rbegin();
-		//		std::cout << std::endl << pos << std::endl;
-		//		req._ressource = req._ressource.substr(0, pos);
-			
 			path.append(req._ressource.substr(found + 1));
 		}
 	}
-	std::cout << "ressource " << req._ressource.c_str() << " path " << path << std::endl;
 
 	buffer << Autoindex::getPage(req._ressource.c_str(), path.c_str(), "localhost", 8000); // !!!!!!!!! get les trucs la wsh
 	_body = buffer.str();

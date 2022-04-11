@@ -106,6 +106,16 @@ size_t Request::parse_Url(str_t const &line)
 
 	_ressource = line.substr(pos, end - pos);
 
+	size_t index = 0;
+	while (true)
+	{
+		index = _ressource.find("//", index);
+		if (index == std::string::npos)
+			break;
+		_ressource.replace(index, 2, "/");
+		index += 1;
+	}
+
 	size_t q;
 	if ((q = _ressource.find("?")) != _ressource.npos)
 		parse_QueryString(q);

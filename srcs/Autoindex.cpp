@@ -46,7 +46,7 @@ str_t         Autoindex::getPage(const char *route, const char *path, str_t cons
 
     for (struct dirent *dirEntry = readdir(dir); dirEntry; dirEntry = readdir(dir)) 
     {
-        page += getLink(str_t(dirEntry->d_name), dirName, host, port, route);
+        page += getLink(str_t(dirEntry->d_name), host, port, route);
     }
 
     page +="\
@@ -56,12 +56,15 @@ str_t         Autoindex::getPage(const char *route, const char *path, str_t cons
     return (page);
 }
 
-str_t		Autoindex::getLink(str_t const &dirEntry, str_t const &dirName, str_t const &host, int port, str_t const &route)
+str_t		Autoindex::getLink(str_t const &dirEntry, str_t const &host, int port, str_t const &route)
 {
-	(void)dirName;
-    std::stringstream   ss;
-    ss << "\t\t<p><a href=\"http://" + host + ":" <<\
-        port << route + "/" + dirEntry + "\">" + dirEntry + "</a></p>\n";
+	std::stringstream   ss;
+    if (*route.rbegin() == '/')
+		ss << "\t\t<p><a href=\"http://" + host + ":" <<\
+			port << route + dirEntry + "\">" + dirEntry + "</a></p>\n";
+	else
+		ss << "\t\t<p><a href=\"http://" + host + ":" <<\
+			port << route + "/" + dirEntry + "\">" + dirEntry + "</a></p>\n";
 	std::cout << "ss: " << ss.str() << std::endl;
     return ss.str();
 }
