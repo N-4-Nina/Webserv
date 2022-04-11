@@ -489,8 +489,6 @@ int		Response::get_autoindex(Request req)
 	{	str_t ext = req._ressource.substr(dot, str_t::npos);
 		if (_mimeTypes.count(ext))
 		{
-			size_t found = req._ressource.find_last_of("/");
-			path.append(req._ressource.substr(found + 1));
 			return 0;
 		}
 	}
