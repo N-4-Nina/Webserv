@@ -149,12 +149,12 @@ char **CGI::build_cgi_env(Request req, str_t target, strMap headers_resp)
 	envMap["REDIRECT_STATUS"] = "200"; // needed with php, not mandatory with python i think, but not a bad thing to have
 	envMap["GATEWAY_INTERFACE"] = "CGI/1.1";
 	envMap["SCRIPT_NAME"] = _script_name; 
-	if (req.type() == 0)
-		envMap["REQUEST_METHOD"] = "GET";
-	else if (req.type() == 1)
-		envMap["REQUEST_METHOD"] = "POST";
-	else
-		fatal("CGI can't work with another method than GET or POST"); // CGI only works with GET and POST
+	// if (req.type() == 0)
+	// 	envMap["REQUEST_METHOD"] = "GET";
+	// else if (req.type() == 1)
+	// 	envMap["REQUEST_METHOD"] = "POST";
+	// else
+	// 	fatal("CGI can't work with another method than GET or POST"); // CGI only works with GET and POST
 	for (strMap::iterator it = headers_resp.begin() ; it != headers_resp.end() ; ++it)
 	{
 		if (it->first == "content-type")
