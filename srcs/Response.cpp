@@ -278,7 +278,8 @@ void			Response::select_location(Request &req)
 	{
 		if (req._ressource.find(it->route()) != 0)
 			continue;
-		else
+		else if (req._ressource.length() == it->route().length() || req._ressource[it->route().length()] == '/')
+		//else
 		{
 			_flags |= RES_LOCATED;
 			_loc = &(*it);							//don't judge me ok

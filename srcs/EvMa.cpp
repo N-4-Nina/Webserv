@@ -204,11 +204,22 @@ void	EvMa::loop()
 			{
 				std::cout << "fd " << fd << " does not exist.\n";
 			}
-			else if (ev & (EPOLLERR | EPOLLRDHUP))
+			else if (ev & EPOLLERR)
 			{
 				assert(is_connected(fd), "disconnect/ could not find fd");
-				disconnect_socket(fd, ptr, "EPOLLERR or socket shutdown");
+				int       error = 0;
+				socklen_t errlen = sizeof(error);
+				if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (void *)&error, &errlen) == 0)
+				{
+				    printf("error = %s\n", strerror(error));
+				}
+				disconnect_socket(fd, ptr, "EPOLLERR ");
 			}
+			// else if (ev & EPOLLRDHUP)
+			// {
+			// 	assert(is_connected(fd), "disconnect/ could not find fd");
+			// 	disconnect_socket(fd, ptr, "socket shutdown");
+			// }
 			else if (_clients[fd].isReady() && ev & EPOLLOUT)
 			{
 				assert(is_connected(fd), "write/ could not find fd");

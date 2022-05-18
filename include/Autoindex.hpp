@@ -12,10 +12,9 @@ class Autoindex
         virtual ~Autoindex(void);
 
         Autoindex   &operator=(Autoindex const &src);
-
-        static str_t  getPage(const char *route, const char *path, str_t const &host, int port);
+        static str_t	getPage(const char *route, const char *path, str_t const &host, int port);
     private:
-        static str_t  getLink(str_t const &dirEntry, str_t const &host, int port, str_t const &route);
+        static str_t	getLink(str_t const &dirEntry, str_t const &host, int port, str_t const &route);
 };
 
 #endif

@@ -119,7 +119,6 @@ void Location::add_method(str_t str)
 
 	for (size_t i = 0; i <= 2; i++)
 	{
-		std::cout << str << " = " << strTypes[i] << "\n";
 		if (str == strTypes[i])
 			found = i;
 	}
@@ -128,7 +127,6 @@ void Location::add_method(str_t str)
 	else
 	{
 		_methods |= int_pow(2, found);
-		std::cout << strTypes[found] << " = " << to_string(int_pow(2, found)) << "\n";
 	}
 }
 
