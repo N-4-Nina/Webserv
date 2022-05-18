@@ -482,10 +482,25 @@ int		Response::get_autoindex(Request req)
 {
 	std::stringstream	buffer;
 	str_t path = _loc->root();
+	int	port;
+	str_t	server_name;
 
-
+	for (strMap::iterator it = req.headers().begin() ; it != req.headers().end() ; ++it)
+	{
+		if (it->first == "host")
+		{
+			std::cout  << it->second << std::endl;
+			size_t points = it->second.find(":");
+			size_t start = 0;
+			size_t end = it->second.size() - 1;
+			while (start != points)
+				start++;
+			server_name = it->second.substr(0, start);
+			port = strtol(it->second.substr(points + 1, end).c_str(), NULL, 10);
+		}
+	}
 	int dot = 0; 
-	
+
 	if ((dot = req._ressource.find(".")) != -1)
 	{	str_t ext = req._ressource.substr(dot, str_t::npos);
 		if (_mimeTypes.count(ext))
@@ -494,7 +509,9 @@ int		Response::get_autoindex(Request req)
 		}
 	}
 
-	buffer << Autoindex::getPage(req._ressource.c_str(), path.c_str(), "localhost", 8000); // !!!!!!!!! get les trucs la wsh
+	buffer << Autoindex::getPage(req._ressource.c_str(), path.c_str(), server_name, port); // nom du serveur qu'on ne gere pas
+	// + auto index sur les cgi
+	// + auto index front page
 	_body = buffer.str();
 	add_header("content-length", to_string<size_t>(_body.size() + 1));		//move maybe ? at least cl
 	add_header("content-type", "text/html");
