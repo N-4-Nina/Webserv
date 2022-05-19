@@ -5,13 +5,13 @@ Config::Config(str_t config) :
 _client_max_body_size(1000000), _root("/"), _index(1, "index.html"),
 _autoindex("off")
 {
-
 	set_ports(search_config(config, "listen"));
 	set_server_name(search_config(config, "server_name"));
 	set_error_page(config);
 	set_client_max(search_config(config, "client_max_body_size"));
 	set_root(search_config(config, "root"));
 	set_index(search_config(config, "index"));
+	set_autoindex(search_config(config, "autoindex"));
 	set_location(config);
 }
 
