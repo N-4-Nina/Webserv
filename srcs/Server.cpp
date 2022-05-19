@@ -7,14 +7,12 @@ Server::Server(){}
 Server::Server(Config &conf)
 {
 	init_listen(conf.ports());
-	_portNb = conf.ports().size();
 	_conf = &conf;
 }
 
 Server::Server(const Server &ref)
 {
 	_ls = ref._ls;
-	_portNb = ref._portNb;
 	_conf = ref._conf;
 	_id = ref._id;
 }
@@ -24,7 +22,6 @@ Server	&Server::operator=(const Server &ref)
 	if (&ref != this)
 	{
 		_ls = ref._ls;
-		_portNb = ref._portNb;
 		_conf = ref._conf;
 		_id = ref._id;
 	}

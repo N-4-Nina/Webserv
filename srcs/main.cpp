@@ -18,13 +18,36 @@ void    assert(bool scal, str_t log)
         fatal(log);
 }
 
+int check_duplicate(std::vector<Config> &conf)
+{
+    std::map<int, int> used;
+    int i = 0;
+
+    for (std::vector<Config>::iterator it = conf.begin(); it != conf.end(); it++)
+    {
+        for (std::vector<int>::iterator pit = it->ports().begin(); pit != it->ports().end(); pit++)
+        {
+            if (used.count(*pit) && used[*pit] != i)
+            {
+                std::cout << "Found duplicate port in config file.\n";
+                return (1);
+            }
+            used[*pit] = i;
+        }
+        i++;
+    }
+    return (0);
+}
 
 int main(int argc, char **argv)
 {
     strMap          req_headers;
 
     std::vector<Config> conf = parsing_config(argc, argv);
-    std::cout << conf[0];
+    
+    if (check_duplicate(conf))
+        return (1);
+    
     EvMa	ev(conf);
     initialize_mime_types();
     initialize_error_pages();

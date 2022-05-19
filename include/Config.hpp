@@ -14,8 +14,7 @@ class Config
 		Config(const Config &ref);
 		~Config(void);
 
-		str_t                   host() const;
-		std::vector<int>        ports() const;
+		std::vector<int>        &ports();
 		std::vector<str_t>      server_name() const;
 		strMap                  error_page() const;
 		size_t                  client_max() const;
@@ -25,7 +24,6 @@ class Config
 		location_v   			&location();
 
 	private:
-		str_t                   _host;
 		std::vector<int>        _ports;
 		std::vector<str_t>      _server_name;
 		strMap                  _error_page;
@@ -38,7 +36,7 @@ class Config
 		str_t               search_config(str_t config, str_t key);
 		std::vector<size_t> search_location(str_t config);
 
-		void set_host_port(str_t line);
+		void set_ports(str_t line);
 		void set_server_name(str_t line);
 		void set_error_page(str_t line);
 		void set_client_max(str_t line);

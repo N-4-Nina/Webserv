@@ -1,18 +1,12 @@
 #include "Config.hpp"
 
 Config::Config(str_t config) : 
-_host("localhost"), _ports(1, 80),  _server_name(1, "webserv"), 
+ _ports(),  _server_name(1, "webserv"), 
 _client_max_body_size(1000000), _root("/"), _index(1, "index.html"),
 _autoindex("off")
 {
-	size_t pos = -1;
-	str_t tmp;
 
-	while ((pos = config.find("listen", pos + 1)) != str_t::npos)
-	{
-		tmp = config.substr(pos - 6);
-		set_host_port(search_config(tmp, "listen"));
-	}
+	set_ports(search_config(config, "listen"));
 	set_server_name(search_config(config, "server_name"));
 	set_error_page(config);
 	set_client_max(search_config(config, "client_max_body_size"));
@@ -32,68 +26,23 @@ Config::~Config(void) {}
 * Setters
 */
 
-void Config::set_host_port(str_t line)
+void Config::set_ports(str_t line)
 {
-	int		tmp_port = 0;
-	size_t	space_pos;
-	size_t	split_pos;
-	std::stringstream strst;
+	size_t	space;
 
 	if (line == "")
 		return ;
 
-	space_pos = line.find(" ");
-	split_pos = line.find(":");
+	space = line.find(" ");
 
-	if (split_pos == str_t::npos)
+	while (space != str_t::npos)
 	{
-		for (size_t i = space_pos + 1 ; i < line.size() ; i++)
-		{
-			if (!std::isdigit(line[i]))
-			{
-				this->_host = line.substr(space_pos + 1);
-				if (this->_host != "localhost")
-					throw str_t("error: wrong IP");
-				tmp_port = 80;
-				for (std::vector<int>::iterator it =  _ports.begin() ; it !=  _ports.end() ; ++it)
-				{
-					if (tmp_port == *it)
-						return ;
-				}
-				 _ports.push_back(tmp_port);
-			}
-		}
-		if (tmp_port != 80)
-		{
-			this->_host = "localhost";
-			strst << line.substr(space_pos + 1);
-			strst >> tmp_port;
-
-			for (std::vector<int>::iterator it =  _ports.begin() ; it !=  _ports.end() ; ++it)
-			{
-				if (tmp_port == *it)
-					throw str_t("error: duplicate port");
-			}
-			 _ports.pop_back();
-			 _ports.push_back(tmp_port);
-		}
-	}
-	else
-	{
-		this->_host = line.substr(space_pos + 1, (split_pos - space_pos - 1));
-
-		if (this->_host != "localhost")
-			throw str_t("error: wrong ip");
+		if (line.find(" ", space + 1) != str_t::npos)
+			this->_ports.push_back(atoi(line.substr(space + 1, line.find(' ', space + 1) - space - 1).c_str()));
+		else
+			this->_ports.push_back(atoi(line.substr(space + 1).c_str()));
 		
-		strst << line.substr(split_pos + 1);
-		strst >> tmp_port;
-
-		for (std::vector<int>::iterator it =  _ports.begin() ; it !=  _ports.end() ; ++it)
-		{
-			if (tmp_port == *it)
-				return ;
-		}
-		 _ports.push_back(tmp_port);
+		space = line.find(' ', space + 1);
 	}
 }
 
@@ -115,8 +64,6 @@ void Config::set_server_name(str_t line)
 			this->_server_name.push_back(line.substr(space + 1));
 		space = line.find(' ', space + 1);
 	}
-	if (_server_name.size())
-		_host = _server_name[0];
 }
 	
 void Config::set_error_page(str_t config)
@@ -230,9 +177,8 @@ void Config::set_location(str_t line)
 * Getters
 */
 
-str_t Config::host() const { return (this->_host ); }
 
-std::vector<int> Config::ports() const { return ( _ports); }
+std::vector<int> &Config::ports() { return ( _ports); }
 
 std::vector<str_t> Config::server_name() const { return (this->_server_name); }
 

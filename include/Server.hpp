@@ -27,7 +27,6 @@ class Server
 		Config				*_conf;
 		listen_sockets		_ls;
 		int					_id;
-		int					_portNb;		//deprec i think
 };
 
 #endif
