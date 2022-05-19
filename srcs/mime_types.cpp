@@ -48,6 +48,7 @@ void	initialize_mime_types()
 	types[".png"] = "image/png";
 	types[".pdf"] = "application/pdf";
 	types[".ppt"] = "application/vnd.ms-powerpoint";
+	types[".py"] = "text/x-python";
 	types[".rar"] = "application/x-rar-compressed";
 	types[".rtf"] = "application/rtf";
 	types[".sh"] = "application/x-sh";

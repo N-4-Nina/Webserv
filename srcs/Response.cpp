@@ -480,7 +480,7 @@ void	Response::set_body_cgi(Request req)
 int		Response::get_autoindex(Request req)
 {
 	std::stringstream	buffer;
-	str_t path = _loc->root();
+	str_t path = _loc->root();;
 	int	port;
 	str_t	server_name;
 
@@ -488,7 +488,6 @@ int		Response::get_autoindex(Request req)
 	{
 		if (it->first == "host")
 		{
-			std::cout  << it->second << std::endl;
 			size_t points = it->second.find(":");
 			size_t start = 0;
 			size_t end = it->second.size() - 1;
@@ -509,10 +508,9 @@ int		Response::get_autoindex(Request req)
 	}
 
 	buffer << Autoindex::getPage(req._ressource.c_str(), path.c_str(), server_name, port); // nom du serveur qu'on ne gere pas
-	// + auto index sur les cgi
 	// + auto index front page
 	_body = buffer.str();
-	add_header("content-length", to_string<size_t>(_body.size() + 1));		//move maybe ? at least cl
+	add_header("content-length", to_string<size_t>(_body.size() + 1));
 	add_header("content-type", "text/html");
 	add_header("Connection", "keep-alive");
 	return 1;
