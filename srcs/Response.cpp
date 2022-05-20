@@ -78,7 +78,7 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 		}
 		if ((_loc->flags() & LOC_AUTO))
 		{
-			if (get_autoindex(req) == 1)
+			if (get_autoindex(req, false) == 1)
 			{
 				if (_status < 200 || _status > 299)
 					get_error_page();
@@ -100,6 +100,15 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 			return;
 		}
 	}
+	if (_conf->autoindex() == "on")
+		{
+			if (get_autoindex(req, true) == 1)
+			{
+				if (_status < 200 || _status > 299)
+					get_error_page();
+				return;
+			}
+		}
 	if (!(_flags & RES_ISCGI))
 		set_body_ress(req, conf);
 	//if (_status < 200 || _status > 299)
@@ -477,10 +486,14 @@ void	Response::set_body_cgi(Request req)
 	add_header("Connection", "keep-alive");
 }
 
-int		Response::get_autoindex(Request req)
+int		Response::get_autoindex(Request req, bool home_page)
 {
 	std::stringstream	buffer;
-	str_t path = _loc->root();;
+	str_t	path;
+	if (home_page == false)
+		path = _loc->root();
+	else
+		path = _conf->root();
 	int	port;
 	str_t	server_name;
 
@@ -506,7 +519,7 @@ int		Response::get_autoindex(Request req)
 			return 0;
 		}
 	}
-
+	std::cout << req._ressource << " " << path << " " << server_name << " " << port << std::endl;
 	buffer << Autoindex::getPage(req._ressource.c_str(), path.c_str(), server_name, port); // nom du serveur qu'on ne gere pas
 	// + auto index front page
 	_body = buffer.str();
