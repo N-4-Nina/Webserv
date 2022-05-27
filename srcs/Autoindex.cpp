@@ -59,12 +59,12 @@ str_t         Autoindex::getPage(const char *route, const char *path, str_t cons
 str_t		Autoindex::getLink(str_t const &dirEntry, str_t const &host, int port, str_t const &route)
 {
 	std::stringstream   ss;
+    (void)host;
+    (void)port;
     if (*route.rbegin() == '/')
-		ss << "\t\t<p><a href=\"http://" + host + ":" <<\
-			port << route + dirEntry + "\">" + dirEntry + "</a></p>\n";
+		ss << "\t\t<p><a href=\"" + route + dirEntry + "\">" + dirEntry + "</a></p>\n";
 	else
-		ss << "\t\t<p><a href=\"http://" + host + ":" <<\
-			port << route + "/" + dirEntry + "\">" + dirEntry + "</a></p>\n";
+		ss << "\t\t<p><a href=\"" << route << "/" + dirEntry + "\">" + dirEntry + "</a></p>\n";
 	std::cout << "ss: " << ss.str() << std::endl;
     return ss.str();
 }

@@ -210,16 +210,19 @@ void	EvMa::loop()
 				int       error = 0;
 				socklen_t errlen = sizeof(error);
 				if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (void *)&error, &errlen) == 0)
-				{
-				    printf("error = %s\n", strerror(error));
-				}
-				disconnect_socket(fd, ptr, "EPOLLERR ");
+					disconnect_socket(fd, ptr, strerror(error));
+				else
+					disconnect_socket(fd, ptr, "EPOLLERR");
 			}
-			// else if (ev & EPOLLRDHUP)
-			// {
-			// 	assert(is_connected(fd), "disconnect/ could not find fd");
-			// 	disconnect_socket(fd, ptr, "socket shutdown");
-			// }
+			else if (ev & EPOLLRDHUP)
+			{
+				assert(is_connected(fd), "disconnect/ could not find fd");
+				
+				_clients.erase(fd);
+				//shutdown(fd, SHUT_RDWR);
+				close(fd);
+				epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, NULL);
+			}
 			else if (_clients[fd].isReady() && ev & EPOLLOUT)
 			{
 				assert(is_connected(fd), "write/ could not find fd");
