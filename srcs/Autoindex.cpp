@@ -65,6 +65,5 @@ str_t		Autoindex::getLink(str_t const &dirEntry, str_t const &host, int port, st
 	else
 		ss << "\t\t<p><a href=\"http://" + host + ":" <<\
 			port << route + "/" + dirEntry + "\">" + dirEntry + "</a></p>\n";
-	std::cout << "ss: " << ss.str() << std::endl;
     return ss.str();
 }
