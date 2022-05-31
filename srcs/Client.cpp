@@ -95,7 +95,7 @@ int			Client::add_data()
 	if (n == 0)
 		return (0);
 	else if (n < 0)					//also this....
-		return (1);
+		return (-1);
 	this->touch();
 	log(_serv, this, "Read " + to_string(n) + " octets.");
 	input = char_to_raw(_buff, n);
@@ -144,7 +144,7 @@ int			Client::add_data()
 			{
 				_ready = true;
 				fsync(_fd);
-				return (0);
+				return (1);
 			}
 		}
 		else if ((flags & PARSED_CL))
@@ -169,7 +169,7 @@ int			Client::add_data()
 			}
 		}
 	}
-	return (0);
+	return (1);
 }
 
 
@@ -188,8 +188,9 @@ int	Client::respond()
 	{
 		this->touch();
 		_res.send();
+		int ret = _res.flags() & RES_CLOSE;
 		this->reset();
-		return (_res.flags() & RES_CLOSE);
+		return (ret);
 	}
 	else if (_expire < time_in_ms())
 	{
@@ -203,7 +204,7 @@ int	Client::respond()
 		_res.get_error_page();
 		_res.send();
 		this->reset();
-		return (_res.flags() & RES_CLOSE);
+		return (1);
 
 	}
 	return (0);

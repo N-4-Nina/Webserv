@@ -43,6 +43,7 @@ typedef std::pair<long, str_t>  Redir;
 typedef	std::vector<Location>	location_v;
 typedef std::vector<Config>		config_v;
 typedef std::vector<int>		int_v;
+typedef std::vector<str_t>      str_v;
 
 typedef struct epoll_event      event_t;
 typedef struct addrinfo         adrinfo_t;

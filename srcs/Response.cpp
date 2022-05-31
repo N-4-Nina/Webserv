@@ -55,7 +55,7 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 	_flags |= RES_READY;
 	_flags |= RES_STARTED;
 
-	if (req.headers()["connection"] == "close")
+	if (req.headers().count("connection") && req.headers()["connection"] == "close")
 		_flags |= RES_CLOSE;
 	if (req.isBad())
 	{
@@ -147,7 +147,7 @@ void			Response::set_body_ress(Request &req, Config *conf)
 		if (_flags & RES_ISINDEX)
 		{
 			if (_flags & RES_INDEXDEF)
-				path = root + _index;	//i think it's just this because at this point we check that root was INCLUDED AT THE START of ressource.
+				path = root + _index;	//i think it's just this because at this point we checked that root was INCLUDED AT THE START of ressource.
 			else
 			{
 				for (std::list<str_t>::iterator lit = _loc->index().begin(); lit != _loc->index().end(); lit++)
@@ -168,10 +168,9 @@ void			Response::set_body_ress(Request &req, Config *conf)
 	}
 	else if (_flags & RES_ISINDEX)
 	{
-
 		for (std::list<str_t>::iterator lit = conf->index().begin(); lit != conf->index().end(); lit++)
 		{
-			str_t tmp = conf->root() + *lit;
+			str_t tmp = conf->root() + *lit; // Soooooo... shouldn't always be conf->root there...
 			if (!access( tmp.c_str(), F_OK ))
 			{
 				path = tmp;
@@ -182,28 +181,47 @@ void			Response::set_body_ress(Request &req, Config *conf)
 		}	
 	}
 	else
-		path = conf->root() + req._ressource;
+	{
+		path = conf->root().substr(0, conf->root().size() - 1) + req._ressource;
+
+		struct stat s;
+		if ( stat(path.c_str(), &s) == 0 && ( s.st_mode & S_IFDIR ))
+		{
+			std::list<str_t>::iterator it = _conf->index().begin();
+			for (; it != _conf->index().end(); it++)
+			{
+				str_t file = path + "/" + *it;
+				if (!access(file.c_str(), 0))
+				{
+					path = file;
+					break;
+				}
+			}
+			if (it == _conf->index().end())
+				set_status(404);
+		}
+	}
 	if (_status == 404)
 		return ;
+	
 	std::ifstream       page;
     std::stringstream   buf;
 	page.open (path.c_str(), std::ifstream::in);
+
 	if (!page.is_open())
 	{
 		set_status(404);
 		log(_client->_serv, _client, "Could not open ressource file.");
-		//std::cout << "Could not open ressource file.\n";
-
 	}
 	else
     {
 		buf << page.rdbuf();
 		_body = buf.str();
-		set_headers(path);
+		set_headers(path, req);
 	}
 }
 
-void	Response::set_headers(str_t path)
+void	Response::set_headers(str_t path, Request &req)
 {
 	/* Setting content-type */
 	size_t point;
@@ -219,7 +237,10 @@ void	Response::set_headers(str_t path)
 		add_header("content-length", to_string<size_t>(_body.size() + 1));
 
 	//check if request got connection:close specified, else:
-	add_header("Connection", "keep-alive");
+	if (req.headers().count("connection") && req.headers()["connection"] == "close")
+		add_header("Connection", "close");
+	else
+		add_header("Connection", "keep-alive");
 }
 
 unsigned int	Response::status()
@@ -309,11 +330,15 @@ void			Response::select_location(Request &req)
 		}
 	}
 	//after this we come back to the default (server block)
+
+	str_t	tmp =_conf->root() + req._ressource;
+	
 	if (req._ressource == "/")
 	{
 		_flags |= RES_ISINDEX;
 		return ;
 	}
+	
 	for (std::list<str_t>::iterator lit = _conf->index().begin(); lit != _conf->index().end(); lit++)
 	{
 		if (req._ressource.find(*lit) == 0)

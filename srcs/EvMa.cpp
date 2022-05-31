@@ -109,7 +109,7 @@ void	EvMa::incoming_connections(int inc_fd, Server *serv)
 				break;
 			else
 			{
-				std::cout << "failed to acccept connection. (should it be fatal ?)"; // idk, should it ??
+				std::cout << "failed to acccept connection.";
 				break;
 			}
 		}
@@ -204,6 +204,11 @@ void	EvMa::loop()
 			{
 				std::cout << "fd " << fd << " does not exist.\n";
 			}
+			//else if (ev & EPOLLRDHUP)
+			//{
+			//	assert(is_connected(fd), "read/ could not find fd");
+			//	disconnect_socket(fd, ptr, "EPOLLRDHUP.");
+			//}
 			else if (ev & EPOLLERR)
 			{
 				assert(is_connected(fd), "disconnect/ could not find fd");
@@ -213,15 +218,6 @@ void	EvMa::loop()
 					disconnect_socket(fd, ptr, strerror(error));
 				else
 					disconnect_socket(fd, ptr, "EPOLLERR");
-			}
-			else if (ev & EPOLLRDHUP)
-			{
-				assert(is_connected(fd), "disconnect/ could not find fd");
-				
-				_clients.erase(fd);
-				//shutdown(fd, SHUT_RDWR);
-				close(fd);
-				epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, NULL);
 			}
 			else if (_clients[fd].isReady() && ev & EPOLLOUT)
 			{
@@ -233,10 +229,12 @@ void	EvMa::loop()
 			{
 				assert(is_connected(fd), "read/ could not find fd");
 				//update_expiry(fd);
-				if (_clients[fd].add_data())
-					disconnect_socket(fd, ptr, "read returned 0.");
-			}	
-			
+				int ret = _clients[fd].add_data();
+				//if (!ret)
+				//	disconnect_socket(fd, ptr, "Read = 0.");
+				if (ret < 0)
+					disconnect_socket(fd, ptr, "Read error.");
+			}
 		}
 		for (Expire_iterator ex = _expire.begin(); ex != _expire.end() && (*ex)->expire() < time_in_ms(); ex = _expire.begin())
     		{ disconnect_socket_ex(ex); }
