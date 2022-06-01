@@ -87,10 +87,7 @@ void CGI::exec_cgi(str_t target, Request req, strMap headers_resp, FLAGS *flags,
 void	CGI::check(FLAGS *flags, unsigned int *code)
 {
 	if (waitpid(_pid, &_status, WNOHANG | WUNTRACED) == 0)
-	{
-		//*flags &= ~RES_READY;
 		return ;
-	}
 	else 
 	{
 		if (!WIFSIGNALED(_status) && !WCOREDUMP(_status) && !WIFSTOPPED(_status))
@@ -100,21 +97,21 @@ void	CGI::check(FLAGS *flags, unsigned int *code)
 			int	ret = 1;
 
 			memset(tmp, 0, CGI_BUF_SIZE);
-			while ((ret = read(_fd_io[0], tmp, CGI_BUF_SIZE - 1)) > 0)
+			ret = read(_fd_io[0], tmp, CGI_BUF_SIZE - 1);
 			{
 				_body += tmp;
 				memset(tmp, 0, CGI_BUF_SIZE);
 			}
-			
-			close(_fd_io[0]);
-			kill(_pid, SIGKILL);
+			if (ret == 0)
+			{
+				*flags |= RES_READY;
+				close(_fd_io[0]);
+				kill(_pid, SIGKILL);
+			}
 		}
 		else
-			*code = 502;
-
-		*flags |= RES_READY;
+			*code = 502;	
 	}
-
 }
 
 

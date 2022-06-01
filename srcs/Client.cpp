@@ -187,10 +187,13 @@ int	Client::respond()
 	if ((_res.flags() & RES_READY))
 	{
 		this->touch();
-		_res.send();
-		int ret = _res.flags() & RES_CLOSE;
-		this->reset();
-		return (ret);
+		if (!_res.send())
+		{
+			int ret = _res.flags() & RES_CLOSE;
+			this->reset();
+			return (ret);
+		}
+		return (0);
 	}
 	else if (_expire < time_in_ms())
 	{
@@ -202,10 +205,11 @@ int	Client::respond()
 		else
 			_res.set_status(408);		//request timeout
 		_res.get_error_page();
-		_res.send();
-		this->reset();
-		return (1);
-
+		if (!_res.send())
+		{
+			this->reset();
+			return (1);
+		}
 	}
 	return (0);
 }

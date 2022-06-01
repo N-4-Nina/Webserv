@@ -22,7 +22,9 @@ class Response
 		~Response(void);
 		void 			set_status(unsigned int s);
 		unsigned int	status();
-		void			send();
+
+		void		prepare();
+		int			send();
 		static	strMap							_mimeTypes;
 		static	std::map<unsigned int, str_t>	_codes;
 		static	str_t							_error_page[2];
@@ -57,9 +59,12 @@ class Response
 		int										_fd;
 		strMap									_headers;
 		
+		size_t									_sent;
 		str_t									_index;
 		str_t									_head;
 		str_t									_body;
+		str_t									_res;
+		//char									*_tmp;
 };
 
 #endif

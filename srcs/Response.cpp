@@ -5,8 +5,11 @@
 #include "EvMa.hpp"
 #include <fstream>
 
+#define		WRITEBUF 1000
+
 Response::Response(void)
 {
+	_sent = 0;
 }
 
 Response::Response(const Response &ref)
@@ -23,6 +26,8 @@ Response::Response(const Response &ref)
 	_index = ref._index;
 	_head = ref._head;
 	_body = ref._body;
+	_res = ref._res;
+	_sent = ref._sent;
 }
 
 Response	&Response::operator=(const Response &ref)
@@ -41,12 +46,15 @@ Response	&Response::operator=(const Response &ref)
 		_index = ref._index;
 		_head = ref._head;
 		_body = ref._body;
+		_res = ref._res;
+		_sent = ref._sent;
 	}
 	return (*this);
 }
 
 Response::~Response(void)
 {
+	//reset();
 }
 
 Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cgi(evma), _conf(conf), _flags(0), _fd(req.fd())
@@ -54,6 +62,7 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 	_client = client;
 	_flags |= RES_READY;
 	_flags |= RES_STARTED;
+	_sent = 0;
 
 	if (req.headers().count("connection") && req.headers()["connection"] == "close")
 		_flags |= RES_CLOSE;
@@ -106,11 +115,15 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 			{
 				if (_status < 200 || _status > 299)
 					get_error_page();
+				prepare();
 				return;
 			}
 		}
 	if (!(_flags & RES_ISCGI))
+	{
 		set_body_ress(req, conf);
+		prepare();
+	}
 	//if (_status < 200 || _status > 299)
 	//	get_error_page();
 }
@@ -414,13 +427,27 @@ void			Response::upload_file(Request &req)
 	}
 }
 
-void			Response::send()
+void			Response::prepare()
 {
-	str_t  res = add_head();
-	res += _body + "\4";
-	const char *tmp = res.c_str();
-	write(_fd, tmp, res.size());
-	fsync(_fd);
+	_res = add_head();
+	_res += _body + "\4";
+}
+
+int			Response::send()
+{
+	int ret = 0;
+	if (_sent < _res.size())
+	{
+		size_t end = (_sent + WRITEBUF > _res.size()) ? _res.npos : _sent + WRITEBUF;
+		
+		str_t towrite = _res.substr(_sent, end);
+		const char *tmp = towrite.c_str();
+		ret = write(_fd, tmp, WRITEBUF);
+		_sent += ret;
+	}
+	if (!ret)
+		fsync(_fd);
+	return (ret);
 }
 
 void			Response::reset()
@@ -434,6 +461,8 @@ void			Response::reset()
 	_head.clear();
 	_body.clear();
 	_cgi.reset();
+	_res.clear();
+	_sent = 0;
 }
 
 void	Response::check_cgi()
