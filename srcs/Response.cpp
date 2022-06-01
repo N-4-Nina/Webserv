@@ -115,14 +115,14 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 			{
 				if (_status < 200 || _status > 299)
 					get_error_page();
-				prepare();
+				//prepare();
 				return;
 			}
 		}
 	if (!(_flags & RES_ISCGI))
 	{
 		set_body_ress(req, conf);
-		prepare();
+		//prepare();
 	}
 	//if (_status < 200 || _status > 299)
 	//	get_error_page();
@@ -367,9 +367,12 @@ str_t			Response::add_head()
 {
 	str_t		buffer;
 
-	buffer = "HTTP/1.1 ";
-	buffer += to_string<size_t>(_status);
-	buffer += CRLF;
+	if (!(_flags & RES_ISCGI))
+	{
+		buffer = "HTTP/1.1 ";
+		buffer += to_string<size_t>(_status);
+		buffer += CRLF;
+	}
 	for (strMap::iterator it = _headers.begin(); it != _headers.end(); it++)
 	{
 		buffer += it->first;
@@ -433,6 +436,31 @@ void			Response::prepare()
 	_res += _body + "\4";
 }
 
+void			Response::prepare_cgi()
+{
+	str_t	s;
+	bool	cl = false, ct = false;
+
+	_res = newLine(_cgiret, "\n") + "\r\n";
+
+	while ((s = newLine(_cgiret, "\n")) != "")
+	{
+		if (find_nocase<str_t>(s, "content-length") == 0)
+			cl = true;
+		else if (find_nocase<str_t>(s, "content-type") == 0)
+			ct = true;
+		size_t n = s.find(':');
+		add_header(s.substr(0, n), s.substr(n+1, s.npos));
+	}
+	if (!cl)
+		add_header("content-length", to_string<int>(_cgiret.size()));
+	if (!ct)
+		add_header("content-type", "text/plain");
+	
+	_res += add_head();
+	_res += _cgiret + "\4";
+}
+
 int			Response::send()
 {
 	int ret = 0;
@@ -472,9 +500,9 @@ void	Response::check_cgi()
 		get_error_page();
 	else if ((_flags & RES_READY))
 	{
-		_body = _cgi.body();
-		add_header("content-length", to_string<size_t>(_body.size() + 1));
-		add_header("content-type", "text/html");
+		_cgiret = _cgi.body();
+		//add_header("content-length", to_string<size_t>(_body.size() + 1));
+		//add_header("content-type", "text/html");
 	}
 }
 
@@ -534,10 +562,8 @@ void	Response::set_body_cgi(Request req)
 	_cgi.set_script_name(target.substr(target.find("/cgi")));
 	_cgi.exec_cgi(target, req, this->headers(), &_flags, &_status);
 
-	_body = _cgi.body();
-	add_header("content-length", to_string<size_t>(_body.size() + 1));		//move maybe ? at least cl
-	add_header("content-type", "text/html");
-	add_header("Connection", "keep-alive");
+	//_cgiret = _cgi.body();
+	
 }
 
 int		Response::get_autoindex(Request req, str_t path, bool code)

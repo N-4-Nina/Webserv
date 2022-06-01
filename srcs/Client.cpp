@@ -186,6 +186,10 @@ int	Client::respond()
 	
 	if ((_res.flags() & RES_READY))
 	{
+		if ((_res.flags() & RES_ISCGI))
+			_res.prepare_cgi();
+		else
+			_res.prepare();
 		this->touch();
 		if (!_res.send())
 		{

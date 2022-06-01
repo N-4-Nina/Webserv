@@ -145,7 +145,7 @@ char **CGI::build_cgi_env(Request req, str_t target, strMap headers_resp)
 	envMap["REDIRECT_STATUS"] = "200"; // needed with php, not mandatory with python i think, but not a bad thing to have it
 	envMap["GATEWAY_INTERFACE"] = "CGI/1.1";
 	envMap["SCRIPT_NAME"] = _script_name;
-	envMap["CONTENT_TYPE"] = "text/x-python";
+	//envMap["CONTENT_TYPE"] = "text/x-python";
 	envMap["PATH_INFO"] = req._ressource;
 	envMap["PATH_TRANSLATED"] = target;
 	envMap["QUERY_STRING"] = req.query_string();

@@ -24,6 +24,7 @@ class Response
 		unsigned int	status();
 
 		void		prepare();
+		void		prepare_cgi();
 		int			send();
 		static	strMap							_mimeTypes;
 		static	std::map<unsigned int, str_t>	_codes;
@@ -64,7 +65,7 @@ class Response
 		str_t									_head;
 		str_t									_body;
 		str_t									_res;
-		//char									*_tmp;
+		str_t									_cgiret;		
 };
 
 #endif
