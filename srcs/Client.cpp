@@ -65,6 +65,9 @@ Client::~Client(void)
 {
 }
 
+Response	&Client::response()
+{	return (_res);	}
+
 int		Client::fd()
 { return (_fd); }
 
@@ -184,9 +187,29 @@ int	Client::respond()
 	else
 		_res.check_cgi();
 	
-	if ((_res.flags() & RES_READY))
+	if (_expire < time_in_ms())
 	{
-		if ((_res.flags() & RES_ISCGI))
+		if (!_res._sent)
+		{
+			if (( _res.flags() & RES_ISCGI))
+			{
+				_res.set_status(504);		//gateway timeout
+				_res.kill_cgi();
+			}
+			else
+				_res.set_status(408);		//request timeout
+			_res.prepare();
+		}
+		//_res.get_error_page();
+		if (!_res.send())
+		{
+			this->reset();
+			return (1);
+		}
+	}
+	else if ((_res.flags() & RES_READY))
+	{
+		if ((_res.flags() & RES_ISCGI) && _res.status() != 502)
 			_res.prepare_cgi();
 		else
 			_res.prepare();
@@ -198,22 +221,6 @@ int	Client::respond()
 			return (ret);
 		}
 		return (0);
-	}
-	else if (_expire < time_in_ms())
-	{
-		if (( _res.flags() & RES_ISCGI))
-		{
-			_res.set_status(504);		//gateway timeout
-			_res.kill_cgi();
-		}
-		else
-			_res.set_status(408);		//request timeout
-		_res.get_error_page();
-		if (!_res.send())
-		{
-			this->reset();
-			return (1);
-		}
 	}
 	return (0);
 }

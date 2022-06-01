@@ -53,8 +53,6 @@ void CGI::exec_cgi(str_t target, Request req, strMap headers_resp, FLAGS *flags,
 	pid_t pid;
 
 	// tmpfile - creates a temporary binary file, open for update with a filename guaranteed to be different from any other existing file
-	//FILE	*file_in = tmpfile();
-	//FILE	*file_out = tmpfile();//
 
 	// fileno - map a stream pointer to a file descriptor
 	//_fd_io[0] = fileno(file_in);
@@ -67,7 +65,7 @@ void CGI::exec_cgi(str_t target, Request req, strMap headers_resp, FLAGS *flags,
 	else if (pid == 0)
 	{
 	  // STDOUT become a copy of _fd_io[1], and, in case of POST, STDIN become a copy of _fd_io[0]
-		//dup2(_fd_io[0], STDIN_FILENO);
+
 		close(_fd_io[0]);
 		dup2(_fd_io[1], STDOUT_FILENO);
 		close(_fd_io[1]);
@@ -75,22 +73,24 @@ void CGI::exec_cgi(str_t target, Request req, strMap headers_resp, FLAGS *flags,
 		if (execve(_binary.c_str(), args, env) < 0)
 			fatal("execve failed\n");
 	}
-	else
-	{
-		_pid = pid;
-		close(_fd_io[1]);
-		check(flags, code);	
-	}
+
+	_pid = pid;
+	
+	close(_fd_io[1]);
+	//check(flags, code);
+	(void)code;
+	(void)flags;
 	free_cgi(args, env);
 }
 
 void	CGI::check(FLAGS *flags, unsigned int *code)
 {
+	//std::cout << _pid << "\n";
 	if (waitpid(_pid, &_status, WNOHANG | WUNTRACED) == 0)
 		return ;
 	else 
 	{
-		if (!WIFSIGNALED(_status) && !WCOREDUMP(_status) && !WIFSTOPPED(_status))
+		if (WIFEXITED(_status))
 		{
 			lseek(_fd_io[1], 0, SEEK_SET);
 			char	tmp[CGI_BUF_SIZE];
@@ -110,7 +110,12 @@ void	CGI::check(FLAGS *flags, unsigned int *code)
 			}
 		}
 		else
-			*code = 502;	
+		{
+			*code = 502;
+			*flags |= RES_READY;
+			close(_fd_io[0]);
+			kill(_pid, SIGKILL);
+		}
 	}
 }
 

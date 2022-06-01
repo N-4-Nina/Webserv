@@ -99,6 +99,7 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 		{
 			_flags &= ~RES_READY;
 			set_body_cgi(req);
+			std::cout << "PID from constructor = " << _cgi.pid() << "\n";
 		}
 		if (req.type() == POST && (_loc->flags() & LOC_UPLOAD))			//please note that in this state we cannot upload on the default route. this is intentional.
 			upload_file(req);
@@ -110,19 +111,17 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 		}
 	}
 	if (_conf->autoindex() == "on")
+	{
+		if (get_autoindex(req, _conf->root(), true) == 1)
 		{
-			if (get_autoindex(req, _conf->root(), true) == 1)
-			{
-				if (_status < 200 || _status > 299)
-					get_error_page();
-				//prepare();
-				return;
-			}
+			if (_status < 200 || _status > 299)
+				get_error_page();
+			return;
 		}
+	}
 	if (!(_flags & RES_ISCGI))
 	{
 		set_body_ress(req, conf);
-		//prepare();
 	}
 	//if (_status < 200 || _status > 299)
 	//	get_error_page();
@@ -290,6 +289,7 @@ void			Response::get_error_page()
 		}
 	}
 	_body = _error_page[0] + to_string(_status) + " : " + _codes[_status] + _error_page[1];
+	std::cout << _body;
 	add_header("content-length", to_string(_body.size() + 1));
 }
 
@@ -367,7 +367,7 @@ str_t			Response::add_head()
 {
 	str_t		buffer;
 
-	if (!(_flags & RES_ISCGI))
+	if (!(_flags & RES_ISCGI) || _status == 504 || _status == 502)
 	{
 		buffer = "HTTP/1.1 ";
 		buffer += to_string<size_t>(_status);
@@ -499,15 +499,12 @@ void	Response::check_cgi()
 	if ((_flags & RES_READY) && (_status < 200 || _status > 299))
 		get_error_page();
 	else if ((_flags & RES_READY))
-	{
 		_cgiret = _cgi.body();
-		//add_header("content-length", to_string<size_t>(_body.size() + 1));
-		//add_header("content-type", "text/html");
-	}
 }
 
 void	Response::kill_cgi()
 {
+	std::cout << "kill\n";
 	kill(_cgi.pid(), SIGABRT);
 	_cgi.reset();
 }
@@ -562,7 +559,7 @@ void	Response::set_body_cgi(Request req)
 	_cgi.set_script_name(target.substr(target.find("/cgi")));
 	_cgi.exec_cgi(target, req, this->headers(), &_flags, &_status);
 
-	//_cgiret = _cgi.body();
+	std::cout << "PID from setbody = " << _cgi.pid() << "\n";
 	
 }
 

@@ -40,6 +40,7 @@ class Response
 		int		get_autoindex(Request req, str_t path, bool code);
 
 		void	reset();
+		size_t									_sent;
 	private:
 		void	upload_file(Request &req);
 		void	select_location(Request &req);
@@ -60,7 +61,7 @@ class Response
 		int										_fd;
 		strMap									_headers;
 		
-		size_t									_sent;
+		
 		str_t									_index;
 		str_t									_head;
 		str_t									_body;

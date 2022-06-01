@@ -22,6 +22,7 @@ class Client
 		void	add_request(unsigned int error);
 		int		add_data();
 		int		respond();
+		Response	&response();
 		int		fd();
 		CGI		&cgi();
 		time_t	expire();
