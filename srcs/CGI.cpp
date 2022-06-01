@@ -137,26 +137,15 @@ void CGI::get_host_port(Request req, strMap &envMap)
 		}
 	}
 }
-
 char **CGI::build_cgi_env(Request req, str_t target, strMap headers_resp)
 {
 	char **env;
 	strMap envMap;
-
-	envMap["REDIRECT_STATUS"] = "200"; // needed with php, not mandatory with python i think, but not a bad thing to have
+(void)headers_resp;
+	envMap["REDIRECT_STATUS"] = "200"; // needed with php, not mandatory with python i think, but not a bad thing to have it
 	envMap["GATEWAY_INTERFACE"] = "CGI/1.1";
-	envMap["SCRIPT_NAME"] = _script_name; 
-	// if (req.type() == 0)
-	// 	envMap["REQUEST_METHOD"] = "GET";
-	// else if (req.type() == 1)
-	// 	envMap["REQUEST_METHOD"] = "POST";
-	// else
-	// 	fatal("CGI can't work with another method than GET or POST"); // CGI only works with GET and POST
-	for (strMap::iterator it = headers_resp.begin() ; it != headers_resp.end() ; ++it)
-	{
-		if (it->first == "content-type")
-			envMap["CONTENT_TYPE"] = it->second;
-	}
+	envMap["SCRIPT_NAME"] = _script_name;
+	envMap["CONTENT_TYPE"] = "text/x-python";
 	envMap["PATH_INFO"] = req._ressource;
 	envMap["PATH_TRANSLATED"] = target;
 	envMap["QUERY_STRING"] = req.query_string();
