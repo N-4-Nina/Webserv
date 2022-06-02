@@ -104,6 +104,8 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 		}
 		if (req.type() == POST && (_loc->flags() & LOC_UPLOAD))			//please note that in this state we cannot upload on the default route. this is intentional.
 			upload_file(req);
+		if (req.type() == DELETE)
+			delete_file(req);
 		if (_loc->flags() & LOC_REDIR)
 		{
 			set_status(_loc->redir().first);
@@ -376,7 +378,6 @@ str_t			Response::add_head()
 	return (buffer);
 }
 
-
 void			Response::upload_file(Request &req)
 {
 	if (!req.body().size())
@@ -420,6 +421,23 @@ void			Response::upload_file(Request &req)
 		}
 		stream.close();
 	}
+}
+
+void	Response::delete_file(Request &req)
+{
+	if (!req.body().size())
+	{
+		set_status(500);
+		return;
+	}
+	std::cout << _loc->methods() << std::endl;
+
+	// 1) cas d'erruer ou la methods n est pas autorise dans la conf pour ce bloc location 405
+	// 2) FILE fopen "r" , si !file -> error 204
+	// 3) close FILE
+	// 4) std::remove path (ajouter le path de l'element !!!!)
+	// 5) si tout ok -> status == 200 (envoyer une page disant que c t bien supprimer ? non 404 et idempotent)
+	// 6) 
 }
 
 void			Response::prepare()

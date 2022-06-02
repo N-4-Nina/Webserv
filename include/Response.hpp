@@ -43,6 +43,7 @@ class Response
 		size_t									_sent;
 	private:
 		void	upload_file(Request &req);
+		void	delete_file(Request &req);
 		void	select_location(Request &req);
 		void	set_body_ress(Request &req, Config *conf);
 		void	set_redir();
