@@ -293,24 +293,18 @@ void			Response::get_error_page()
 
 bool			Response::cgi_match(str_t uri)
 {
-	if ( _loc->route() == "/cgi")
+	size_t dotPos;
+
+	if (uri.size() < _loc->cgi_extension().size() || (dotPos = uri.find(".")) == uri.npos)
+		return false;
+	if (uri.substr(dotPos, str_t::npos) == _loc->cgi_extension())
 	{
-		if (uri == "/cgi/" || uri == "/cgi")
-			_flags |= RES_DEFCGI;
 		_flags |= RES_ISCGI;
 		return true;
 	}
 	return false;
-	// size_t dotPos;
-	// if (uri.size() < _loc->cgi_extension().size() || (dotPos = uri.find(".")) == uri.npos)
-	// 	return false;
-	// if (uri.substr(dotPos, str_t::npos) == _loc->cgi_extension() && _loc->route() == "/cgi")
-	// {
-	// 	_flags |= RES_ISCGI;
-	// 	return true;
-	// }
-	return false;
 }
+
 
 void			Response::select_location(Request &req)
 {
