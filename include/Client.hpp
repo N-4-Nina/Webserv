@@ -13,7 +13,7 @@ class Client
 {
 	public:
 		Client(void);
-		Client(int fd, Server *serv, EvMa *evma);
+		Client(int fd, Server *serv, EvMa *evma, int port);
 		
 		Client(const Client &ref);
 		Client	&operator=(const Client &ref);
@@ -36,6 +36,7 @@ class Client
 	private:
 		int						_fd;
 		int						_server_id;
+		int						_port;
 		Request					_req;
 		Response				_res;
 		char            		_buff[MAXREAD+1];

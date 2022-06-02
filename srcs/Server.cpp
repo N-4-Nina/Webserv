@@ -48,12 +48,15 @@ int		Server::id()
 Config	*Server::conf(void)
 { return (_conf); }
 
-bool	Server::is_listen(int fd)
+bool	Server::is_listen(int fd, int *port)
 {
 	for (listen_sockets::iterator it = _ls.begin(); it != _ls.end(); it++)
 	{
 		if (it->first == fd)
+		{
+			*port = it->second;
 			return (true);
+		}
 	}
 	return (false);
 }

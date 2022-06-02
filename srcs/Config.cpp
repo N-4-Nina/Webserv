@@ -180,7 +180,7 @@ void Config::set_location(str_t line)
 
 std::vector<int> &Config::ports() { return ( _ports); }
 
-std::vector<str_t> Config::server_name() const { return (this->_server_name); }
+std::vector<str_t> &Config::server_name() { return (this->_server_name); }
 
 strMap Config::error_page() const { return (this->_error_page); }
 

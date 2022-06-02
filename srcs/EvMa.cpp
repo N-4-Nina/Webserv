@@ -72,7 +72,7 @@ void	EvMa::init_epoll()
 	
 }
 
-void	EvMa::add_to_interest(int fd, Server *serv)
+void	EvMa::add_to_interest(int fd, Server *serv, int port)
 {
 	unlock_socket(fd);
 	_event.data.fd = fd;
@@ -80,7 +80,7 @@ void	EvMa::add_to_interest(int fd, Server *serv)
 	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &_event) == -1)
 		fatal("failed to add incoming connection to interest list.");
 	//Client tmp(fd, serv);
-	_clients.insert(std::pair<int, Client>(fd, Client(fd, serv, this)));
+	_clients.insert(std::pair<int, Client>(fd, Client(fd, serv, this, port)));
 	//_clients[fd] = Client(fd, serv);
 	_clients[fd].touch();
 	_expire.push_back(&_clients[fd]);
@@ -94,7 +94,7 @@ bool    EvMa::is_connected(int fd)
 	return (_clients.count(fd));
 }
 
-void	EvMa::incoming_connections(int inc_fd, Server *serv)
+void	EvMa::incoming_connections(int inc_fd, Server *serv, int port)
 {
 	int fd;
 	struct sockaddr     incoming;
@@ -114,7 +114,7 @@ void	EvMa::incoming_connections(int inc_fd, Server *serv)
 			}
 		}
 		else	//we did accept a connection.
-			add_to_interest(fd, serv);
+			add_to_interest(fd, serv, port);
 	}
 }
 
@@ -170,17 +170,19 @@ void	EvMa::disconnect_socket_ex(Expire_iterator ex)
 	epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, NULL);
 }
 
-bool	EvMa::is_listen(int fd, Server **serv)
+int	EvMa::is_listen(int fd, Server **serv)
 {
+	int port;
+
 	for (Cluster::iterator it = _cluster.begin(); it != _cluster.end(); it++)
 	{
-		if (it->second.is_listen(fd))
+		if (it->second.is_listen(fd, &port))
 		{
 			*serv = &(it->second);
-			return (true);
+			return (port);
 		}
 	}
-	return (false);
+	return (0);
 }
 
 void	EvMa::loop()
@@ -193,10 +195,11 @@ void	EvMa::loop()
 		for (int i = 0; i < _event_nb; i++)
 		{
 			int fd = _events[i].data.fd;
+			int port = 0;
 			uint32_t ev = _events->events;
-			if (is_listen(fd, serv))
+			if ((port = is_listen(fd, serv)) != 0)
 			{
-				incoming_connections(fd, *serv);
+				incoming_connections(fd, *serv, port);
 				continue;
 			}
 			if (!_clients.count(fd))

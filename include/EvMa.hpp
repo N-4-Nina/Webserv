@@ -28,12 +28,12 @@ class EvMa
 		event_t				*_events;
 		
 		void	init_epoll();
-		void	add_to_interest(int fd, Server *serv);
+		void	add_to_interest(int fd, Server *serv, int port);
 		void	update_expiry(int fd);
-		void	incoming_connections(int inc_fd, Server *serv);
+		void	incoming_connections(int inc_fd, Server *serv, int port);
 		bool    is_connected(int fd);
 		int		timeout();
-		bool	is_listen(int fd, Server **serv);
+		int		is_listen(int fd, Server **serv);
 		void	disconnect_socket(int fd, Server *serv, str_t reason = "unspecified reason.");
 		void	disconnect_socket_ex(Expire_iterator ex);
 

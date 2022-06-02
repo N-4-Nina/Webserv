@@ -7,13 +7,6 @@ Request::Request(int fd, Config *conf) : _conf(conf), _fd(fd), _read_body(0)
 {
 }
 
-// Request::Request(str_t input, int fd, size_t nl_head, size_t nl_body)
-// : _fd((fd)), _nl_headers(nl_head), _nl_body(nl_body)
-// {
-// 	_flags = 0;
-// 	std::cout << nl_head << " <- head  -  body -> " << nl_body <<std::endl;
-// }
-
 Request::Request(unsigned int error, int fd) : _fd(fd), _error(error)
 {
 	_flags = 0 | REQ_ISBAD;
@@ -35,6 +28,8 @@ Request &Request::operator=(const Request &ref)
 		_queryParam = ref._queryParam;
 		_flags = ref._flags;
 		_read_body = ref._read_body;
+		_conf = ref._conf;
+		_port = ref._port;
 	}
 	return (*this);
 }
@@ -199,7 +194,7 @@ int Request::add_Header(str_t line)
 	_headers.insert(p);
 	if (p.first == "content-length")
 	{
-		_cl = static_cast<size_t>(atoi(p.second.c_str()));
+		_cl = std::abs(atoi(p.second.c_str()));
 		_flags |= PARSED_CL;
 		if (_cl > _conf->client_max())
 		{
@@ -215,6 +210,21 @@ int Request::add_Header(str_t line)
 			_boundary = str_to_raw(p.second.substr(p.second.find("=", 20) + 1));
 			_boundary.insert(_boundary.begin(), 2, '-');
 			_flags |= PARSED_ISMULTI;
+		}
+	}
+	else if (p.first == "host")
+	{
+		str_v::iterator it;
+		for (it = _conf->server_name().begin(); it != _conf->server_name().end(); it++)
+		{
+			str_t tmp = *it + ":" + to_string<int>(_port);
+			if (p.second == tmp)
+				break;
+		}
+		if (it == _conf->server_name().end())
+		{
+			set_Error(400);
+			return (1);
 		}
 	}
 	return (0);

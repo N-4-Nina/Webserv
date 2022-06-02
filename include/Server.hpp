@@ -18,7 +18,7 @@ class Server
 		int				id();
 
 		bool	is_connected(int fd);
-		bool	is_listen(int fd);
+		bool	is_listen(int fd, int *port);
 		void	add_to_epoll(int epoll_fd);
 		void	init_listen(int_v ports);
 		void	close_fd();

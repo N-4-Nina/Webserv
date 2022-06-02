@@ -37,6 +37,7 @@ class Request
 		unsigned int	cl();
 		Config		*_conf;
 		str_t					_ressource;
+		int						_port;
 		FLAGS					_flags;
 	private:
 		int			parse_QueryString(size_t start);
@@ -51,7 +52,7 @@ class Request
 		unsigned	int			_error;
 		
 
-		std::vector<raw_str_t>		_body;
+		std::vector<raw_str_t>	_body;
 		strMap					_queryParam;
 		str_t					_query_string;
 };

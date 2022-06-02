@@ -15,7 +15,7 @@ class Config
 		~Config(void);
 
 		std::vector<int>        &ports();
-		std::vector<str_t>      server_name() const;
+		std::vector<str_t>      &server_name();
 		strMap                  error_page() const;
 		size_t                  client_max() const;
 		str_t                   root() const;

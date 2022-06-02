@@ -75,6 +75,8 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 		{ _status = 200; }
 
 	select_location(req);
+
+
 	if (_flags & RES_LOCATED)
 	{
 		if ((_loc->flags() & LOC_METHOD))
