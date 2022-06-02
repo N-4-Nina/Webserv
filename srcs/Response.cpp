@@ -504,7 +504,7 @@ void	Response::check_cgi()
 
 void	Response::kill_cgi()
 {
-	std::cout << "kill\n";
+	std::cout << "kill" << _cgi.pid() << "\n";
 	kill(_cgi.pid(), SIGABRT);
 	_cgi.reset();
 }

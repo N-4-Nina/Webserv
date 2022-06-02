@@ -114,7 +114,7 @@ void	CGI::check(FLAGS *flags, unsigned int *code)
 			*code = 502;
 			*flags |= RES_READY;
 			close(_fd_io[0]);
-			kill(_pid, SIGKILL);
+			//kill(_pid, SIGKILL);
 		}
 	}
 }

@@ -2,7 +2,7 @@
 import os
 import time
 
-n = 30
+n = 10
 
 while n > 0:
     time.sleep(1)
