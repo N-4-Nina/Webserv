@@ -99,7 +99,6 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 		{
 			_flags &= ~RES_READY;
 			set_body_cgi(req);
-			std::cout << "PID from constructor = " << _cgi.pid() << "\n";
 		}
 		if (req.type() == POST && (_loc->flags() & LOC_UPLOAD))			//please note that in this state we cannot upload on the default route. this is intentional.
 			upload_file(req);
@@ -289,7 +288,6 @@ void			Response::get_error_page()
 		}
 	}
 	_body = _error_page[0] + to_string(_status) + " : " + _codes[_status] + _error_page[1];
-	std::cout << _body;
 	add_header("content-length", to_string(_body.size() + 1));
 }
 
@@ -504,63 +502,26 @@ void	Response::check_cgi()
 
 void	Response::kill_cgi()
 {
-	std::cout << "kill" << _cgi.pid() << "\n";
 	kill(_cgi.pid(), SIGABRT);
 	_cgi.reset();
 }
 
 void	Response::set_body_cgi(Request req)
 {
-	char tmp[256];
-	location_v loc = _conf->location();
-	size_t i = 0;
-	for (location_v::iterator it = loc.begin() ; it != loc.end() ; ++it, ++i)
-	{
-		if (!loc.at(i).cgi_path().empty())
-		{
-			_cgi.set_binary(loc.at(i).cgi_path());
-		}
-	}
+	if (!_loc->cgi_path().empty())
+		_cgi.set_binary(_loc->cgi_path());		//bad gateway ? hopefully 
 	
-	getcwd(tmp, 256);
-	str_t target = tmp;
-	target.append("/www/cgi/");
-	if (_flags & RES_DEFCGI)
+	str_t target = _loc->root();
+	size_t found = req._ressource.find_last_of("/");
+	target.append(req._ressource.substr(found + 1));
+	if (access( target.c_str(), F_OK ))
 	{
-		for (location_v::iterator it = _conf->location().begin(); it != _conf->location().end(); it++)
-		{
-			_loc = &(*it);
-			if (req._ressource.find(it->route()) != 0)
-				continue;
-			else
-			{
-				target.append(*it->index().begin());
-				if (access( target.c_str(), F_OK ))
-				{
-					_status = 404;
-					get_error_page();		
-					return;
-				}
-				break;
-			}
-		}
-	}
-	else
-	{
-		size_t found = req._ressource.find_last_of("/");
-		target.append(req._ressource.substr(found + 1));
-		if (access( target.c_str(), F_OK ))
-		{
-			_status = 404;
-			get_error_page();		
-			return;
-		}
+		_status = 404;
+		get_error_page();		
+		return;
 	}
 	_cgi.set_script_name(target.substr(target.find("/cgi")));
-	_cgi.exec_cgi(target, req, this->headers(), &_flags, &_status);
-
-	std::cout << "PID from setbody = " << _cgi.pid() << "\n";
-	
+	_cgi.exec_cgi(target, req, this->headers(), &_flags, &_status);	
 }
 
 int		Response::get_autoindex(Request req, str_t path, bool code)

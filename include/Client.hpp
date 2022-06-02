@@ -21,7 +21,7 @@ class Client
 		void	add_request(); 
 		void	add_request(unsigned int error);
 		int		add_data();
-		int		respond();
+		int		respond(str_t &reason);
 		Response	&response();
 		int		fd();
 		CGI		&cgi();

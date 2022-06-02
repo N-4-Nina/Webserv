@@ -109,7 +109,7 @@ void	EvMa::incoming_connections(int inc_fd, Server *serv)
 				break;
 			else
 			{
-				std::cout << "failed to acccept connection.";
+				std::cout << "failed to acccept connection: " << strerror(errno);
 				break;
 			}
 		}
@@ -221,8 +221,9 @@ void	EvMa::loop()
 			else if (_clients[fd].isReady() && ev & EPOLLOUT)
 			{
 				assert(is_connected(fd), "write/ could not find fd");
-				if (_clients[fd].respond())
-					disconnect_socket(fd, ptr, "timeout or client specified connection:close.");
+				str_t reason;
+				if (_clients[fd].respond(reason))
+					disconnect_socket(fd, ptr, reason);
 			}
 			else if (ev & EPOLLIN)
 			{

@@ -176,7 +176,7 @@ int			Client::add_data()
 }
 
 
-int	Client::respond()
+int	Client::respond(str_t &reason)
 {
 	if (!(_res.flags() & RES_STARTED))
 	{
@@ -189,6 +189,7 @@ int	Client::respond()
 	
 	if (_expire < time_in_ms())
 	{
+		reason = "timeout.";
 		if (!_res._sent)
 		{
 			if (( _res.flags() & RES_ISCGI))
@@ -217,6 +218,7 @@ int	Client::respond()
 		if (!_res.send())
 		{
 			int ret = _res.flags() & RES_CLOSE;
+			reason = "specified by peer.";
 			this->reset();
 			return (ret);
 		}

@@ -14,6 +14,7 @@ CGI::CGI(EvMa *evma)
 	_status = 0;
 	_fd_io[0] = -1;
 	_fd_io[1] = -1;
+	_done = 0;
 }
 
 CGI::~CGI()
@@ -86,9 +87,9 @@ void CGI::exec_cgi(str_t target, Request req, strMap headers_resp, FLAGS *flags,
 void	CGI::check(FLAGS *flags, unsigned int *code)
 {
 	//std::cout << _pid << "\n";
-	if (waitpid(_pid, &_status, WNOHANG | WUNTRACED) == 0)
-		return ;
-	else 
+	if (!_done && waitpid(_pid, &_status, WNOHANG | WUNTRACED))
+		_done = true;
+	if (_done)
 	{
 		if (WIFEXITED(_status))
 		{
@@ -191,8 +192,7 @@ void	CGI::reset()
 	_status = 0;
 	_fd_io[0] = -1;
 	_fd_io[1] = -1;
-
-	
+	_done = false;
 }
 
 void CGI::free_str_tab(char **str_tab)
