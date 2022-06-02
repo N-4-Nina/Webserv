@@ -72,7 +72,10 @@ void CGI::exec_cgi(str_t target, Request req, strMap headers_resp, FLAGS *flags,
 		close(_fd_io[1]);
 		_evma->close_all();
 		if (execve(_binary.c_str(), args, env) < 0)
-			fatal("execve failed\n");
+		{
+			std::cout << "execve failed\n";
+			kill (getpid(), SIGKILL);
+		}
 	}
 
 	_pid = pid;

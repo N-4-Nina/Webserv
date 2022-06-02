@@ -293,11 +293,9 @@ void			Response::get_error_page()
 
 bool			Response::cgi_match(str_t uri)
 {
-	size_t dotPos;
-
-	if (uri.size() < _loc->cgi_extension().size() || (dotPos = uri.find(".")) == uri.npos)
+	if (uri.size() < _loc->cgi_extension().size())
 		return false;
-	if (uri.substr(dotPos, str_t::npos) == _loc->cgi_extension())
+	if (uri.rfind(_loc->cgi_extension()) == uri.size() - _loc->cgi_extension().size())
 	{
 		_flags |= RES_ISCGI;
 		return true;
@@ -510,8 +508,7 @@ void	Response::set_body_cgi(Request req)
 	target.append(req._ressource.substr(found + 1));
 	if (access( target.c_str(), F_OK ))
 	{
-		_status = 404;
-		get_error_page();		
+		set_status(404);		
 		return;
 	}
 	_cgi.set_script_name(target.substr(target.find("/cgi")));
