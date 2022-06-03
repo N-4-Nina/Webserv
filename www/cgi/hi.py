@@ -1,5 +1,13 @@
 #!/usr/bin/python
 
+import os
+
+protocol = os.environ.get('SERVER_PROTOCOL')
+status = os.environ.get('REDIRECT_STATUS')
+print (protocol + ' ' + status + ' OK')
+print ('Content-Type: ' + 'text/html')
+print ('')
+
 print ('<html>')
 print ('<head>')
 print ('<title>Hello World - First CGI Program</title>')

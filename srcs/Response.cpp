@@ -96,7 +96,8 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 				return;
 			}
 		}
-		cgi_match(req._ressource);
+		if (_loc->flags() & LOC_CGI)
+			cgi_match(req._ressource);
 		if (_flags & RES_ISCGI)
 		{
 			_flags &= ~RES_READY;

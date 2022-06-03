@@ -5,12 +5,10 @@ from datetime import date
 
 protocol = os.environ.get('SERVER_PROTOCOL')
 status = os.environ.get('REDIRECT_STATUS')
-#content_type = os.environ.get('CONTENT_TYPE')
-
 print (protocol + ' ' + status + ' OK')
-#print ('Content-Length ' + )
 print ('Content-Type: ' + 'text/html')
 print ('')
+
 print ('<html>')
 print ('<head>')
 print ('<title>Hello World - First CGI Program</title>')
