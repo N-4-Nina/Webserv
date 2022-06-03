@@ -39,7 +39,7 @@ void CGI::set_binary(str_t path)
 	_binary = path;
 }
 
-void CGI::exec_cgi(str_t target, Request req, strMap headers_resp, FLAGS *flags, unsigned int *code)
+void CGI::exec_cgi(str_t target, Request req, FLAGS *flags, unsigned int *code)
 {
 	char **args = NULL;
 	char **env = NULL;
@@ -48,7 +48,7 @@ void CGI::exec_cgi(str_t target, Request req, strMap headers_resp, FLAGS *flags,
 	args[0] = strdup(_binary.c_str());
 	args[1] = strdup(target.c_str());
 	args[2] = 0;
-	env = build_cgi_env(req, target, headers_resp);
+	env = build_cgi_env(req, target);
 	// DEBUG_display_cgi_env(env, args);
 
 	pid_t pid;
@@ -146,15 +146,14 @@ void CGI::get_host_port(Request req, strMap &envMap)
 		}
 	}
 }
-char **CGI::build_cgi_env(Request req, str_t target, strMap headers_resp)
+char **CGI::build_cgi_env(Request req, str_t target)
 {
 	char **env;
 	strMap envMap;
-(void)headers_resp;
+
 	envMap["REDIRECT_STATUS"] = "200"; // needed with php, not mandatory with python i think, but not a bad thing to have it
 	envMap["GATEWAY_INTERFACE"] = "CGI/1.1";
 	envMap["SCRIPT_NAME"] = _script_name;
-	//envMap["CONTENT_TYPE"] = "text/x-python";
 	envMap["PATH_INFO"] = req._ressource;
 	envMap["PATH_TRANSLATED"] = target;
 	envMap["QUERY_STRING"] = req.query_string();

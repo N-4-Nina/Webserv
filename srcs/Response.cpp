@@ -423,21 +423,32 @@ void			Response::upload_file(Request &req)
 	}
 }
 
+// to test quickly: curl -X DELETE -i 'http://localhost:8001/love/love.html'
 void	Response::delete_file(Request &req)
 {
-	// if (!req.body().size())
-	// {
-	// 	set_status(500);
-	// 	return;
-	// }
-	std::cout << _loc->methods() << std::endl;
+	std::list<str_t>::iterator it = std::find(_loc->allowed_methods().begin(),_loc->allowed_methods().end(), "delete");
+	if (it == _loc->allowed_methods().end())
+	{
+		set_status(405);
+		return;
+	}
 
-	// 1) cas d'erruer ou la methods n est pas autorise dans la conf pour ce bloc location 405
-	// 2) FILE fopen "r" , si !file -> error 204
-	// 3) close FILE
-	// 4) std::remove path (ajouter le path de l'element !!!!)
-	// 5) si tout ok -> status == 200 (envoyer une page disant que c t bien supprimer ? non 404 et idempotent)
-	// 6) 
+	str_t path = _loc->root();
+	size_t found = req._ressource.find_last_of("/");
+	path.append(req._ressource.substr(found + 1));
+
+	FILE	*f_del = fopen(path.c_str(), "r");
+	if(!f_del)
+	{
+		set_status(404);
+		get_error_page();
+		return;
+	}
+	fclose(f_del);
+
+	std::remove(path.c_str());
+	set_status(200);
+	return;
 }
 
 void			Response::prepare()
@@ -532,7 +543,7 @@ void	Response::set_body_cgi(Request req)
 		return;
 	}
 	_cgi.set_script_name(target.substr(target.find("/cgi")));
-	_cgi.exec_cgi(target, req, this->headers(), &_flags, &_status);	
+	_cgi.exec_cgi(target, req, &_flags, &_status);	
 }
 
 int		Response::get_autoindex(Request req, str_t path, bool code)
@@ -568,7 +579,6 @@ int		Response::get_autoindex(Request req, str_t path, bool code)
 		}
 	}
 	buffer << Autoindex::getPage(req._ressource.c_str(), path.c_str(), server_name, port); // nom du serveur qu'on ne gere pas
-	// + auto index front page
 	_body = buffer.str();
 	add_header("content-length", to_string<size_t>(_body.size() + 1));
 	add_header("content-type", "text/html");

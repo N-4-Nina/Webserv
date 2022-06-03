@@ -29,7 +29,7 @@ class CGI
 		EvMa	*_evma;
 		void	set_binary(str_t path);
 		void	set_script_name(str_t script_name);
-		void	exec_cgi(str_t target, Request req, strMap headers_resp, FLAGS *flags, unsigned int *code);
+		void	exec_cgi(str_t target, Request req, FLAGS *flags, unsigned int *code);
 		void	check(FLAGS *flags, unsigned int *code);
 		str_t 	body();
 		str_t	binary();
@@ -48,7 +48,7 @@ class CGI
 		int		_fd_io[2];
 		//int		_save_io[2];
 		bool	_done;
-		char	**build_cgi_env(Request req, str_t target, strMap headers_resp);
+		char	**build_cgi_env(Request req, str_t target);
 		void	get_host_port(Request req, strMap &envMap);
 		void	free_str_tab(char **str_tab);
 		void	free_cgi(char **args, char **env);

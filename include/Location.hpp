@@ -30,6 +30,7 @@ class Location
 		str_t				upload_path() const ;
 		FLAGS				flags() const;
 		Redir				redir() const;
+		std::list<str_t>	&allowed_methods();
 
 		str_t search_config(str_t config, str_t key);
 
@@ -43,6 +44,7 @@ class Location
 		FLAGS				_methods;
 		Redir				_redir;
 		FLAGS				_flags;
+		std::list<str_t>	_allowed_methods;
 		
 		void set_autoindex(str_t line);
 		void set_index(str_t line);

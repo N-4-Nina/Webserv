@@ -33,6 +33,7 @@ Location::Location(const Location &ref)
 	_flags = ref._flags;
 	_upload_path = ref._upload_path;
 	_redir = ref._redir;
+	_allowed_methods = ref._allowed_methods;
 }
 
 Location &Location::operator=(const Location &ref)
@@ -120,7 +121,10 @@ void Location::add_method(str_t str)
 	for (size_t i = 0; i <= 2; i++)
 	{
 		if (str == strTypes[i])
+		{
 			found = i;
+			this->_allowed_methods.push_back(str);
+		}
 	}
 	if (found == 3)
 		throw str_t("error: bad method in conf");
@@ -219,6 +223,8 @@ str_t Location::upload_path() const { return (_upload_path); }
 FLAGS	Location::flags() const { return (this->_flags); }
 
 Redir Location::redir() const { return (this->_redir); }
+
+std::list<str_t>	&Location::allowed_methods() { return (_allowed_methods); } 
 
 /*
 * Member functions
