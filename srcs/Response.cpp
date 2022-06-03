@@ -425,11 +425,11 @@ void			Response::upload_file(Request &req)
 
 void	Response::delete_file(Request &req)
 {
-	if (!req.body().size())
-	{
-		set_status(500);
-		return;
-	}
+	// if (!req.body().size())
+	// {
+	// 	set_status(500);
+	// 	return;
+	// }
 	std::cout << _loc->methods() << std::endl;
 
 	// 1) cas d'erruer ou la methods n est pas autorise dans la conf pour ce bloc location 405
@@ -538,10 +538,8 @@ void	Response::set_body_cgi(Request req)
 int		Response::get_autoindex(Request req, str_t path, bool code)
 {
 	std::stringstream	buffer;
-	std::cout << "\n\npath: " << path << std::endl;
 	if (req._ressource != "/" && code == true)
 	{
-		std::cout << "\n\nressource: " << req._ressource << std::endl;
 		return 0;
 	}
 	int	port;
