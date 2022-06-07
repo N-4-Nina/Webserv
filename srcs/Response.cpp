@@ -97,7 +97,7 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 			}
 		}
 		if (_loc->flags() & LOC_CGI)
-			cgi_match(req._ressource);
+			cgi_match(req._ressource, req);
 		if (_flags & RES_ISCGI)
 		{
 			_flags &= ~RES_READY;
@@ -296,12 +296,20 @@ void			Response::get_error_page()
 	add_header("content-length", to_string(_body.size() + 1));
 }
 
-bool			Response::cgi_match(str_t uri)
+bool			Response::cgi_match(str_t uri, Request & req)
 {
 	if (uri.size() < _loc->cgi_extension().size())
 		return false;
 	if (uri.rfind(_loc->cgi_extension()) == uri.size() - _loc->cgi_extension().size())
 	{
+		// Ref: "Note that this means that if one of these requests is targeted at a CGI script
+		// (assuming the request is valid), the CGI script will be replaced or removed, but not executed"
+		// docstore.mik.ua/orelly/linux/cgi/ch02_03.htm
+		if (req.type() == DELETE)
+		{
+			delete_file(req);
+			return false;
+		}
 		_flags |= RES_ISCGI;
 		return true;
 	}
@@ -540,7 +548,7 @@ void	Response::set_body_cgi(Request req)
 	target.append(req._ressource.substr(found + 1));
 	if (access( target.c_str(), F_OK ))
 	{
-		set_status(404);		
+		set_status(404);
 		return;
 	}
 	_cgi.set_script_name(target.substr(target.find("/cgi")));
