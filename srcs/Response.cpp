@@ -517,7 +517,7 @@ int			Response::send()
 		
 		str_t towrite = _res.substr(_sent, end);
 		const char *tmp = towrite.c_str();
-		ret = write(_fd, tmp, WRITEBUF);
+		ret = ::send(_fd, tmp, WRITEBUF, MSG_NOSIGNAL);
 		_sent += ret;
 	}
 	if (!ret)
@@ -551,7 +551,8 @@ void	Response::check_cgi()
 
 void	Response::kill_cgi()
 {
-	kill(_cgi.pid(), SIGABRT);
+	if (_cgi.pid() > 0)
+		kill(_cgi.pid(), SIGABRT);
 	_cgi.reset();
 }
 

@@ -196,16 +196,24 @@ int	Client::respond(str_t &reason)
 		if (!_res._sent)
 		{
 			if (( _res.flags() & RES_ISCGI))
+			{
 				_res.set_status(504);		//gateway timeout
+				_res.kill_cgi();
+			}
 			else
 				_res.set_status(408);		//request timeout
 			_res.prepare();
 		}
-		//_res.get_error_page();
-		if (!_res.send())
+		int ret = _res.send();
+		if (!ret)
 		{
 			this->reset();
 			return (1);
+		}
+		else if (ret < 0)
+		{
+			reason = "write error";
+			return (ret);
 		}
 	}
 	else if ((_res.flags() & RES_READY))
@@ -215,11 +223,17 @@ int	Client::respond(str_t &reason)
 		else
 			_res.prepare();
 		this->touch();
-		if (!_res.send())
+		int ret = _res.send();
+		if (!ret)
 		{
-			int ret = _res.flags() & RES_CLOSE;
+			ret = _res.flags() & RES_CLOSE;
 			reason = "specified by peer.";
 			this->reset();
+			return (ret);
+		}
+		else if (ret < 0)
+		{
+			reason = "write error";
 			return (ret);
 		}
 		return (0);
