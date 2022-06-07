@@ -70,7 +70,7 @@ void CGI::exec_cgi(str_t target, Request req, FLAGS *flags, unsigned int *code)
 		if (execve(_binary.c_str(), args, env) < 0)
 		{
 			std::cout << "execve failed\n";
-			kill (getpid(), SIGKILL);
+			kill (getpid(), SIGINT);
 		}
 	}
 
@@ -106,7 +106,7 @@ void	CGI::check(FLAGS *flags, unsigned int *code)
 			{
 				*flags |= RES_READY;
 				close(_fd_io[0]);
-				kill(_pid, SIGKILL);
+				kill(_pid, SIGINT);
 			}
 		}
 		else
@@ -188,6 +188,10 @@ void	CGI::reset()
 	_script_name.clear();
 	_pid = 0;
 	_status = 0;
+	if (_fd_io[0] > 2)
+		close(_fd_io[0]);
+	if (_fd_io[1] > 2)
+		close(_fd_io[1]);
 	_fd_io[0] = -1;
 	_fd_io[1] = -1;
 	_done = false;

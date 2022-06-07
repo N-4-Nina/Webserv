@@ -552,7 +552,7 @@ void	Response::check_cgi()
 void	Response::kill_cgi()
 {
 	if (_cgi.pid() > 0)
-		kill(_cgi.pid(), SIGABRT);
+		kill(_cgi.pid(), SIGINT);
 	_cgi.reset();
 }
 
