@@ -49,7 +49,7 @@ class Response
 		void	set_redir();
 		void	set_headers(str_t path, Request & req);
 		void	add_header(str_t key, str_t val);
-		bool	cgi_match(str_t uri);
+		bool	cgi_match(str_t uri, Request & req);
 		str_t	add_head();
 
 		CGI										_cgi;
