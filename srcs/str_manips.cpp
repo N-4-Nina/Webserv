@@ -21,3 +21,9 @@ str_t    str_tolower(str_t const &s)
         ret.insert(i, 1, tolower(s[i]));
     return (ret);
 }
+
+void   append_slash(str_t &s)
+{
+    if (!(s[s.size() - 1] == '/'))
+		s.append("/");
+}

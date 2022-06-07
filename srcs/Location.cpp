@@ -33,7 +33,6 @@ Location::Location(const Location &ref)
 	_flags = ref._flags;
 	_upload_path = ref._upload_path;
 	_redir = ref._redir;
-	_allowed_methods = ref._allowed_methods;
 }
 
 Location &Location::operator=(const Location &ref)
@@ -64,6 +63,7 @@ void Location::set_root(str_t line)
 		this->_flags |= LOC_ROOT;
 	else
 		this->_root = line.substr(line.find(" ") + 1);
+	append_slash(_root);
 }
 
 void Location::set_autoindex(str_t line)
@@ -121,10 +121,8 @@ void Location::add_method(str_t str)
 	for (size_t i = 0; i <= 2; i++)
 	{
 		if (str == strTypes[i])
-		{
 			found = i;
-			this->_allowed_methods.push_back(str);
-		}
+
 	}
 	if (found == 3)
 		throw str_t("error: bad method in conf");
@@ -140,6 +138,7 @@ void Location::set_cgi_path(str_t line)
 	   this->_cgi_path = "";
 	else
 		this->_cgi_path = line.substr(line.find(" ") + 1);
+	append_slash(this->_cgi_path);
 }
 
 void Location::set_cgi_extension(str_t line)
@@ -172,6 +171,7 @@ void Location::set_upload_path(str_t line)
 		std::cout << _upload_path <<std::endl;
 		if (access( _upload_path.c_str(), F_OK ))
 			_flags = _flags & ~LOC_UPLOAD; //log: did not find upload directory
+		append_slash(_upload_path);
 	}
 }
 
@@ -224,7 +224,6 @@ FLAGS	Location::flags() const { return (this->_flags); }
 
 Redir Location::redir() const { return (this->_redir); }
 
-std::list<str_t>	&Location::allowed_methods() { return (_allowed_methods); } 
 
 /*
 * Member functions

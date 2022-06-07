@@ -105,8 +105,10 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 		}
 		if (req.type() == POST && (_loc->flags() & LOC_UPLOAD))			//please note that in this state we cannot upload on the default route. this is intentional.
 			upload_file(req);
+		
 		if (req.type() == DELETE)
 			delete_file(req);
+		
 		if (_loc->flags() & LOC_REDIR)
 		{
 			set_status(_loc->redir().first);
@@ -372,7 +374,7 @@ str_t			Response::add_head()
 
 	if (!(_flags & RES_ISCGI) || _status == 504 || _status == 502)
 	{
-		buffer = "HTTP/ 1.1";
+		buffer = "HTTP/1.1 ";
 		buffer += to_string<size_t>(_status);
 		buffer += CRLF;
 	}
@@ -435,8 +437,7 @@ void			Response::upload_file(Request &req)
 // to test quickly: curl -X DELETE -i 'http://localhost:8001/love/love.html'
 void	Response::delete_file(Request &req)
 {
-	std::list<str_t>::iterator it = std::find(_loc->allowed_methods().begin(),_loc->allowed_methods().end(), "delete");
-	if (it == _loc->allowed_methods().end())
+	if (!(_loc->methods() & DELETE))
 	{
 		set_status(405);
 		return;
@@ -447,7 +448,7 @@ void	Response::delete_file(Request &req)
 	path.append(req._ressource.substr(found + 1));
 
 	FILE	*f_del = fopen(path.c_str(), "r");
-	if(!f_del)
+	if (!f_del)
 	{
 		set_status(404);
 		get_error_page();

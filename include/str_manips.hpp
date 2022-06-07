@@ -4,6 +4,8 @@
 
 str_t	newLine(str_t &in, str_t toFind = CRLF);
 str_t	str_tolower(str_t const &s);
+void    append_slash(str_t &s);
+
 
 template <class T>
 str_t to_string(T n)

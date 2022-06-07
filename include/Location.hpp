@@ -44,7 +44,6 @@ class Location
 		FLAGS				_methods;
 		Redir				_redir;
 		FLAGS				_flags;
-		std::list<str_t>	_allowed_methods;
 		
 		void set_autoindex(str_t line);
 		void set_index(str_t line);
