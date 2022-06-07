@@ -368,6 +368,21 @@ void			Response::select_location(Request &req)
 	}
 }
 
+void			Response::add_mandatory_headers()
+{
+	char buf[1000];
+  	time_t now = time(0);
+  	struct tm tm = *gmtime(&now);
+  	strftime(buf, sizeof buf, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+	add_header("date", str_t(buf));
+
+	add_header("server", "webserv/1.0");
+	if (!_headers.count("content-length"))
+		add_header("content_length", "0");
+	if (!_headers.count("content-type"))
+		add_header("content_type", _mimeTypes["html"]);
+}
+
 str_t			Response::add_head()
 {
 	str_t		buffer;
@@ -378,6 +393,7 @@ str_t			Response::add_head()
 		buffer += to_string<size_t>(_status);
 		buffer += CRLF;
 	}
+	add_mandatory_headers();
 	for (strMap::iterator it = _headers.begin(); it != _headers.end(); it++)
 	{
 		buffer += it->first;

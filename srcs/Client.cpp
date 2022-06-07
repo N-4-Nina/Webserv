@@ -196,10 +196,7 @@ int	Client::respond(str_t &reason)
 		if (!_res._sent)
 		{
 			if (( _res.flags() & RES_ISCGI))
-			{
 				_res.set_status(504);		//gateway timeout
-				_res.kill_cgi();
-			}
 			else
 				_res.set_status(408);		//request timeout
 			_res.prepare();

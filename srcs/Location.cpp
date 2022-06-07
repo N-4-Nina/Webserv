@@ -138,7 +138,7 @@ void Location::set_cgi_path(str_t line)
 	   this->_cgi_path = "";
 	else
 		this->_cgi_path = line.substr(line.find(" ") + 1);
-	append_slash(this->_cgi_path);
+	//append_slash(this->_cgi_path);
 }
 
 void Location::set_cgi_extension(str_t line)
