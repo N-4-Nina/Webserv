@@ -19,11 +19,9 @@ CGI::CGI(EvMa *evma)
 
 CGI::~CGI()
 {
-	//close_fd();
+	close(_fd_io[1]);
+	// close_fd();
 	//close(_fd_io[0]);
-	//close(_fd_io[1]);
-	//close(_save_io[0]);
-	//close(_save_io[1]);
 }
 
 void CGI::close_fd()
@@ -52,8 +50,6 @@ void CGI::exec_cgi(str_t target, Request req, FLAGS *flags, unsigned int *code)
 	// DEBUG_display_cgi_env(env, args);
 
 	pid_t pid;
-
-	// tmpfile - creates a temporary binary file, open for update with a filename guaranteed to be different from any other existing file
 
 	// fileno - map a stream pointer to a file descriptor
 	//_fd_io[0] = fileno(file_in);
@@ -118,7 +114,7 @@ void	CGI::check(FLAGS *flags, unsigned int *code)
 			*code = 502;
 			*flags |= RES_READY;
 			close(_fd_io[0]);
-			//kill(_pid, SIGKILL);
+			// kill(_pid, SIGKILL);
 		}
 	}
 }
