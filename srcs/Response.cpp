@@ -364,7 +364,7 @@ str_t			Response::add_head()
 
 	if (!(_flags & RES_ISCGI) || _status == 504 || _status == 502)
 	{
-		buffer = "HTTP/1.1 ";
+		buffer = "HTTP/ 1.1";
 		buffer += to_string<size_t>(_status);
 		buffer += CRLF;
 	}
