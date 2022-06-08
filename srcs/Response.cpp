@@ -300,9 +300,18 @@ void			Response::get_error_page()
 
 bool			Response::cgi_match(str_t uri, Request & req)
 {
+	bool index = false;
+	for (std::list<str_t>::iterator it = _loc->index().begin() ; it != _loc->index().end() ; ++it)
+	{
+		str_t check_index = *it;
+		if (check_index.rfind(_loc->cgi_extension()) == check_index.size() - _loc->cgi_extension().size())
+			index = true;
+	}
+
 	if (uri.size() < _loc->cgi_extension().size())
-		return false;
-	if (uri.rfind(_loc->cgi_extension()) == uri.size() - _loc->cgi_extension().size())
+			return false;
+	if (uri.rfind(_loc->cgi_extension()) == uri.size() - _loc->cgi_extension().size()
+		|| index == true)
 	{
 		// Ref: "Note that this means that if one of these requests is targeted at a CGI script
 		// (assuming the request is valid), the CGI script will be replaced or removed, but not executed"
@@ -317,7 +326,6 @@ bool			Response::cgi_match(str_t uri, Request & req)
 	}
 	return false;
 }
-
 
 void			Response::select_location(Request &req)
 {
@@ -560,10 +568,21 @@ void	Response::set_body_cgi(Request req)
 {
 	if (!_loc->cgi_path().empty())
 		_cgi.set_binary(_loc->cgi_path());		//bad gateway ? hopefully 
-	
 	str_t target = _loc->root();
-	size_t found = req._ressource.find_last_of("/");
-	target.append(req._ressource.substr(found + 1));
+	if (!(req._ressource.rfind(_loc->cgi_extension()) == req._ressource.size() - _loc->cgi_extension().size()))
+	{
+		for (std::list<str_t>::iterator it = _loc->index().begin() ; it != _loc->index().end() ; ++it)
+		{
+			str_t check_index = *it;
+			if (check_index.rfind(_loc->cgi_extension()) == check_index.size() - _loc->cgi_extension().size())
+				target.append(check_index);
+		}
+	}
+	else
+	{
+		size_t found = req._ressource.find_last_of("/");
+		target.append(req._ressource.substr(found + 1));
+	}
 	if (access( target.c_str(), F_OK ))
 	{
 		set_status(404);
