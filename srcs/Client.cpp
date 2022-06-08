@@ -100,8 +100,9 @@ int			Client::add_data()
 	
 	if (n == 0)
 		return (0);
-	else if (n < 0)					//also this....
+	else if (n < 0)
 		return (-1);
+	
 	this->touch();
 	log(_serv, this, "Read " + to_string(n) + " octets.");
 	input = char_to_raw(_buff, n);
@@ -150,7 +151,7 @@ int			Client::add_data()
 			{
 				_ready = true;
 				fsync(_fd);
-				return (1);
+				return (0);
 			}
 		}
 		else if ((flags & PARSED_CL))
@@ -175,7 +176,7 @@ int			Client::add_data()
 			}
 		}
 	}
-	return (1);
+	return (0);
 }
 
 

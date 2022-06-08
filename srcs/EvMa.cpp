@@ -235,7 +235,7 @@ void	EvMa::loop()
 				int ret = _clients[fd].add_data();
 				//if (!ret)
 				//	disconnect_socket(fd, ptr, "Read = 0.");
-				if (ret < 0)
+				if (ret > 0)
 					disconnect_socket(fd, ptr, "Read error.");
 			}
 		}
