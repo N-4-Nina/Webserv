@@ -212,8 +212,9 @@ int Request::add_Header(str_t line)
 			_flags |= PARSED_ISMULTI;
 		}
 	}
-	else if (p.first == "host")
+	else if (p.first == "host" && _conf->server_name().size())
 	{
+		std::cout << _conf->server_name().size();
 		str_v::iterator it;
 		for (it = _conf->server_name().begin(); it != _conf->server_name().end(); it++)
 		{

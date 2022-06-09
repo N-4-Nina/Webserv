@@ -5,7 +5,11 @@
 #include "common.hpp"
 #include "EvMa.hpp"
 
-//std::set<int>	CGI::toClose;
+/*
+					.--------------.
+					| Constructors |
+					'--------------'
+*/
 
 Client::Client(void): _serv(NULL), _fd(-1), _server_id(0),  _content_len(0), _ready(false)
 {
@@ -68,6 +72,13 @@ Client::~Client(void)
 {
 }
 
+
+/*
+					.---------.
+					| Getters |
+					'---------'
+*/
+
 Response	&Client::response()
 {	return (_res);	}
 
@@ -88,24 +99,79 @@ CGI		&Client::cgi()
 	return (_res.cgi());
 }
 
+
+/*
+					.--------.
+					| Handle |
+					'--------'
+*/
+
+void	Client::touch()
+{
+	_expire = time_in_ms() + TIMEOUT;
+}
+
+void	Client::reset()
+{
+	_ready = false;
+	_req.reset();
+	_res.reset();
+	_remain.clear();
+	memset(_buff, 0, MAXREAD+1);
+	_parse_flags = 0;
+	_content_len = 0;
+	_parse_flags = 0;
+	_read_pos = 0;
+	_content_len = 0;
+}
+
+
+/*
+						.------------.
+						| Operations |
+						'------------'
+*/
+
+/*		add_data is a super important function, it is the one where we perform
+	the read operation on the socket. Of course, we can only read once per
+	epoll call, so we need to keep track of the data we already read, so 
+	it can safely work with any size of buffer.
+		Though we do not read all at once -not to block the whole server in 
+	case there is a lot of date-, we start to process them immediately line
+	by line. This way if something is already wrong with the headers -for 
+	example-, we can answer faster.
+		The processing loop has three main case to handle: 
+			- the first line of the request
+			- the headers
+			- the -optional- body
+		This loop builds on the request object.
+*/
+
 int			Client::add_data()
 {
 	raw_str_t			input, line;
 	raw_str_t::iterator pos;
-	int n;
-	FLAGS &flags = _req._flags;
+	int					n;
+	FLAGS 				&flags = _req._flags;
+
 	memset(_buff, 0, MAXREAD + 1);
-	
+	/*
+		Reading on the socket. please note we check both 0 and < 0, but because
+		the socket is non-blocking, we don't actually do anything if we get -1;
+		it is because errno could be EAGAIN or EWOULDBLOCK, which is not per se
+		an error. So we just wait to see if more data come.
+	*/
 	n  = read(_fd, _buff, MAXREAD);
-	
 	if (n == 0)
 		return (0);
 	else if (n < 0)
 		return (-1);
-	
 	this->touch();
 	log(_serv, this, "Read " + to_string(n) + " octets.");
+
 	input = char_to_raw(_buff, n);
+
+	/* Handling remaining data. */
 	if (_remain.size())
 	{
 		_read_pos = _remain.size();
@@ -113,7 +179,7 @@ int			Client::add_data()
 		_remain.clear();
 	}
 
-
+	/* Processing loop */
 	while (input.size())
 	{
 		pos = raw_find(input, CRLF, 2, _read_pos);
@@ -179,7 +245,13 @@ int			Client::add_data()
 	return (0);
 }
 
-
+/*		Respond is also a crucial function:
+			-It builds the response (response constructor).
+			-It determine if we are ready to actually write it on the socket -check_cgi-.
+			-It check if we're not timing out while building the response.
+			-It prepares the request for writing (setting headers)
+			-Finally, it writes on the socket chunk by chunk (like reading). 
+*/
 int	Client::respond(str_t &reason)
 {
 	if (!(_res.flags() & RES_STARTED))
@@ -240,23 +312,4 @@ int	Client::respond(str_t &reason)
 		return (0);
 	}
 	return (0);
-}
-
-void	Client::reset()
-{
-	_ready = false;
-	_req.reset();
-	_res.reset();
-	_remain.clear();
-	memset(_buff, 0, MAXREAD+1);
-	_parse_flags = 0;
-	_content_len = 0;
-	_parse_flags = 0;
-	_read_pos = 0;
-	_content_len = 0;
-}
-
-void	Client::touch()
-{
-	_expire = time_in_ms() + TIMEOUT;
 }

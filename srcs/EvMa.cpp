@@ -3,19 +3,20 @@
 #include "Client.hpp"
 #include "Server.hpp"
 
+/*
+					.--------------.
+					| Constructors |
+					'--------------'
+*/
+
 EvMa::EvMa(config_v &conf)
 {
-	/* should put all of this in init list -- also put missing stuff (nb_events..)*/
-
-	//_port = strdup(port);	// duplicate because default value
 	_cluster_size = conf.size();
 	for (config_v::iterator it = conf.begin(); it != conf.end(); it++)
 	{
 		Server s(*it);
 		_cluster[s.id()] = s;
 	}
-	//_portNb = conf.port()[0];		//warning = should implement multiple listening socket
-	//_max_event = conf.client_max();
 	_event_nb = 0;
 	init_epoll();
 }
@@ -44,20 +45,6 @@ EvMa::~EvMa(void)
 	}
 }
 
-void	EvMa::close_all(void)
-{
-	close(_epoll_fd);
-	for (Cluster::iterator it = _cluster.begin(); it != _cluster.end(); it++)
-	{
-		it->second.close_fd();
-	}
-	for (Clients_pool::iterator it = _clients.begin(); it != _clients.end(); it++)
-	{
-		close(it->first);
-		it->second.cgi().close_fd();
-	}
-}
-
 void	EvMa::init_epoll()
 {
 	_epoll_fd = epoll_create1(EPOLL_CLOEXEC);
@@ -72,6 +59,66 @@ void	EvMa::init_epoll()
 	
 }
 
+void	EvMa::close_all(void)
+{
+	close(_epoll_fd);
+	for (Cluster::iterator it = _cluster.begin(); it != _cluster.end(); it++)
+	{
+		it->second.close_fd();
+	}
+	for (Clients_pool::iterator it = _clients.begin(); it != _clients.end(); it++)
+	{
+		close(it->first);
+		it->second.cgi().close_fd();
+	}
+}
+
+
+/*
+					.-------------.
+					| Evaluations |
+					'-------------'
+*/
+
+bool    EvMa::is_connected(int fd)
+{
+	if (!_clients.size())
+		return (false);
+	return (_clients.count(fd));
+}
+
+int	EvMa::is_listen(int fd, Server **serv)
+{
+	int port;
+
+	for (Cluster::iterator it = _cluster.begin(); it != _cluster.end(); it++)
+	{
+		if (it->second.is_listen(fd, &port))
+		{
+			*serv = &(it->second);
+			return (port);
+		}
+	}
+	return (0);
+}
+
+int	EvMa::timeout()
+{
+	if (!_expire.size())	//we do not have any open connections and don't need any timeout
+		{ return (TIMEOUT); }
+	int to = (*_expire.begin())->expire() - time_in_ms();
+	if (to > 0)
+		return (to);
+	return (TIMEOUT);
+}
+
+
+/*
+					.--------------------.
+					| Handle Connections |
+					'--------------------'
+*/
+
 void	EvMa::add_to_interest(int fd, Server *serv, int port)
 {
 	unlock_socket(fd);
@@ -79,19 +126,10 @@ void	EvMa::add_to_interest(int fd, Server *serv, int port)
 	_event.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP;
 	if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &_event) == -1)
 		fatal("failed to add incoming connection to interest list.");
-	//Client tmp(fd, serv);
 	_clients.insert(std::pair<int, Client>(fd, Client(fd, serv, this, port)));
-	//_clients[fd] = Client(fd, serv);
 	_clients[fd].touch();
 	_expire.push_back(&_clients[fd]);
 	log(serv, &_clients[fd],  "New client connected.");
-}
-
-bool    EvMa::is_connected(int fd)
-{
-	if (!_clients.size())
-		return (false);
-	return (_clients.count(fd));
 }
 
 void	EvMa::incoming_connections(int inc_fd, Server *serv, int port)
@@ -102,11 +140,12 @@ void	EvMa::incoming_connections(int inc_fd, Server *serv, int port)
 
 	for (;;)
 	{
-		fd = accept(inc_fd, &incoming, &incSize); //we accept with socket fd as we listen on this on
+		/* we accept with socket fd as we listen on this on */
+		fd = accept(inc_fd, &incoming, &incSize); //
 		if (fd == -1)
 		{
-			if (errno ==  EAGAIN || errno == EWOULDBLOCK)		//no more requests to accept ! we are done.
-				break;
+			if (errno ==  EAGAIN || errno == EWOULDBLOCK)		
+				break;			//no more requests to accept ! we are done.
 			else
 			{
 				std::cout << "failed to acccept connection: " << strerror(errno);
@@ -116,29 +155,6 @@ void	EvMa::incoming_connections(int inc_fd, Server *serv, int port)
 		else	//we did accept a connection.
 			add_to_interest(fd, serv, port);
 	}
-}
-
-void	EvMa::update_expiry(int fd)
-{
-	_clients[fd].touch();
-	for (Expire_iterator it = _expire.begin(); it != _expire.end(); it++)
-	{
-		if ((*it)->fd() == fd)
-		{
-			_expire.erase(it);
-			return ;
-		}
-	}
-}
-
-int	EvMa::timeout()
-{
-	if (!_expire.size())				//we do not have any open connections and don't need any timeout
-		{ return (TIMEOUT); }
-	int to = (*_expire.begin())->expire() - time_in_ms();
-	if (to > 0)
-		return (to);
-	return (TIMEOUT);
 }
 
 void	EvMa::disconnect_socket(int fd, Server *serv, str_t reason)
@@ -170,20 +186,12 @@ void	EvMa::disconnect_socket_ex(Expire_iterator ex)
 	epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, NULL);
 }
 
-int	EvMa::is_listen(int fd, Server **serv)
-{
-	int port;
 
-	for (Cluster::iterator it = _cluster.begin(); it != _cluster.end(); it++)
-	{
-		if (it->second.is_listen(fd, &port))
-		{
-			*serv = &(it->second);
-			return (port);
-		}
-	}
-	return (0);
-}
+/*
+					.-------------------.
+					| Main Program Loop |
+					'-------------------'
+*/
 
 void	EvMa::loop()
 {
@@ -206,11 +214,6 @@ void	EvMa::loop()
 			{
 				std::cout << "fd " << fd << " does not exist.\n";
 			}
-			//else if (ev & EPOLLRDHUP)
-			//{
-			//	assert(is_connected(fd), "read/ could not find fd");
-			//	disconnect_socket(fd, ptr, "EPOLLRDHUP.");
-			//}
 			else if (ev & EPOLLERR)
 			{
 				assert(is_connected(fd), "disconnect/ could not find fd");
@@ -231,7 +234,6 @@ void	EvMa::loop()
 			else if (ev & EPOLLIN)
 			{
 				assert(is_connected(fd), "read/ could not find fd");
-				//update_expiry(fd);
 				int ret = _clients[fd].add_data();
 				//if (!ret)
 				//	disconnect_socket(fd, ptr, "Read = 0.");
@@ -239,8 +241,10 @@ void	EvMa::loop()
 					disconnect_socket(fd, ptr, "Read error.");
 			}
 		}
+		/*
+			Disconnecting every Clients that timed_out.
+		*/
 		for (Expire_iterator ex = _expire.begin(); ex != _expire.end() && (*ex)->expire() < time_in_ms(); ex = _expire.begin())
     		{ disconnect_socket_ex(ex); }
-		//_event_nb = 0;
 	}
 }
