@@ -10,9 +10,8 @@ class Request
 {
 	public:
 		Request(int fd = -1, Config *conf = NULL);
-		//Request(str_t input, int fd, size_t nl_head, size_t nl_body);
 		Request(unsigned int error, int fd);
-		//Request(const Request &ref);
+		Request(const Request &ref);
 		Request	&operator=(const Request &ref);
 		~Request(void);
 

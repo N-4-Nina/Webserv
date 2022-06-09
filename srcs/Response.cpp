@@ -7,6 +7,12 @@
 
 #define		WRITEBUF 1000
 
+/*
+					.--------------.
+					| Constructors |
+					'--------------'
+*/
+
 Response::Response(void)
 {
 	_sent = 0;
@@ -54,18 +60,32 @@ Response	&Response::operator=(const Response &ref)
 
 Response::~Response(void)
 {
-	//reset();
 }
 
+/*
+		Obviously this constructor is a bit of a messy monster;
+	and so is select_location();
+	There is a whole lot to check to determine how we are going
+	to fetch or build the ressource.
+		For starter here's one thing we could have done better;
+	if the Config block was only for te conf exclusive info, we could have
+	used a Location to store the main route infos. That would have saved 
+	A LOT of checks.
+
+*/
 Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cgi(evma), _conf(conf), _flags(0), _fd(req.fd())
 {
 	_client = client;
 	_flags |= RES_READY;
 	_flags |= RES_STARTED;
 	_sent = 0;
-
 	if (req.headers().count("connection") && req.headers()["connection"] == "close")
 		_flags |= RES_CLOSE;
+
+	/*
+		We might have already determine that the request was bad,
+		and if so, we are ready to respond without doing more.
+	*/
 	if (req.isBad())
 	{
 		set_status(req.error());
@@ -75,8 +95,7 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 		{ _status = 200; }
 
 	select_location(req);
-
-
+	
 	if (_flags & RES_LOCATED)
 	{
 		if ((_loc->flags() & LOC_METHOD))
@@ -103,10 +122,10 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 			_flags &= ~RES_READY;
 			set_body_cgi(req);
 		}
+
 		if (req.type() == POST && (_loc->flags() & LOC_UPLOAD))			//please note that in this state we cannot upload on the default route. this is intentional.
 			upload_file(req);
-		
-		if (req.type() == DELETE)
+		else if (req.type() == DELETE)
 			delete_file(req);
 		
 		if (_loc->flags() & LOC_REDIR)
@@ -116,6 +135,7 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 			return;
 		}
 	}
+
 	if (_conf->autoindex() == "on")
 	{
 		if (get_autoindex(req, _conf->root(), true) == 1)
@@ -129,26 +149,14 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 	{
 		set_body_ress(req, conf);
 	}
-	//if (_status < 200 || _status > 299)
-	//	get_error_page();
 }
 
-void			Response::set_status(unsigned int s)
-{
-	_status = s;
-	if (_status < 200 || _status > 299)
-		get_error_page();
-}
 
-void			Response::add_header(str_t key, str_t val)
-{
-	_headers[key] = val;
-}
-
-void			Response::set_redir()
-{
-	add_header("location", _loc->redir().second);
-}
+/*
+					.---------------------.
+					| Seek Body from file |
+					'---------------------'
+*/
 
 void			Response::set_body_ress(Request &req, Config *conf)
 {
@@ -239,27 +247,30 @@ void			Response::set_body_ress(Request &req, Config *conf)
 	}
 }
 
-void	Response::set_headers(str_t path, Request &req)
-{
-	/* Setting content-type */
-	size_t point;
-	/* Setting default value before proceeding */
-	add_header("content-type", _mimeTypes[".txt"]);
-	if ((point = path.find(".")) != path.npos)
-	{
-		str_t ext = path.substr(point, path.npos);
-		if (_mimeTypes.count(ext))
-			add_header("content-type", _mimeTypes[ext]);
-	}
-	if (_body.size())
-		add_header("content-length", to_string<size_t>(_body.size() + 1));
 
-	//check if request got connection:close specified, else:
-	if (req.headers().count("connection") && req.headers()["connection"] == "close")
-		add_header("Connection", "close");
-	else
-		add_header("Connection", "keep-alive");
+/*
+					.--------------.
+					| Some setters |
+					'--------------'
+*/
+
+void			Response::set_status(unsigned int s)
+{
+	_status = s;
+	if (_status < 200 || _status > 299)
+		get_error_page();
 }
+
+void			Response::set_redir()
+{
+	add_header("location", _loc->redir().second);
+}
+
+/*
+					.---------.
+					| Getters |
+					'---------'
+*/
 
 unsigned int	Response::status()
 { return (_status); }
@@ -298,38 +309,8 @@ void			Response::get_error_page()
 	add_header("content-length", to_string(_body.size() + 1));
 }
 
-bool			Response::cgi_match(str_t uri, Request & req)
-{
-	bool index = false;
-	for (std::list<str_t>::iterator it = _loc->index().begin() ; it != _loc->index().end() ; ++it)
-	{
-		str_t check_index = *it;
-		if (check_index.rfind(_loc->cgi_extension()) == check_index.size() - _loc->cgi_extension().size())
-			index = true;
-	}
-
-	if (uri.size() < _loc->cgi_extension().size())
-			return false;
-	if (uri.rfind(_loc->cgi_extension()) == uri.size() - _loc->cgi_extension().size()
-		|| index == true)
-	{
-		// Ref: "Note that this means that if one of these requests is targeted at a CGI script
-		// (assuming the request is valid), the CGI script will be replaced or removed, but not executed"
-		// docstore.mik.ua/orelly/linux/cgi/ch02_03.htm
-		if (req.type() == DELETE)
-		{
-			delete_file(req);
-			return false;
-		}
-		_flags |= RES_ISCGI;
-		return true;
-	}
-	return false;
-}
-
 void			Response::select_location(Request &req)
 {
-	//location_v loc = _conf->location();
 	for (location_v::iterator it = _conf->location().begin(); it != _conf->location().end(); it++)
 	{
 		if (req._ressource.find(it->route()) != 0)
@@ -376,6 +357,18 @@ void			Response::select_location(Request &req)
 	}
 }
 
+
+/*
+					.---------.
+					| Headers |
+					'---------'
+*/
+
+void			Response::add_header(str_t key, str_t val)
+{
+	_headers[key] = val;
+}
+
 void			Response::add_mandatory_headers()
 {
 	char buf[1000];
@@ -387,8 +380,6 @@ void			Response::add_mandatory_headers()
 	add_header("server", "webserv/1.0");
 	if (!_headers.count("content-length"))
 		add_header("content_length", "0");
-	if (!_headers.count("content-type"))
-		add_header("content_type", _mimeTypes["html"]);
 }
 
 str_t			Response::add_head()
@@ -413,6 +404,35 @@ str_t			Response::add_head()
 	return (buffer);
 }
 
+void	Response::set_headers(str_t path, Request &req)
+{
+	/* Setting content-type */
+	size_t point;
+	/* Setting default value before proceeding */
+	add_header("content-type", _mimeTypes[".txt"]);
+	if ((point = path.find(".")) != path.npos)
+	{
+		str_t ext = path.substr(point, path.npos);
+		if (_mimeTypes.count(ext))
+			add_header("content-type", _mimeTypes[ext]);
+	}
+	if (_body.size())
+		add_header("content-length", to_string<size_t>(_body.size() + 1));
+
+	//check if request got connection:close specified, else:
+	if (req.headers().count("connection") && req.headers()["connection"] == "close")
+		add_header("Connection", "close");
+	else
+		add_header("Connection", "keep-alive");
+}
+
+
+/*
+					.-----------------.
+					| File Operations |
+					'-----------------'
+*/
+
 void			Response::upload_file(Request &req)
 {
 	if (!req.body().size())
@@ -433,7 +453,6 @@ void			Response::upload_file(Request &req)
 			if ((pos_cd = raw_find(*it, "Content-Disposition", 19)) != it->end())		// an equivalent to find nocase would be better
 			{	
 				raw_str_t::iterator pos_fn = raw_find(*it, "filename=", 9);
-				//raw_str_t::iterator itStr = it->begin() + pos_fn + 1;
 				pos_fn++;
 				for (; pos_fn != it->end() && *pos_fn != '\"'; pos_fn++);
 				pos_fn++;
@@ -491,31 +510,6 @@ void			Response::prepare()
 	_res += _body + "\4";
 }
 
-void			Response::prepare_cgi()
-{
-	str_t	s;
-	bool	cl = false, ct = false;
-
-	_res = newLine(_cgiret, "\n") + "\r\n";
-
-	while ((s = newLine(_cgiret, "\n")) != "")
-	{
-		if (find_nocase<str_t>(s, "content-length") == 0)
-			cl = true;
-		else if (find_nocase<str_t>(s, "content-type") == 0)
-			ct = true;
-		size_t n = s.find(':');
-		add_header(s.substr(0, n), s.substr(n+1, s.npos));
-	}
-	if (!cl)
-		add_header("content-length", to_string<int>(_cgiret.size()));
-	if (!ct)
-		add_header("content-type", "text/plain");
-	
-	_res += add_head();
-	_res += _cgiret + "\4";
-}
-
 int			Response::send()
 {
 	int ret = 0;
@@ -546,6 +540,66 @@ void			Response::reset()
 	_cgi.reset();
 	_res.clear();
 	_sent = 0;
+}
+
+/*
+					.-----.
+					| CGI |
+					'-----'
+*/
+
+bool			Response::cgi_match(str_t uri, Request & req)
+{
+	bool index = false;
+	for (std::list<str_t>::iterator it = _loc->index().begin() ; it != _loc->index().end() ; ++it)
+	{
+		str_t check_index = *it;
+		if (check_index.rfind(_loc->cgi_extension()) == check_index.size() - _loc->cgi_extension().size())
+			index = true;
+	}
+
+	if (uri.size() < _loc->cgi_extension().size())
+			return false;
+	if (uri.rfind(_loc->cgi_extension()) == uri.size() - _loc->cgi_extension().size()
+		|| index == true)
+	{
+		// Ref: "Note that this means that if one of these requests is targeted at a CGI script
+		// (assuming the request is valid), the CGI script will be replaced or removed, but not executed"
+		// docstore.mik.ua/orelly/linux/cgi/ch02_03.htm
+		if (req.type() == DELETE)
+		{
+			delete_file(req);
+			return false;
+		}
+		_flags |= RES_ISCGI;
+		return true;
+	}
+	return false;
+}
+
+void			Response::prepare_cgi()
+{
+	str_t	s;
+	bool	cl = false, ct = false;
+
+	_res = newLine(_cgiret, "\n") + "\r\n";
+
+	while ((s = newLine(_cgiret, "\n")) != "")
+	{
+		if (find_nocase<str_t>(s, "content-length") == 0)
+			cl = true;
+		else if (find_nocase<str_t>(s, "content-type") == 0)
+			ct = true;
+		size_t n = s.find(':');
+		add_header(s.substr(0, n), s.substr(n+1, s.npos));
+	}
+	if (!cl)
+		add_header("content-length", to_string<int>(_cgiret.size()));
+	if (!ct)
+		add_header("content-type", "text/plain");
+	
+	_res += add_head();
+	_res += _cgiret + "\4";
 }
 
 void	Response::check_cgi()
@@ -591,6 +645,13 @@ void	Response::set_body_cgi(Request req)
 	_cgi.set_script_name(target.substr(target.find("/cgi")));
 	_cgi.exec_cgi(target, req);
 }
+
+
+/*
+					.-----------.
+					| Autoindex |
+					'-----------'
+*/
 
 int		Response::get_autoindex(Request req, str_t path, bool code)
 {
