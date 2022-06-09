@@ -9,12 +9,12 @@ class Autoindex
     public:
         Autoindex(void);
         Autoindex(Autoindex const &src);
-        virtual ~Autoindex(void);
+        ~Autoindex(void);
 
         Autoindex   &operator=(Autoindex const &src);
-        static str_t	getPage(const char *route, const char *path, str_t const &host, int port);
+        static str_t	get_page(const char *route, const char *path);
     private:
-        static str_t	getLink(str_t const &dirEntry, str_t const &host, int port, str_t const &route);
+        static str_t	get_link(str_t const &dir_entry, str_t const &route);
 };
 
 #endif

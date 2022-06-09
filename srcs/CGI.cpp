@@ -3,9 +3,28 @@
 #include "flags.hpp"
 #include "EvMa.hpp"
 
-// the capacity of a pipe
-// https://man7.org/linux/man-pages/man7/pipe.7.html
+
+/*		A pipe has a limited capacity. If the pipe is full, then a
+    write will block or fail. Different implementations have
+    different limits for the pipe capacity. Since Linux 2.6.11, the
+	pipe capacity is 16 pages (i.e., 65,536 bytesin a system with a
+	page size of 4096 bytes).
+	REF: https://man7.org/linux/man-pages/man7/pipe.7.html
+*/
 #define CGI_BUF_SIZE 65536
+
+
+/*
+					.--------------.
+					| Constructors |
+					'--------------'
+*/
+
+CGI::CGI(void): _binary(""), _body(""),	_script_name(""), _pid(0), _status(0), _done(false)
+{
+	_fd_io[0] = -1;
+	_fd_io[1] = -1;
+}
 
 CGI::CGI(EvMa *evma)
 {
@@ -17,12 +36,59 @@ CGI::CGI(EvMa *evma)
 	_done = 0;
 }
 
+CGI::CGI(const CGI &ref)
+{
+	_binary = ref._binary;
+	_body = ref._body;
+	_script_name = ref._script_name;
+	_pid = ref._pid;
+	_status = ref._status;
+	_fd_io[0] = ref._fd_io[0];
+	_fd_io[1] = ref._fd_io[1];
+	_done = ref._done;
+}
+
+
+/*
+					.------------.
+					| Destructor |
+					'------------'
+*/
+
 CGI::~CGI()
 {
 	close(_fd_io[1]);
-	// close_fd();
-	//close(_fd_io[0]);
 }
+
+
+/*
+					.----------.
+					| Operator |
+					'----------'
+*/
+
+CGI	&CGI::operator=(const CGI &ref)
+{
+	if (&ref != this)
+	{
+		_binary = ref._binary;
+		_body = ref._body;
+		_script_name = ref._script_name;
+		_pid = ref._pid;
+		_status = ref._status;
+		_fd_io[0] = ref._fd_io[0];
+		_fd_io[1] = ref._fd_io[1];
+		_done = ref._done;
+	}
+	return (*this);
+}
+
+
+/*
+					.------------------.
+					| Member functions |
+					'------------------'
+*/
 
 void CGI::close_fd()
 {
@@ -37,7 +103,7 @@ void CGI::set_binary(str_t path)
 	_binary = path;
 }
 
-void CGI::exec_cgi(str_t target, Request req, FLAGS *flags, unsigned int *code)
+void CGI::exec_cgi(str_t target, Request req)
 {
 	char **args = NULL;
 	char **env = NULL;
@@ -51,18 +117,13 @@ void CGI::exec_cgi(str_t target, Request req, FLAGS *flags, unsigned int *code)
 
 	pid_t pid;
 
-	// fileno - map a stream pointer to a file descriptor
-	//_fd_io[0] = fileno(file_in);
 	if (pipe(_fd_io))
 		fatal("error: pipe failed");
-	//_fd_io[1] = fileno(file_out);
 
 	if ((pid = fork()) == -1)
 		fatal("error: fork failed on CGI: PID = -1");
 	else if (pid == 0)
 	{
-	  // STDOUT become a copy of _fd_io[1], and, in case of POST, STDIN become a copy of _fd_io[0]
-
 		close(_fd_io[0]);
 		dup2(_fd_io[1], STDOUT_FILENO);
 		close(_fd_io[1]);
@@ -77,9 +138,6 @@ void CGI::exec_cgi(str_t target, Request req, FLAGS *flags, unsigned int *code)
 	_pid = pid;
 	
 	close(_fd_io[1]);
-	//check(flags, code);
-	(void)code;
-	(void)flags;
 	free_cgi(args, env);
 }
 

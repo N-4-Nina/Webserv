@@ -589,7 +589,7 @@ void	Response::set_body_cgi(Request req)
 		return;
 	}
 	_cgi.set_script_name(target.substr(target.find("/cgi")));
-	_cgi.exec_cgi(target, req, &_flags, &_status);	
+	_cgi.exec_cgi(target, req);
 }
 
 int		Response::get_autoindex(Request req, str_t path, bool code)
@@ -624,7 +624,7 @@ int		Response::get_autoindex(Request req, str_t path, bool code)
 			return 0;
 		}
 	}
-	buffer << Autoindex::getPage(req._ressource.c_str(), path.c_str(), server_name, port); // nom du serveur qu'on ne gere pas
+	buffer << Autoindex::get_page(req._ressource.c_str(), path.c_str()); // nom du serveur qu'on ne gere pas
 	_body = buffer.str();
 	add_header("content-length", to_string<size_t>(_body.size() + 1));
 	add_header("content-type", "text/html");

@@ -23,13 +23,16 @@ class EvMa;
 class CGI
 {
 	public:
+		CGI(void);
 		CGI(EvMa *evma = NULL);
+		CGI(const CGI &ref);
 		~CGI();
 
+		CGI	&operator=(const CGI &ref);
 		EvMa	*_evma;
 		void	set_binary(str_t path);
 		void	set_script_name(str_t script_name);
-		void	exec_cgi(str_t target, Request req, FLAGS *flags, unsigned int *code);
+		void	exec_cgi(str_t target, Request req);
 		void	check(FLAGS *flags, unsigned int *code);
 		str_t 	body();
 		str_t	binary();
@@ -39,14 +42,12 @@ class CGI
 		void	close_fd();
 
 	private:
-		
 		str_t	_binary;
 		str_t	_body;
 		str_t	_script_name;
 		int		_pid;
 		int		_status;
 		int		_fd_io[2];
-		//int		_save_io[2];
 		bool	_done;
 		char	**build_cgi_env(Request req, str_t target);
 		void	get_host_port(Request req, strMap &envMap);
