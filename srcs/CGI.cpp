@@ -20,12 +20,6 @@
 					'--------------'
 */
 
-CGI::CGI(void): _binary(""), _body(""),	_script_name(""), _pid(0), _status(0), _done(false)
-{
-	_fd_io[0] = -1;
-	_fd_io[1] = -1;
-}
-
 CGI::CGI(EvMa *evma)
 {
 	_evma = evma;

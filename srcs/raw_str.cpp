@@ -1,7 +1,20 @@
 #include "common.hpp"
 #include "str_manips.hpp"
 
-raw_str_t   char_to_raw(char *buf, int n)
+/*      While we deal only with text, we can manage it with c++ strings.
+    But a problem arise with transmitting diverse data types, where 
+    zero-byte should not be considered as the end of anything.
+        That makes strings invalids, and instead we use a vector of char
+    typedefed as raw_str_t. So we need a few conversions and operations
+    functions.
+*/
+
+/*
+                    .-------------.
+                    | Conversions |
+                    '-------------'
+*/
+raw_str_t       char_to_raw(char *buf, int n)
 {
     raw_str_t ret;
 
@@ -12,7 +25,7 @@ raw_str_t   char_to_raw(char *buf, int n)
     return (ret);
 }
 
-str_t       raw_to_str(raw_str_t raw)
+str_t           raw_to_str(raw_str_t raw)
 {
     str_t out;
 
@@ -21,13 +34,9 @@ str_t       raw_to_str(raw_str_t raw)
     return (out);
 }
 
-raw_str_t       str_to_raw(str_t str)
+raw_str_t           str_to_raw(str_t str)
 {
     return(raw_str_t (str.begin(), str.end()));
-
-    //for (str_t::iterator it = str.begin(); it != str.end(); it++)
-    //    out.push_back(*it);
-    //return (out);
 }
 
 char				*raw_to_char(raw_str_t raw)
@@ -39,6 +48,12 @@ char				*raw_to_char(raw_str_t raw)
     return (ret);
 }
 
+
+/*
+                    .------------.
+                    | Operations |
+                    '------------'
+*/
 
 raw_str_t::iterator raw_find(raw_str_t &str,  const char *tofind, size_t size, size_t pos)
 {
@@ -74,10 +89,7 @@ raw_str_t   raw_newLine(raw_str_t &raw, raw_str_t::iterator hint)
         pos = raw_find(raw, CRLF, 2);
     raw_str_t out(start, pos);
     if (pos == raw.end())
-    {
-        //raw.clear();
         out.clear();
-    }
     else if (pos + 2 <= raw.end())
         raw = raw_str_t(pos+2, raw.end());
     return (out);

@@ -6,6 +6,12 @@
 
 void initialize_error_pages();
 
+/*
+                    .---------.
+                    | Enforce |
+                    '---------'
+*/
+
 void    fatal(str_t str)
 {
     std::cerr << str << "\n";
@@ -17,6 +23,13 @@ void    assert(bool scal, str_t log)
     if (!scal)
         fatal(log);
 }
+
+
+/*
+                    .------.
+                    | Init |
+                    '------'
+*/
 
 int check_duplicate(std::vector<Config> &conf)
 {
@@ -38,6 +51,12 @@ int check_duplicate(std::vector<Config> &conf)
     }
     return (0);
 }
+
+/*
+                    .-------------.
+                    | entry point |
+                    '-------------'
+*/
 
 int main(int argc, char **argv)
 {

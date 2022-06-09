@@ -45,6 +45,13 @@ EvMa::~EvMa(void)
 	}
 }
 
+
+/*
+						.------.
+						| init |
+						'------'
+*/
+
 void	EvMa::init_epoll()
 {
 	_epoll_fd = epoll_create1(EPOLL_CLOEXEC);
@@ -58,6 +65,13 @@ void	EvMa::init_epoll()
 	}
 	
 }
+
+
+/*
+					.---------------.
+					| cleanup (cgi) |
+					'---------------'
+*/
 
 void	EvMa::close_all(void)
 {
@@ -234,10 +248,7 @@ void	EvMa::loop()
 			else if (ev & EPOLLIN)
 			{
 				assert(is_connected(fd), "read/ could not find fd");
-				int ret = _clients[fd].add_data();
-				//if (!ret)
-				//	disconnect_socket(fd, ptr, "Read = 0.");
-				if (ret > 0)
+				if (_clients[fd].add_data() > 0)
 					disconnect_socket(fd, ptr, "Read error.");
 			}
 		}

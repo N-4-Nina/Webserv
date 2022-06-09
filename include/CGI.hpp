@@ -23,7 +23,6 @@ class EvMa;
 class CGI
 {
 	public:
-		CGI(void);
 		CGI(EvMa *evma = NULL);
 		CGI(const CGI &ref);
 		~CGI();

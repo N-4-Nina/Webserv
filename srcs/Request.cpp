@@ -3,6 +3,12 @@
 #include "find_nocase.hpp"
 #include "flags.hpp"
 
+/*
+					.--------------.
+					| Constructors |
+					'--------------'
+*/
+
 Request::Request(int fd, Config *conf) : _conf(conf), _fd(fd), _read_body(0)
 {
 }
@@ -12,10 +18,18 @@ Request::Request(unsigned int error, int fd) : _fd(fd), _error(error)
 	_flags = 0 | REQ_ISBAD;
 }
 
-// Request::Request(const Request &ref)
-// : _fd(ref._fd), _type(ref._type), _headers(ref._headers),
-// _ressource(ref._ressource), _queryParam(ref._queryParam)
-// {}
+Request::Request(const Request &ref)
+{
+	_fd = ref._fd;
+	_type = ref._type;
+	_headers = ref._headers;
+	_ressource = ref._ressource;
+	_queryParam = ref._queryParam;
+	_flags = ref._flags;
+	_read_body = ref._read_body;
+	_conf = ref._conf;
+	_port = ref._port;
+}
 
 Request &Request::operator=(const Request &ref)
 {
@@ -38,6 +52,7 @@ Request::~Request(void)
 {
 }
 
+
 void Request::reset()
 {
 	_boundary.clear();
@@ -53,6 +68,12 @@ void Request::reset()
 	_query_string.clear();
 	_ressource.clear();
 }
+
+/*
+					.-------------------------.
+					| Building from read data |
+					'-------------------------'
+*/
 
 str_t Request::url_decode(str_t &src)
 {
@@ -152,37 +173,6 @@ int Request::parse_TopLine(str_t input)
 	return (0);
 }
 
-bool Request::isBad()
-{
-	return (_flags & PARSED_ERROR);
-}
-
-void Request::set_Error(unsigned int code)
-{
-	_flags |= PARSED_ERROR;
-	_error = code;
-}
-
-int Request::fd()
-{
-	return (_fd);
-}
-
-unsigned int Request::type()
-{
-	return (_type);
-}
-
-unsigned int &Request::error()
-{
-	return (_error);
-}
-
-str_t Request::query_string()
-{
-	return (_query_string);
-}
-
 int Request::add_Header(str_t line)
 {
 	strPair p;
@@ -238,6 +228,66 @@ int Request::add_Body(raw_str_t line, size_t plus)
 	return (0);
 }
 
+void Request::set_Error(unsigned int code)
+{
+	_flags |= PARSED_ERROR;
+	_error = code;
+}
+
+
+/*
+					.---------.
+					| Getters |
+					'---------'
+*/
+
+int Request::fd()
+{
+	return (_fd);
+}
+
+unsigned int Request::type()
+{
+	return (_type);
+}
+
+unsigned int &Request::error()
+{
+	return (_error);
+}
+
+str_t Request::query_string()
+{
+	return (_query_string);
+}
+
+strMap &Request::headers()
+{
+	return (_headers);
+}
+
+std::vector<raw_str_t> &Request::body()
+{
+	return (_body);
+}
+
+unsigned int Request::read_body()
+{
+	return (_read_body);
+}
+
+unsigned int Request::cl()
+{
+	return (_cl);
+}
+
+
+/*
+					.-------------.
+					| Evaluations |
+					'-------------'
+*/
+
 bool Request::isBoundary(raw_str_t line)
 {
 	if (line == _boundary)
@@ -262,22 +312,7 @@ bool Request::over_Read()
 	return (_read_body > _cl);
 }
 
-strMap &Request::headers()
+bool Request::isBad()
 {
-	return (_headers);
-}
-
-std::vector<raw_str_t> &Request::body()
-{
-	return (_body);
-}
-
-unsigned int Request::read_body()
-{
-	return (_read_body);
-}
-
-unsigned int Request::cl()
-{
-	return (_cl);
+	return (_flags & PARSED_ERROR);
 }
