@@ -31,21 +31,5 @@ print ("<ul>")
 for key in os.environ.keys():
     print ("<li><span style='color:green'>%30s:</span> %s </li>" % (key,os.environ[key]))
 print ("</ul>")
-
-params = os.environ.get('QUERY_STRING')
-res = params.split('=') #TESTS THAT THERE IS A QUERY STRING
-
-#display based on if params were sent
-if  str(res) == "['']":
-	print ('no query params')
-	print ('<br>')
-else:
-	print ('some query params were passed:')
-	print ('<br>')
-    #searchParams is an array of type [['key','value'],['key','value']]	
-	searchParams = [i.split('=') for i in params.split('&')] #parse query string
-	for key, value in searchParams:
-		print('<b>' + key + '</b>: ' + value + '<br>\n')	
-
 print ('</body>')
 print ('</html>')
