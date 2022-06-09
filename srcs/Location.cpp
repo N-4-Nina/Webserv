@@ -2,7 +2,9 @@
 #include "str_manips.hpp"
 
 /*
-*
+					.--------------.
+					| Constructors |
+					'--------------'
 */
 
 Location::Location(str_t block)
@@ -18,7 +20,7 @@ Location::Location(str_t block)
 	set_upload_pass(search_config(block, "upload_pass"));
 	set_upload_path(search_config(block, "upload_path"));
 	set_redir(search_config(block, "return"));
-	if (_cgi_extension != "" /*&& _cgi_path != ""*/)
+	if (_cgi_extension != "")
 		_flags |= LOC_CGI;
 }
 
@@ -34,6 +36,24 @@ Location::Location(const Location &ref)
 	_upload_path = ref._upload_path;
 	_redir = ref._redir;
 }
+
+
+/*
+					.------------.
+					| Destructor |
+					'------------'
+*/
+
+Location::~Location()
+{
+}
+
+
+/*
+					.-----------.
+					| Operators |
+					'-----------'
+*/
 
 Location &Location::operator=(const Location &ref)
 {
@@ -51,10 +71,11 @@ Location &Location::operator=(const Location &ref)
 	return (*this);
 }
 
-Location::~Location() {}
 
 /*
-* Setters
+					.---------.
+					| Setters |
+					'---------'
 */
 
 void Location::set_root(str_t line)
@@ -122,7 +143,6 @@ void Location::add_method(str_t str)
 	{
 		if (str == strTypes[i])
 			found = i;
-
 	}
 	if (found == 3)
 		throw str_t("error: bad method in conf");
@@ -138,7 +158,6 @@ void Location::set_cgi_path(str_t line)
 	   this->_cgi_path = "";
 	else
 		this->_cgi_path = line.substr(line.find(" ") + 1);
-	//append_slash(this->_cgi_path);
 }
 
 void Location::set_cgi_extension(str_t line)
@@ -170,11 +189,15 @@ void Location::set_upload_path(str_t line)
 		_upload_path = line.substr(line.find(" ") + 1);
 		std::cout << _upload_path <<std::endl;
 		if (access( _upload_path.c_str(), F_OK ))
-			_flags = _flags & ~LOC_UPLOAD; //log: did not find upload directory
+			_flags = _flags & ~LOC_UPLOAD;	// log: did not find upload directory
 		append_slash(_upload_path);
 	}
 }
 
+/*
+		_redir is a pair (see common.hpp), which contained a long and a string
+	(pair<long, string>), to access the redirection code and its url.
+*/
 void Location::set_redir(str_t line)
 {
     size_t space_pos;
@@ -203,7 +226,9 @@ void Location::set_redir(str_t line)
 }
 
 /*
-* Getters
+					.---------.
+					| Getters |
+					'---------'
 */
 
 std::list<str_t>	&Location::index() { return (_index); }
@@ -222,11 +247,17 @@ str_t Location::upload_path() const { return (_upload_path); }
 
 FLAGS	Location::flags() const { return (this->_flags); }
 
+/*
+		typedef std::pair<long, str_t>  Redir;
+		see common.hpp
+*/
 Redir Location::redir() const { return (this->_redir); }
 
 
 /*
-* Member functions
+					.------------------.
+					| Member functions |
+					'------------------'
 */
 
 str_t Location::search_config(str_t config, str_t key)
@@ -261,26 +292,4 @@ str_t Location::search_config(str_t config, str_t key)
 	}
 
 	return (line = config.substr(begin, (end - begin)));
-}
-
-/*
-* Non-member functions
-*/
-
-std::ostream& operator<<(std::ostream& os, Location &src)
-{
-	os << "{" << std::endl;
-	// std::list<str_t> index = src.index();
-
-	// for (std::list<str_t>::iterator it = index.begin() ; it != index.end() ; ++it)
-	// 	os << "\t\t- " << *it << std::endl;
-
-	// for (std::list<str_t>::iterator it = src.methods().begin() ; it != src.methods().end() ; ++it)
-	// 	os << "\t\t- " << *it << std::endl;
-
-
-	os << "\t\t- " << src.redir().first << "=>" << src.redir().second << std::endl;	
-
-	os << "}" << std::endl;
-	return (os);
 }

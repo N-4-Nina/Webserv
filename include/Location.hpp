@@ -55,10 +55,7 @@ class Location
 		void set_upload_pass(str_t line);
 		void set_upload_path(str_t line);
 		void set_redir(str_t line);
-
 		Location();
 };
-
-std::ostream &operator<<(std::ostream &os, Location &src);
 
 #endif

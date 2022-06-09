@@ -117,7 +117,7 @@ void Config::set_client_max(str_t line)
 void Config::set_root(str_t line)
 {
 	if (line == "")
-		throw str_t("error: root can't be find");
+		throw str_t("error: config root can't be found");
 	this->_root = line.substr(line.find(" ") + 1);
 }
 
@@ -207,6 +207,16 @@ str_t Config::search_config(str_t config, str_t key)
 	str_t line;
 	std::vector<size_t> locations;
 	int i = 1;
+
+if (key == "root")
+	{
+		// trouver rooot,en memoriser lindex
+		// trouver location
+		// est ce que location est avant root ?
+		// non -> tout est ok on continue
+		// oui -> chercher un / et en faire la root par defaut
+		// si pas de / -> caca
+	}
 
 	begin = config.find(key);
 	if (begin == str_t::npos)
