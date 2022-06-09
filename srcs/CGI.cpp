@@ -20,12 +20,6 @@
 					'--------------'
 */
 
-CGI::CGI(void): _binary(""), _body(""),	_script_name(""), _pid(0), _status(0), _done(false)
-{
-	_fd_io[0] = -1;
-	_fd_io[1] = -1;
-}
-
 CGI::CGI(EvMa *evma)
 {
 	_evma = evma;
@@ -38,6 +32,7 @@ CGI::CGI(EvMa *evma)
 
 CGI::CGI(const CGI &ref)
 {
+	_evma = ref._evma;
 	_binary = ref._binary;
 	_body = ref._body;
 	_script_name = ref._script_name;
@@ -71,6 +66,7 @@ CGI	&CGI::operator=(const CGI &ref)
 {
 	if (&ref != this)
 	{
+		_evma = ref._evma;
 		_binary = ref._binary;
 		_body = ref._body;
 		_script_name = ref._script_name;
@@ -85,23 +81,59 @@ CGI	&CGI::operator=(const CGI &ref)
 
 
 /*
-					.------------------.
-					| Member functions |
-					'------------------'
+					.---------.
+					| Setters |
+					'---------'
 */
-
-void CGI::close_fd()
-{
-	if (_fd_io[0] > 1)
-		close(_fd_io[0]);
-	if (_fd_io[1] > 1)
-		close(_fd_io[1]);
-}
 
 void CGI::set_binary(str_t path)
 {
 	_binary = path;
 }
+
+void	CGI::set_script_name(str_t script_name)
+{
+	_script_name = script_name;
+}
+
+
+/*
+					.---------.
+					| Getters |
+					'---------'
+*/
+
+str_t	CGI::binary()
+{
+	return (_binary);
+}
+
+str_t	CGI::body()
+{
+	return (_body);
+}
+
+int		CGI::pid()
+{
+	return (_pid);
+}
+
+str_t	CGI::script_name()
+{
+	return (_script_name);
+}
+
+
+/*
+					.------------------.
+					| Member functions |
+					'------------------'
+*/
+
+/*
+		This is the function where the fork happens for the programm
+	can execute the cgis script.
+*/
 
 void CGI::exec_cgi(str_t target, Request req)
 {
@@ -113,7 +145,6 @@ void CGI::exec_cgi(str_t target, Request req)
 	args[1] = strdup(target.c_str());
 	args[2] = 0;
 	env = build_cgi_env(req, target);
-	// DEBUG_display_cgi_env(env, args);
 
 	pid_t pid;
 
@@ -134,16 +165,17 @@ void CGI::exec_cgi(str_t target, Request req)
 			kill (getpid(), SIGINT);
 		}
 	}
-
-	_pid = pid;
-	
+	_pid = pid;	
 	close(_fd_io[1]);
 	free_cgi(args, env);
 }
 
+/*
+		Check if the cgi are done. If yes, send the body.
+*/
+
 void	CGI::check(FLAGS *flags, unsigned int *code)
 {
-	//std::cout << _pid << "\n";
 	if (!_done && waitpid(_pid, &_status, WNOHANG | WUNTRACED))
 		_done = true;
 	if (_done)
@@ -177,13 +209,10 @@ void	CGI::check(FLAGS *flags, unsigned int *code)
 	}
 }
 
-
 /*
-* Ref: https://web.maths.unsw.edu.au/~lafaye/CCM/cgi/cgienv.htm
-* Ref: https://fr.wikipedia.org/wiki/Variables_d%27environnement_CGI
-* Ref: https://web.developpez.com/cgic.htm
+		Build the server environnement.
+	Ref: https://web.maths.unsw.edu.au/~lafaye/CCM/cgi/cgienv.htm
 */
-
 void CGI::get_host_port(Request req, strMap &envMap)
 {
 	for (strMap::iterator it = req.headers().begin() ; it != req.headers().end() ; ++it)
@@ -200,12 +229,13 @@ void CGI::get_host_port(Request req, strMap &envMap)
 		}
 	}
 }
+
 char **CGI::build_cgi_env(Request req, str_t target)
 {
 	char **env;
 	strMap envMap;
 
-	envMap["REDIRECT_STATUS"] = "200"; // needed with php, not mandatory with python i think, but not a bad thing to have it
+	envMap["REDIRECT_STATUS"] = "200";
 	envMap["GATEWAY_INTERFACE"] = "CGI/1.1";
 	envMap["SCRIPT_NAME"] = _script_name;
 	envMap["PATH_INFO"] = req._ressource;
@@ -227,17 +257,21 @@ char **CGI::build_cgi_env(Request req, str_t target)
 	return (env);
 }
 
-str_t	CGI::body()
-{ return (_body); }
+void CGI::free_str_tab(char **str_tab)
+{	
+	int i = -1;
+	while (str_tab[++i] != 0)
+		free(str_tab[i]);
+	free(str_tab);
+}
 
-str_t	CGI::binary()
-{ return (_binary); }
-
-str_t	CGI::script_name()
-{ return (_script_name); }
-
-int		CGI::pid()
-{ return (_pid); }
+void CGI::free_cgi(char **args, char **env)
+{
+	free_str_tab(args);
+	free_str_tab(env);
+	args = NULL;
+	env = NULL;
+}
 
 void	CGI::reset()
 {
@@ -255,26 +289,24 @@ void	CGI::reset()
 	_done = false;
 }
 
-void CGI::free_str_tab(char **str_tab)
-{	
-	int i = -1;
-	while (str_tab[++i] != 0)
-		free(str_tab[i]);
-	free(str_tab);
-}
-
-void CGI::free_cgi(char **args, char **env)
+void CGI::close_fd()
 {
-	free_str_tab(args);
-	free_str_tab(env);
-	args = NULL;
-	env = NULL;
+	if (_fd_io[0] > 1)
+		close(_fd_io[0]);
+	if (_fd_io[1] > 1)
+		close(_fd_io[1]);
 }
 
-void	CGI::set_script_name(str_t script_name)
-{  _script_name = script_name; }
 
-// print the env and args for testing
+/*
+					.----------------------.
+					| Non-member functions |
+					'----------------------'
+*/
+
+/*
+	print the env and args, for testing
+*/
 void DEBUG_display_cgi_env(char **env, char **args)
 {
 	std::cout << "\n\n---- CGI ENV VARIABLES ----" << std::endl;
