@@ -225,6 +225,7 @@ void Location::set_redir(str_t line)
     }
 }
 
+
 /*
 					.---------.
 					| Getters |

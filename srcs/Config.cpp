@@ -1,5 +1,12 @@
 #include "Config.hpp"
 
+
+/*
+					.--------------.
+					| Constructors |
+					'--------------'
+*/
+
 Config::Config(str_t config) : 
  _ports(),  _server_name(1, "webserv"), 
 _client_max_body_size(1000000), _root("/"), _index(1, "index.html"),
@@ -21,10 +28,43 @@ Config::Config(const Config &ref)
 	*this = ref;
 }
 
-Config::~Config(void) {}
 
 /*
-* Setters
+					.------------.
+					| Destructor |
+					'------------'
+*/
+
+Config::~Config(void) {}
+
+
+/*
+					.-----------.
+					| Operators |
+					'-----------'
+*/
+
+Config &Config::operator=(const Config &ref)
+{
+	if (this != &ref)
+	{
+		_ports = ref._ports;
+		_server_name = ref._server_name;
+		_error_page = ref._error_page;
+		_client_max_body_size = ref._client_max_body_size;
+		_root = ref._root;
+		_index = ref._index;
+		_autoindex = ref._autoindex;
+		_location = ref._location;
+	}
+	return (*this);
+}
+
+
+/*
+					.---------.
+					| Setters |
+					'---------'
 */
 
 void Config::set_ports(str_t line)
@@ -157,8 +197,8 @@ void Config::set_autoindex(str_t line)
 
 void Config::set_location(str_t line)
 {
-	std::vector<size_t>           tmp;
-	std::string                   block;
+	std::vector<size_t>		   tmp;
+	std::string				   block;
 	std::vector<size_t>::iterator it;
 
 	tmp = search_location(line);
@@ -174,10 +214,12 @@ void Config::set_location(str_t line)
 	}
 }
 
-/*
-* Getters
-*/
 
+/*
+					.---------.
+					| Getters |
+					'---------'
+*/
 
 std::vector<int> &Config::ports() { return ( _ports); }
 
@@ -195,25 +237,12 @@ str_t Config::autoindex() const { return (this->_autoindex); }
 
 location_v &Config::location() { return (this->_location); }
 
+
 /*
-* Member functions
+					.------------------.
+					| Member functions |
+					'------------------'
 */
-
-int		Config::search_root(str_t config, str_t key)
-{
-	size_t root_pos = config.find(key);
-	size_t loca_pos = config.find("location");
-
-	if (loca_pos < root_pos)
-	{
-		if (config.find("location / {") != str_t::npos)
-			return (2);
-		else
-			return (1);
-	}
-	else
-		return (0);
-}
 
 str_t	Config::search_config(str_t config, str_t key)
 {
@@ -276,11 +305,11 @@ str_t	Config::search_config(str_t config, str_t key)
 std::vector<size_t> Config::search_location(str_t config)
 {
 	std::vector<size_t> locations;
-	size_t              pos = 0;
-	size_t              space = 0;
-	size_t              end = 0;
-	size_t              other = 0;
-	int                 i = 0;
+	size_t			  pos = 0;
+	size_t			  space = 0;
+	size_t			  end = 0;
+	size_t			  other = 0;
+	int				 i = 0;
 
 	while ((pos = config.find("location", pos + 1)) != str_t::npos)
 	{
@@ -306,48 +335,18 @@ std::vector<size_t> Config::search_location(str_t config)
 	return (locations);
 }
 
-/*
-* Non-member functions
-*/
-
-std::ostream& operator<<(std::ostream& os, Config &src)
+int		Config::search_root(str_t config, str_t key)
 {
-	// os << std::endl;
-	// os << "<----- CONFIGURATION ----->" << std::endl << std::endl;
+	size_t root_pos = config.find(key);
+	size_t loca_pos = config.find("location");
 
-	// os << "host: " << src.host() << std::endl;
-	
-	// os << "ports: " << std::endl;
-	// std::vector<int> ports = src.ports();
-	// for (std::vector<int>::iterator it = ports.begin() ; it != ports.end() ; ++it)
-	// 	os << "\t- " << *it << std::endl;
-	
-	// os << "server_name: " << std::endl;
-	// std::vector<std::string> names = src.server_name();
-	// for (std::vector<std::string>::iterator it = names.begin() ; it != names.end() ; ++it)
-	// 	os << "\t- " << *it << std::endl;
-	
-	// os << "error_page: " << std::endl;
-	// strMap error_pages = src.error_page();
-	// if (error_pages.empty() == false)
-	// 	for (strMap::const_iterator it = error_pages.begin() ; it != error_pages.end() ; ++it)
-	// 		os << "\t- " << it->first << " " << it->second << std::endl;
-
-	// os << "client_max_body_size: " << src.client_max() << std::endl;
-	
-	// os << "root: " << src.root() << std::endl;
-	
-	// os << "index: " << std::endl;
-	// std::list<std::string> index = src.index();
-	// for (std::list<std::string>::iterator it = index.begin() ; it != index.end() ; ++it)
-	// 	os << "\t- " << *it << std::endl;
-	
-	// os << "location: " << std::endl;
-	// location_v location = src.location();
-	// for (location_v::iterator it = location.begin() ; it != location.end() ; ++it)
-	// 	os << *it << std::endl;
-
-	(void)src;
-	
-	return (os);
+	if (loca_pos < root_pos)
+	{
+		if (config.find("location / {") != str_t::npos)
+			return (2);
+		else
+			return (1);
+	}
+	else
+		return (0);
 }
