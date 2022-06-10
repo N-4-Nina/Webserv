@@ -117,7 +117,7 @@ void Config::set_client_max(str_t line)
 void Config::set_root(str_t line)
 {
 	if (line == "")
-		throw str_t("error: config root can't be found");
+		throw str_t("error: no root for /");
 	this->_root = line.substr(line.find(" ") + 1);
 }
 
@@ -199,7 +199,23 @@ location_v &Config::location() { return (this->_location); }
 * Member functions
 */
 
-str_t Config::search_config(str_t config, str_t key)
+int		Config::search_root(str_t config, str_t key)
+{
+	size_t root_pos = config.find(key);
+	size_t loca_pos = config.find("location");
+
+	if (loca_pos < root_pos)
+	{
+		if (config.find("location / {") != str_t::npos)
+			return (2);
+		else
+			return (1);
+	}
+	else
+		return (0);
+}
+
+str_t	Config::search_config(str_t config, str_t key)
 {
 	size_t begin;
 	size_t end;
@@ -208,15 +224,14 @@ str_t Config::search_config(str_t config, str_t key)
 	std::vector<size_t> locations;
 	int i = 1;
 
-if (key == "root")
+	if (key == "root")
 	{
-		// trouver rooot,en memoriser lindex
-		// trouver location
-		// est ce que location est avant root ?
-		// non -> tout est ok on continue
-		// oui -> chercher un / et en faire la root par defaut
-		// si pas de / -> caca
+		if (search_root(config, key) == 2)
+			config = config.substr(config.find("location / {"), str_t::npos);
+		else if (search_root(config, key) == 1)
+			throw str_t("error: no root for /");
 	}
+
 
 	begin = config.find(key);
 	if (begin == str_t::npos)

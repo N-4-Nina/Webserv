@@ -35,6 +35,7 @@ class Config
 	   
 		str_t               search_config(str_t config, str_t key);
 		std::vector<size_t> search_location(str_t config);
+		int					search_root(str_t config, str_t key);
 
 		void set_ports(str_t line);
 		void set_server_name(str_t line);
