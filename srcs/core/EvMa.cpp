@@ -22,15 +22,11 @@ EvMa::EvMa(config_v &conf)
 	init_epoll();
 }
 
-//a implementer
-// EvMa::EvMa(const EvMa &ref)
-// {
-// }
-
-// EvMa	&EvMa::operator=(const EvMa &ref)
-// {
-// 	return (*this);
-// }
+/*	
+	EvMa doesn't have all the requirements for a canonical class
+	because I don't want it to. It supposed to instanciated only
+	once during the program, never copied or assigned.
+*/
 
 EvMa::~EvMa(void)
 {
@@ -206,6 +202,25 @@ void	EvMa::disconnect_socket_ex(Expire_iterator ex)
 					.-------------------.
 					| Main Program Loop |
 					'-------------------'
+*/
+
+/*
+		So this might be the most important part of the project, and
+	it is where we use epoll (or poll or select) to implement multi-
+	plexing. Once epoll is initialized and configured we can use
+	epoll_wait to manage a bunch of file descriptors: some of them
+	refers to listening sockets (the one specified in the conf file),
+	others refer to the actual connections we opened with our clients.
+		Every loop we get all fds that are ready to read and/or write on.
+	We then choose what we need to do with EVERY SINGLE ONE of the 
+	connections, even if it's not much. The key is to never do long
+	operations. Every read and write must be performed once with a 
+	reasonable buffer size, not put in a write loop or a read loop.
+		This system also allows to use CGI (basically execute another
+	script/program to generate the response): we might not know when
+	this other process will be done, but it does not matter because 
+	we can continue to loop and serve other clients.
+		Finally there it a timeout system to disconnect inactive users.
 */
 
 void	EvMa::loop()

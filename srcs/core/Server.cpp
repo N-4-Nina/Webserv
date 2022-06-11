@@ -1,6 +1,12 @@
 #include "Server.hpp"
 #include "utils.hpp"
 
+/*
+					.--------------.
+					| Constructors |
+					'--------------'
+*/
+
 Server::Server(){}
 
 Server::Server(Config &conf)
@@ -31,13 +37,12 @@ Server::~Server(void)
 {
 }
 
-void	Server::close_fd()
-{
-	for (listen_sockets::iterator it = _ls.begin(); it != _ls.end(); it++)
-	{
-		close(it->first);
-	}
-}
+
+/*
+					.---------.
+					| Getters |
+					'---------'
+*/
 
 int		Server::id()
 {
@@ -46,6 +51,21 @@ int		Server::id()
 
 Config	*Server::conf(void)
 { return (_conf); }
+
+
+/*
+					.----------------.
+					| Manage sockets |
+					'----------------'
+*/
+
+void	Server::close_fd()
+{
+	for (listen_sockets::iterator it = _ls.begin(); it != _ls.end(); it++)
+	{
+		close(it->first);
+	}
+}
 
 bool	Server::is_listen(int fd, int *port)
 {
@@ -59,6 +79,7 @@ bool	Server::is_listen(int fd, int *port)
 	}
 	return (false);
 }
+
 void	Server::add_to_epoll(int epoll_fd)
 {
 	event_t	tmp;
@@ -70,6 +91,13 @@ void	Server::add_to_epoll(int epoll_fd)
 			fatal("epoll add listen");
 	}
 }
+
+
+/*
+					.------.
+					| init |
+					'------'
+*/
 
 void	Server::init_listen(int_v ports)
 {
