@@ -176,7 +176,7 @@ config_v	parsing_config(int argc, char **argv)
 	try
 	{
 		if (argc != 2)
-			config = parse_config("miniConf.conf");
+			config = parse_config("./config_files/ok_default.conf");
 		else
 			config = parse_config(argv[1]);
 	}
