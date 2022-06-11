@@ -2,7 +2,9 @@
 #include "str_manips.hpp"
 #include "utils.hpp"
 
-// print vectors to debug
+/*
+	template to print a vector, to debug, if needed
+*/
 template<typename T>
 void	printVec(std::vector<T> &v)
 {
@@ -18,7 +20,11 @@ void	printVec(std::vector<T> &v)
 	std::cout << "}" << std::endl;
 };
 
-std::vector<size_t> get_server(std::string config)
+/*
+	check and get the server block, every server block is a new config to
+	stock in the vector config
+*/
+std::vector<size_t> get_server(str_t config)
 {
 	int brackets;
 	std::vector<size_t> block;
@@ -30,7 +36,7 @@ std::vector<size_t> get_server(std::string config)
 	end = 0;
 	start = config.find('{', 0);
 	server = config.find("server", 0);
-	
+
 	if (start == std::string::npos || server == std::string::npos || start != (server + 7))
 		return (block);
 	
@@ -85,7 +91,13 @@ void check_semicolon(str_t& config_final, size_t i, int nb_line, bool line_locat
 		throw str_t("error (line " + to_string(nb_line) + "): bad endline character");
 }
 
-void clean_config(str_t& config)
+/*
+		The purpose of this function is to clean the sever and location block
+	Example: the doubles spaces are change for simples spaces, it check if there
+	is a ; at the end of every line, etc.
+*/
+
+void clean_config(str_t &config)
 {
 	int nb_line;
 	bool line_location;
@@ -160,6 +172,7 @@ config_v parse_config(const char* config)
 		Config tmp_config(config_final.substr(block[0], (block[1] - block[0])));
 		new_config.push_back(tmp_config);
 		config_final.erase(block[0], block[1]);
+		// get the next server block
 		block = get_server(config_final);
    }
 	return (new_config);
@@ -177,6 +190,6 @@ config_v	parsing_config(int argc, char **argv)
 			config = parse_config(argv[1]);
 	}
 	catch (str_t error)
-		{fatal(error);}
+		{ fatal(error); }
 	return (config);
 }
