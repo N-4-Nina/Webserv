@@ -2,6 +2,7 @@
 #include "Request.hpp"
 #include "Client.hpp"
 #include "Server.hpp"
+#include "utils.hpp"
 
 /*
 					.--------------.

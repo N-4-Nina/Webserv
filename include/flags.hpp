@@ -25,3 +25,13 @@
 #define RES_STARTED		32
 #define RES_READY		64
 #define RES_CLOSE		128
+
+	/* LOCATION */
+	
+#define LOC_AUTO	1
+#define LOC_INDEX	2
+#define LOC_ROOT	4
+#define LOC_CGI		8
+#define	LOC_UPLOAD	16
+#define	LOC_METHOD	32
+#define LOC_REDIR	64

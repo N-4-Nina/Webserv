@@ -2,7 +2,7 @@
 #include "str_manips.hpp"
 
 /*      While we deal only with text, we can manage it with c++ strings.
-    But a problem arise with transmitting diverse data types, where 
+    But a problem arises with transmitting diverse data types, where 
     zero-byte should not be considered as the end of anything.
         That makes strings invalids, and instead we use a vector of char
     typedefed as raw_str_t. So we need a few conversions and operations

@@ -8,7 +8,7 @@
 #include "CGI.hpp"
 #include "flags.hpp"
 #include "Autoindex.hpp"
-//#include "Client.hpp"
+
 
 class Client;
 class EvMa;
@@ -20,27 +20,28 @@ class Response
 		Response(const Response &ref);
 		Response	&operator=(const Response &ref);
 		~Response(void);
-		void 			set_status(unsigned int s);
+
 		unsigned int	status();
+		strMap			headers();
+		FLAGS			flags();
+		CGI				&cgi();
 
 		void		prepare();
 		void		prepare_cgi();
 		int			send();
+		void 		set_status(unsigned int s);
+		void		set_body_cgi(Request req);
+		void		check_cgi();
+		void		kill_cgi();
+		void		get_error_page();
+		int			get_autoindex(Request req, str_t path, bool code);
+		void		reset();
+
 		static	strMap							_mimeTypes;
 		static	std::map<unsigned int, str_t>	_codes;
 		static	str_t							_error_page[2];
-		void									set_body_cgi(Request req);
-		void									check_cgi();
-		void									kill_cgi();
-		void									get_error_page();
-		strMap	headers();
-		FLAGS	flags();
-		CGI		&cgi();
-
-		int		get_autoindex(Request req, str_t path, bool code);
-
-		void	reset();
 		size_t									_sent;
+
 	private:
 		void	upload_file(Request &req);
 		void	delete_file(Request &req);
@@ -50,20 +51,18 @@ class Response
 		void	add_mandatory_headers();
 		void	set_headers(str_t path, Request & req);
 		void	add_header(str_t key, str_t val);
-		bool	cgi_match(str_t uri, Request & req);
+		void	cgi_match(str_t uri, Request & req);
 		str_t	add_head();
 
 		CGI										_cgi;
 		Client									*_client;
 		Config									*_conf;
-		str_t									_route;
 		FLAGS									_flags;
 		Location								*_loc;
 		unsigned int							_status;
 		int										_fd;
 		strMap									_headers;
-		
-		
+		str_t									_route;
 		str_t									_index;
 		str_t									_head;
 		str_t									_body;

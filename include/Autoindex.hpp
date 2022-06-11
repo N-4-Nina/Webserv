@@ -10,8 +10,8 @@ class Autoindex
         Autoindex(void);
         Autoindex(Autoindex const &src);
         ~Autoindex(void);
-
         Autoindex   &operator=(Autoindex const &src);
+        
         static str_t	get_page(const char *route, const char *path);
     private:
         static str_t	get_link(str_t const &dir_entry, str_t const &route);

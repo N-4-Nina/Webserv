@@ -15,26 +15,27 @@ class Request
 		Request	&operator=(const Request &ref);
 		~Request(void);
 
-
-		void		reset();
-		int			parse_TopLine(str_t line);
-		int			add_Header(str_t line);
-		int			add_Body(raw_str_t line, size_t plus);
-		bool		isBoundary(raw_str_t line);
-		bool		done_Reading();
-		bool		over_Read();
-		void		set_Error(unsigned int code);
-		int	fd();
-		unsigned int 		type();
-		bool				isBad();
-		unsigned	int		&error();
-		strMap				&headers();
+		int						fd();
+		unsigned int 			type();
+		bool					isBad();
+		unsigned	int			&error();
+		strMap					&headers();
 		std::vector<raw_str_t>	&body();
-		str_t		url_decode(str_t &src);
-		str_t		query_string();
+		unsigned int			cl();
+
+		void			reset();
+		int				parse_TopLine(str_t line);
+		int				add_Header(str_t line);
+		int				add_Body(raw_str_t line, size_t plus);
+		bool			isBoundary(raw_str_t line);
+		bool			done_Reading();
+		bool			over_Read();
+		void			set_Error(unsigned int code);
+		str_t			url_decode(str_t &src);
+		str_t			query_string();
 		unsigned int	read_body();
-		unsigned int	cl();
-		Config		*_conf;
+		
+		Config					*_conf;
 		str_t					_ressource;
 		int						_port;
 		FLAGS					_flags;

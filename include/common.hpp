@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cerrno>
+#include <cstddef>
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
@@ -11,6 +12,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <ostream>
 #include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +23,7 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+# include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
 
@@ -50,16 +53,6 @@ typedef struct epoll_event      event_t;
 typedef struct addrinfo         adrinfo_t;
 
 typedef std::vector<char>       raw_str_t;
-
-time_t	time_in_ms(void);
-
-void    fatal(str_t str);
-void    assert(bool scal, str_t log);
-int		unlock_socket(int fd);
-void	initialize_mime_types();
-void    log(Server *serv, Client *client, str_t err);
-int     int_pow(int base, int exp);
-
 
 #define CRLF            "\r\n"
 #define SERVER_VERSION  "HTTP/1.1"

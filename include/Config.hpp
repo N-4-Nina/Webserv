@@ -34,7 +34,7 @@ class Config
 		str_t					_autoindex;
 		location_v				_location;
 	   
-		str_t			   search_config(str_t config, str_t key);
+		str_t				search_config(str_t config, str_t key);
 		std::vector<size_t> search_location(str_t config);
 		int					search_root(str_t config, str_t key);
 
@@ -50,7 +50,7 @@ class Config
 		Config();
 };
 
-std::vector<Config>	parsing_config(int argc, char **argv);
-template <class T> str_t to_string(T n);
+std::vector<Config>			parsing_config(int argc, char **argv);
+template <class T> str_t	to_string(T n);
 
 #endif

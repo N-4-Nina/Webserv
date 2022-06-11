@@ -2,7 +2,7 @@
 #include "Request.hpp"
 #include "EvMa.hpp"
 #include "Config.hpp"
-
+#include "utils.hpp"
 
 void initialize_error_pages();
 

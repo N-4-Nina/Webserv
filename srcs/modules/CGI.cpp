@@ -2,6 +2,7 @@
 #include "Config.hpp"
 #include "flags.hpp"
 #include "EvMa.hpp"
+#include "utils.hpp"
 
 
 /*		A pipe has a limited capacity. If the pipe is full, then a

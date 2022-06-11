@@ -4,9 +4,6 @@
 # include "common.hpp"
 # include "Request.hpp"
 # include "str_manips.hpp"
-# include <sys/types.h>
-# include <sys/wait.h>
-# include <set>
 
 class EvMa;
 
@@ -15,8 +12,8 @@ class CGI
 	public:
 		CGI(EvMa *evma = NULL);
 		CGI(const CGI &ref);
-		~CGI();
 		CGI	&operator=(const CGI &ref);
+		~CGI();
 
 		EvMa	*_evma;
 		void	set_binary(str_t path);

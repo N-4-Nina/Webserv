@@ -2,6 +2,7 @@
 #include "str_manips.hpp"
 #include "find_nocase.hpp"
 #include "flags.hpp"
+#include "utils.hpp"
 
 /*
 					.--------------.
@@ -135,9 +136,8 @@ size_t Request::parse_Url(str_t const &line)
 	size_t q;
 	if ((q = _ressource.find("?")) != _ressource.npos)
 		parse_QueryString(q);
+	for (; isspace(line[end]); end++);
 
-	for (; isspace(line[end]); end++)
-		;
 	return (end);
 }
 
@@ -204,7 +204,6 @@ int Request::add_Header(str_t line)
 	}
 	else if (p.first == "host" && _conf->server_name().size())
 	{
-		std::cout << _conf->server_name().size();
 		str_v::iterator it;
 		for (it = _conf->server_name().begin(); it != _conf->server_name().end(); it++)
 		{

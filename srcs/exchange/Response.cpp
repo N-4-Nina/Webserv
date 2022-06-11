@@ -3,9 +3,9 @@
 #include "str_manips.hpp"
 #include "find_nocase.hpp"
 #include "EvMa.hpp"
-#include <fstream>
+#include "utils.hpp"
 
-#define		WRITEBUF 1000
+#define		WRITEBUF 10000
 
 /*
 					.--------------.
@@ -66,7 +66,7 @@ Response::~Response(void)
 		Obviously this constructor is a bit of a messy monster;
 	and so is select_location();
 	There is a whole lot to check to determine how we are going
-	to fetch or build the ressource.
+	to fetch or build the ressource (+ potential upload and delete).
 		For starter here's one thing we could have done better;
 	if the Config block was only for te conf exclusive info, we could have
 	used a Location to store the main route infos. That would have saved 
@@ -117,23 +117,22 @@ Response::Response(Request &req, Config *conf, Client *client, EvMa *evma) : _cg
 		}
 		if (_loc->flags() & LOC_CGI)
 			cgi_match(req._ressource, req);
+		
 		if (_flags & RES_ISCGI)
 		{
 			_flags &= ~RES_READY;
 			set_body_cgi(req);
 		}
-
-		if (req.type() == POST && (_loc->flags() & LOC_UPLOAD))			//please note that in this state we cannot upload on the default route. this is intentional.
-			upload_file(req);
-		else if (req.type() == DELETE)
-			delete_file(req);
-		
 		if (_loc->flags() & LOC_REDIR)
 		{
 			set_status(_loc->redir().first);
 			set_redir();
 			return;
 		}
+		else if (req.type() == POST && (_loc->flags() & LOC_UPLOAD))
+			upload_file(req);
+		else if (req.type() == DELETE)
+			delete_file(req);
 	}
 
 	if (_conf->autoindex() == "on")
@@ -548,7 +547,7 @@ void			Response::reset()
 					'-----'
 */
 
-bool			Response::cgi_match(str_t uri, Request & req)
+void			Response::cgi_match(str_t uri, Request & req)
 {
 	bool index = false;
 	for (std::list<str_t>::iterator it = _loc->index().begin() ; it != _loc->index().end() ; ++it)
@@ -559,7 +558,7 @@ bool			Response::cgi_match(str_t uri, Request & req)
 	}
 
 	if (uri.size() < _loc->cgi_extension().size())
-			return false;
+			return;
 	if (uri.rfind(_loc->cgi_extension()) == uri.size() - _loc->cgi_extension().size()
 		|| index == true)
 	{
@@ -567,14 +566,9 @@ bool			Response::cgi_match(str_t uri, Request & req)
 		// (assuming the request is valid), the CGI script will be replaced or removed, but not executed"
 		// docstore.mik.ua/orelly/linux/cgi/ch02_03.htm
 		if (req.type() == DELETE)
-		{
 			delete_file(req);
-			return false;
-		}
 		_flags |= RES_ISCGI;
-		return true;
 	}
-	return false;
 }
 
 void			Response::prepare_cgi()

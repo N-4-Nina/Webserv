@@ -14,9 +14,7 @@ class Server
 		Server	&operator=(const Server &ref);
 		~Server(void);
 
-		//listen_sockets	listen_sock();
-		int				id();
-
+		int		id();
 		bool	is_connected(int fd);
 		bool	is_listen(int fd, int *port);
 		void	add_to_epoll(int epoll_fd);

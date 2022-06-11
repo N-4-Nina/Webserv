@@ -10,22 +10,19 @@ class EvMa
 {
 	public:
 		EvMa(config_v &conf);
-		//EvMa(const EvMa &ref);				a implementer
-		//EvMa	&operator=(const EvMa &ref);
 		~EvMa(void);
+
 		void	close_all(void);
-		
 		void	loop();
 	private:
 		Cluster			_cluster;
 		Clients_pool	_clients;
+		event_t			_event;
+		event_t			*_events;
 		Expire_List		_expire;
-		int		_epoll_fd;
-		int		_event_nb;
-		size_t	_cluster_size;
-		
-		event_t				_event;	//rename it _tmp_event
-		event_t				*_events;
+		int				_epoll_fd;
+		int				_event_nb;
+		size_t			_cluster_size;
 		
 		void	init_epoll();
 		void	add_to_interest(int fd, Server *serv, int port);

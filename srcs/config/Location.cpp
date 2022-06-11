@@ -1,5 +1,7 @@
 #include "Location.hpp"
 #include "str_manips.hpp"
+#include "flags.hpp"
+#include "utils.hpp"
 
 /*
 					.--------------.

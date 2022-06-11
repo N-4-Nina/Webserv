@@ -4,14 +4,6 @@
 # include "../include/common.hpp"
 # include <string>
 
-#define LOC_AUTO	1
-#define LOC_INDEX	2
-#define LOC_ROOT	4
-#define LOC_CGI		8
-#define	LOC_UPLOAD	16
-#define	LOC_METHOD	32
-#define LOC_REDIR	64
-
 class Location
 {
 	public:

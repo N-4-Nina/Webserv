@@ -1,6 +1,5 @@
 #include "Server.hpp"
-
-//std::set<int>	CGI::toClose;
+#include "utils.hpp"
 
 Server::Server(){}
 
@@ -84,10 +83,7 @@ void	Server::init_listen(int_v ports)
     	servaddr.sin_port = htons(*it);
 
 		if ((socket_fd = socket(servaddr.sin_family, SOCK_STREAM, 0)) < 0)
-		{
-			std::cout << errno;
        		fatal("could not create socket");
-		}
 
 		if ((bind(socket_fd , (sockaddr*) &servaddr, sizeof(servaddr))) < 0)
         	fatal("could not bind");
