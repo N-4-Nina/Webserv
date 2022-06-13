@@ -443,7 +443,7 @@ void			Response::upload_file(Request &req)
 	str_t			filename;
 	
 	std::vector<raw_str_t>::iterator it = req.body().begin();
-	for (; it < req.body().end(); it++)
+	for (; it != req.body().end(); it++)
 	{
 		filename.clear();
 		for (; it < req.body().end() && it->size() != 0; it++)

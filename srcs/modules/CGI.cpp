@@ -181,7 +181,7 @@ void	CGI::check(FLAGS *flags, unsigned int *code)
 		_done = true;
 	if (_done)
 	{
-		if (WIFEXITED(_status))
+		if (WIFEXITED(_status) && !WEXITSTATUS(_status))
 		{
 			lseek(_fd_io[1], 0, SEEK_SET);
 			char	tmp[CGI_BUF_SIZE];
@@ -205,7 +205,6 @@ void	CGI::check(FLAGS *flags, unsigned int *code)
 			*code = 502;
 			*flags |= RES_READY;
 			close(_fd_io[0]);
-			// kill(_pid, SIGKILL);
 		}
 	}
 }
