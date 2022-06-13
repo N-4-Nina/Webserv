@@ -287,17 +287,20 @@ unsigned int Request::cl()
 					'-------------'
 */
 
-bool Request::isBoundary(raw_str_t line)
+bool Request::isBoundary(raw_str_t line, bool &isEnd)
 {
 	if (line == _boundary)
 		return (true);
 
-	raw_str_t tmp(_boundary);
+	raw_str_t tmp =_boundary;
 	tmp.push_back('-');
 	tmp.push_back('-');
 
-	if (line == tmp)
+	if (raw_to_str(line).find(raw_to_str(tmp)) == 0)
+	{
+		isEnd = true;
 		return (true);
+	}
 	return (false);
 }
 

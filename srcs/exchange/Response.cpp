@@ -434,6 +434,7 @@ void	Response::set_headers(str_t path, Request &req)
 
 void			Response::upload_file(Request &req)
 {
+	bool	isEnd = false;
 	if (!req.body().size())
 	{
 		set_status(500);
@@ -443,8 +444,12 @@ void			Response::upload_file(Request &req)
 	str_t			filename;
 	
 	std::vector<raw_str_t>::iterator it = req.body().begin();
-	for (; it != req.body().end(); it++)
+	for (; it < req.body().end(); it++)
 	{
+		// if (raw_to_str(*it) == "undefined")
+		// 	continue;
+		// if (isEnd)
+		// 	break;
 		filename.clear();
 		for (; it < req.body().end() && it->size() != 0; it++)
 		{
@@ -466,14 +471,19 @@ void			Response::upload_file(Request &req)
 		std::ofstream	stream(filepath.c_str(), std::ofstream::binary);
 
 		it++;			//boundaries-"headers" are precedeed and followed by empty line
-		for (; it < req.body().end() && !req.isBoundary(*it); it++)
+		for (; it != req.body().end() && !req.isBoundary(*it, isEnd); it++)
 		{
+			if (isEnd)
+				break;
 			char *tmp = raw_to_char(*it);
 			stream.write(tmp, it->size());
 			stream.write(CRLF, 2);
 		}
 		stream.close();
+		if (isEnd)
+			break;
 	}
+	set_status(202);
 }
 
 // to test quickly: curl -X DELETE -i 'http://localhost:8001/love/love.html'

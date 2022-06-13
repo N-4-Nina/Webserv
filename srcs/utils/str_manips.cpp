@@ -26,3 +26,9 @@ void	append_slash(str_t &s)
 	if (!(s[s.size() - 1] == '/'))
 		s.append("/");
 }
+
+str_t trim_str(str_t s)
+{
+    size_t end = s.find_last_not_of(' ');
+    return (end == std::string::npos) ? "" : s.substr(0, end + 1);
+}

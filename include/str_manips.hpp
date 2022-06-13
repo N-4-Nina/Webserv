@@ -27,3 +27,4 @@ char				*raw_to_char(raw_str_t raw);
 raw_str_t			raw_add(raw_str_t one, raw_str_t two);
 raw_str_t::iterator raw_find(raw_str_t &str, const char *tofind, size_t size, size_t pos = 0);
 raw_str_t			raw_newLine(raw_str_t &raw, raw_str_t::iterator hint);
+str_t				trim_str(str_t s);

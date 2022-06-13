@@ -27,7 +27,7 @@ class Request
 		int				parse_TopLine(str_t line);
 		int				add_Header(str_t line);
 		int				add_Body(raw_str_t line, size_t plus);
-		bool			isBoundary(raw_str_t line);
+		bool			isBoundary(raw_str_t line, bool &isEnd);
 		bool			done_Reading();
 		bool			over_Read();
 		void			set_Error(unsigned int code);
