@@ -235,6 +235,12 @@ char **CGI::build_cgi_env(Request req, str_t target)
 	char **env;
 	strMap envMap;
 
+	if (req.type() == 1)
+		envMap["REQUEST_METHOD"] = "GET";
+	else if (req.type() == 2)
+		envMap["REQUEST_METHOD"] = "POST";
+	else
+		fatal("CGI can't work with another method than GET or POST");
 	envMap["REDIRECT_STATUS"] = "200";
 	envMap["GATEWAY_INTERFACE"] = "CGI/1.1";
 	envMap["SCRIPT_NAME"] = _script_name;
@@ -244,7 +250,7 @@ char **CGI::build_cgi_env(Request req, str_t target)
 	envMap["REQUEST_URI"] = req._ressource;
 	get_host_port(req, envMap);
 	envMap["SERVER_PROTOCOL"] = SERVER_VERSION;
-	envMap["SERVER_SOFTWARE"] = "webserv/1.0"; // server name and its version
+	envMap["SERVER_SOFTWARE"] = "webserv/1.0";
 
 	int i = -1;
 	env = (char**)malloc(sizeof(char*) * (envMap.size() + 1));
