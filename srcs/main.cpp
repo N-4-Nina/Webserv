@@ -42,7 +42,7 @@ int check_duplicate(std::vector<Config> &conf)
         {
             if (used.count(*pit) && used[*pit] != i)
             {
-                std::cout << "Found duplicate port in config file.\n";
+                std::cout << "\nerror: Found duplicate port in config file.\n";
                 return (1);
             }
             used[*pit] = i;
