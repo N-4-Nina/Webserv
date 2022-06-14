@@ -189,9 +189,8 @@ void Location::set_upload_path(str_t line)
 	else
 	{
 		_upload_path = line.substr(line.find(" ") + 1);
-		std::cout << _upload_path <<std::endl;
-
 		struct stat s;
+		
 		if ( stat(_upload_path.c_str(), &s) == 0 )
 		{
 		    if ( !(s.st_mode & S_IFDIR) )

@@ -1,24 +1,7 @@
 #include "Config.hpp"
 #include "str_manips.hpp"
 #include "utils.hpp"
-
-/*
-	template to print a vector, to debug, if needed
-*/
-template<typename T>
-void	printVec(std::vector<T> &v)
-{
-	size_t  last = v.size() - 1;
-
-	std::cout << "{" ;
-	for (size_t i = 0 ; i < v.size() ; ++i)
-	{
-		std::cout << v[i];
-		if (i != last)
-			std::cout << ", ";
-	}
-	std::cout << "}" << std::endl;
-};
+#include "common.hpp"
 
 /*
 	check and get the server block, every server block is a new config to
@@ -163,8 +146,6 @@ config_v parse_config(const char* config)
 	if (block.empty() == true)
 		throw std::string("error: no server found");
 
-	// check what the block contains
-	// printVec(block);
 	config_v new_config;
 	while (block.empty() == false)
 	{
@@ -191,5 +172,19 @@ config_v	parsing_config(int argc, char **argv)
 	}
 	catch (str_t error)
 		{ fatal(error); }
+	
+	std::cout << "\n\t\e[36;1m Welcome to Webserv \n";
+	std::cout << "\e[32mCreated " << config.size() << " virtual servers:\e[0m\n";
+	int i = 0;
+	for (config_v::iterator it = config.begin(); it != config.end(); it++)
+	{
+		i++;
+		std::cout << "Server " << i << " listening on port(s): ";
+		for (int_v::iterator itt = it->ports().begin(); itt != it->ports().end(); itt++)
+			std::cout << *itt << ", ";
+		std::cout << "\b\b \t";
+		std::cout << "\n";
+		std::cout << "\e[0m";
+	}
 	return (config);
 }

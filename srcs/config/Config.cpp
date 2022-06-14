@@ -207,7 +207,6 @@ void Config::set_location(str_t line)
 	{
 		it = tmp.begin();
 		block = line.substr(tmp[0], (tmp[1] - tmp[0]));
-		std::cout << block;
 		Location new_location(block);
 		this->_location.push_back(new_location);
 		tmp.erase(tmp.begin(), tmp.begin() + 2);
