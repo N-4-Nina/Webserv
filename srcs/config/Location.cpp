@@ -190,8 +190,26 @@ void Location::set_upload_path(str_t line)
 	{
 		_upload_path = line.substr(line.find(" ") + 1);
 		std::cout << _upload_path <<std::endl;
-		if (access( _upload_path.c_str(), F_OK ))
+
+		struct stat s;
+		if ( stat(_upload_path.c_str(), &s) == 0 )
+		{
+		    if ( !(s.st_mode & S_IFDIR) )
+		    {
+				/*	The upload directory is actually not a directory, so we unset
+					the upload flag. Beware, it causes the route to behave like 
+					a non-upload route. */
+		        _flags = _flags & ~LOC_UPLOAD;	// log: did not find upload directory
+				return;
+		    }
+		}
+		else if (mkdir(_upload_path.c_str(), 0777))
+		{
+			/*	directory does not exist and cannot be created, so we unset the
+				flag as well. */
 			_flags = _flags & ~LOC_UPLOAD;	// log: did not find upload directory
+			return;
+		};
 		append_slash(_upload_path);
 	}
 }
